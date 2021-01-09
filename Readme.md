@@ -3,7 +3,7 @@
 A path tracer based on pbrt.
 
 ## Download
---recrusive
+--recursive
 
 ## packages
 
