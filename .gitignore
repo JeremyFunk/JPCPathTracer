@@ -17,6 +17,7 @@ __pycache__/
 env/
 build/
 build_vs/
+buildvs/
 develop-eggs/
 dist/
 downloads/
