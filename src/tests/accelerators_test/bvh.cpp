@@ -16,7 +16,7 @@ namespace accel_test
     TEST(accelerators_test, shity_bvh_build)
     {
         std::shared_ptr<core::IMaterial> material_white = std::make_shared<materials::BasicMaterial>(
-            core::RGBSpectrum::FromRGB({1,1,1}),0); 
+            std::make_shared<color::ColorValueVec3>(color::ColorValueVec3({1,1,1})),1);
 
         auto transformation = std::make_shared<core::Transformation>(core::Vec3(0, 0, -8), core::Vec3(0, 0, 0), core::Vec3(1,1,1));
 
@@ -57,7 +57,7 @@ namespace accel_test
     TEST(accelerators_test, shity_bvh_intersect)
     {
         std::shared_ptr<core::IMaterial> material_white = std::make_shared<materials::BasicMaterial>(
-            core::RGBSpectrum::FromRGB({1,1,1}),0); 
+            std::make_shared<color::ColorValueVec3>(color::ColorValueVec3({1,1,1})),1);
 
         auto transformation = std::make_shared<core::Transformation>(core::Vec3(0, 0, -8), core::Vec3(0, 0, 0), core::Vec3(1,1,1));
 

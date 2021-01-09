@@ -18,7 +18,7 @@ std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes()
     //auto texture = utilities::textureLoader::LoadColorValueTexture("F:\\blenderhilfe vol 1\\blenderHilfe Textures Vol1 2\\Boden\\Boden - Holz\\Boden_Parket_001_COL2_tiled.jpg");
     using namespace core;
 
-        std::shared_ptr<IMaterial> material_blue = std::make_shared<materials::BasicMaterial>(
+    std::shared_ptr<IMaterial> material_blue = std::make_shared<materials::BasicMaterial>(
         std::make_shared<color::ColorValueVec3>(color::ColorValueVec3({0,1,0})),1);
         
     std::shared_ptr<IMaterial> material_red = std::make_shared<materials::GlossyMaterial>(
