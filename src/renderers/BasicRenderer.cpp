@@ -12,6 +12,12 @@
 namespace renderers
 {
  
+     BasicRenderer::BasicRenderer(int sample_count,bool multithread) 
+        : _multithread(multithread)
+     {
+         _sample_count = sample_count;
+     }
+ 
 
     void BasicRenderer::Init(std::shared_ptr<ISampler> sampler, std::shared_ptr<ICamera> camera, std::shared_ptr<IScene> scene,
          std::shared_ptr<IIntegrator> integrator, std::shared_ptr<IFilter> filter ,std::shared_ptr<IFilm> film)
@@ -22,8 +28,9 @@ namespace renderers
         _integrator = integrator;
         _film = film;
         _filter = filter;
-        _sample_count = 32;
     }
+
+
     void BasicRenderer::Render(){
         int width = _film->GetWidth();
         int height = _film->GetHeight();
@@ -35,23 +42,27 @@ namespace renderers
         std::atomic_int tileFinishCounter = 0;
 
         std::cout<<"Rendering...\n";
+
         #pragma omp parallel for
-        for(int t = 0; t < totalTilesX*totalTilesY; t++){
-            
-            int tX = t%totalTilesX;
-            int tY = t/totalTilesX;
+        for (int t = 0; t < totalTilesX * totalTilesY; t++)
+        {
+            int tX = t % totalTilesX;
+            int tY = t / totalTilesX;
 
             int currentTileX = tX * tileSize;
             int currentTileY = tY * tileSize;
-            int currentTileSizeX = tX==totalTilesX-1 ? width - (tX*tileSize) : tileSize;
-            int currentTileSizeY = tY==totalTilesY-1 ? height - (tY*tileSize) : tileSize;
+            int currentTileSizeX = tX == totalTilesX - 1 ? width - (tX * tileSize) : tileSize;
+            int currentTileSizeY = tY == totalTilesY - 1 ? height - (tY * tileSize) : tileSize;
 
             EvaluateTile(currentTileX, currentTileY, currentTileSizeX, currentTileSizeY);
-            
+
             tileFinishCounter += 1;
-            if(tileFinishCounter%30 == 0)
-                std::cout<<((Prec)tileFinishCounter/((Prec)totalTilesX*totalTilesY))*100<<"%\n";
+            if (tileFinishCounter % 30 == 0)
+                std::cout << ((Prec)tileFinishCounter / ((Prec)totalTilesX * totalTilesY)) * 100 << "%\n";
         }
+   
+
+
     }
 
     void BasicRenderer::EvaluateTile(int tX, int tY, int tW, int tH){

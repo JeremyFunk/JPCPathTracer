@@ -9,7 +9,7 @@ namespace renderers
     class BasicRenderer : public IRenderer
     {
     public:
-
+        BasicRenderer(int sample_count, bool multithread = true);
         virtual void Init(std::shared_ptr<ISampler> sampler, std::shared_ptr<ICamera> camera, std::shared_ptr<IScene> scene,
          std::shared_ptr<IIntegrator> integrator, std::shared_ptr<IFilter> filter ,std::shared_ptr<IFilm> film) override;
         virtual void Render() override;
@@ -24,5 +24,6 @@ namespace renderers
         std::shared_ptr<IFilm> _film;
         std::shared_ptr<IFilter> _filter;
         int _sample_count;
+        bool _multithread;
     };
 }

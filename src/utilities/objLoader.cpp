@@ -97,7 +97,7 @@ namespace utilities
             }
             file.close();
         }else{
-            std::cout<<"Hallo welt";
+            std::cout << "Could not open the path: " << path << std::endl;
         }
 
         auto mesh = std::make_shared<shapes::TriangleMesh>(std::make_shared<std::vector<core::Prec>>(vertices), std::make_shared<std::vector<core::Prec>>(normals), 

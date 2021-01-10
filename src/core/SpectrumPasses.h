@@ -108,6 +108,11 @@ namespace core {
             return *this;
         }
 
+        bool IsZero()
+        {
+            return _combined_pass.IsZero();
+        }
+
         static CombinedPass FromValue(const Prec& value);
 
 

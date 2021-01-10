@@ -1,17 +1,13 @@
 set(AUTOSRC
-"BeckmannDistribution.cpp"
 "BSDF.cpp"
-"DiffuseBxdf.cpp"
+"LambertianBRDF.cpp"
 "SphericalCoordinates.cpp"
-"TorranceSparrowBRDF.cpp"
-"BeckmannDistribution.h"
 "BSDF.h"
-"DiffuseBxdf.h"
 "IBXDF.h"
 "IFresnel.h"
 "IMicrofacetDistribution.h"
+"LambertianBRDF.h"
 "SphericalCoordinates.h"
-"TorranceSparrowBRDF.h"
 )
 
 

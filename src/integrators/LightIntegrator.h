@@ -11,17 +11,16 @@
 
 namespace integrators
 {
-    using namespace core;
 
-    class LightIntegrator : public IIntegrator
+
+    class LightIntegrator : public core::IIntegrator
     {
     public:
-        virtual void Init(std::shared_ptr<IScene> scene) override;
-        virtual SpectrumPasses Integrate(const Ray& ray,const std::shared_ptr<ISampler>& sampler,MemoryArea& memory) const override;
-        virtual SpectrumPasses IntegrateAllLights(const SurfaceInteraction& interaction) const override;
+        virtual void Init(std::shared_ptr<core::IScene> scene) override;
+        virtual core::SpectrumPasses Integrate(const core::Ray& ray,const std::shared_ptr<core::ISampler>& sampler,core::MemoryArea& memory) const override;
 
     private:
-        std::shared_ptr<IScene> _scene;
+        std::shared_ptr<core::IScene> _scene;
         std::shared_ptr<textures::Texture> texture;
     };
 }

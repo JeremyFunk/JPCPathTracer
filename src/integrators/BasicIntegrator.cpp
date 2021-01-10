@@ -12,7 +12,5 @@ namespace integrators
         auto spectrum = RGBSpectrum::FromRGB(Vec3(ray.Direction[0]*.5+.5, ray.Direction[1]*.5+.5, ray.Direction[2]*.5+.5));
         return SpectrumPasses(spectrum);
     }
-    SpectrumPasses BasicIntegrator::IntegrateAllLights(const SurfaceInteraction& interaction) const{
-        return SpectrumPasses();
-    }
+
 }
