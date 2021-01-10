@@ -26,7 +26,7 @@ namespace integrators
                 if(!light_blocked.has_value())
                 {
                     core::SpectrumPasses light_luminance = light->Illumination(interaction_point, light_info);
-                    core::SpectrumPasses bsdf_luminance = bsdf->Scattering(-ray.Direction, light_info.Direction);
+                    core::SpectrumPasses bsdf_luminance = bsdf->Scattering(-ray.Direction, -light_info.Direction);
                     luminance+= light_luminance*bsdf_luminance* std::abs(ray.Direction.dot(light_info.Direction));
                 }
             }

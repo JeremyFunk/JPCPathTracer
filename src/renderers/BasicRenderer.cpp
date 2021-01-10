@@ -74,7 +74,10 @@ namespace renderers
             for(int y = tY; y < tY+tH; y++){
         // for(int x = 362; x < tX+tW; x++){
         //     for(int y = 158; y < tY+tH; y++){
-
+                //if (x == 24 && y == 23)
+                //{
+                //    std::cout << "Test" << std::endl;
+                //}
                 for(int s = 0; s < _sample_count; s++){
                     auto ray = _camera->GenerateRay(threadSampler, Vec2i(x,y));
                     SpectrumPasses sample_pass = _integrator->Integrate(ray,threadSampler,ThreadMemory);

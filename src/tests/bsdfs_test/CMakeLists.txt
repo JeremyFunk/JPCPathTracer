@@ -1,4 +1,5 @@
 set(AUTOSRC
+"BeckmannTest.cpp"
 "bsdf_test.cpp"
 "BxdfDebugger.cpp"
 "diffuse_bxdf.cpp"
@@ -13,6 +14,7 @@ set(LIBS
     samplers
     films
     utilities
+    debug_helper
 )
 
 jpctr_add_gtest(bsdfs_test "${AUTOSRC}" "${INC}" "${LIBS}" )
