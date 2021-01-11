@@ -44,7 +44,7 @@ std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes()
     auto material_blue = std::make_shared<materials::BasicMaterial>(color_blue,0);
     auto material_red = std::make_shared<materials::BasicMaterial>(color_red,0);
     auto material_green = std::make_shared<materials::BasicMaterial>(color_green,0);  
-    auto material_white_glossy = std::make_shared<materials::GlossyMaterial>(0.1);  
+    auto material_white_glossy = std::make_shared<materials::GlossyMaterial>(color_white,0);
     auto material_white = std::make_shared<materials::BasicMaterial>(color_white,0);
 
     core::Transformation plain_transformation (core::Vec3(0, 0, -8), core::Vec3(0, 0, 0), core::Vec3(1.3,.9,1));

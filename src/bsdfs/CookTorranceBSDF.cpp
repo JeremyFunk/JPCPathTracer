@@ -3,12 +3,12 @@
 #include "core/Linalg.h"
 #include "core/SpectrumPasses.h"
 #include "MicrofacetHelper.h"
-
+#include<iostream>
 
 namespace bsdfs
 {
-    CookTorranceBSDF::CookTorranceBSDF(const IMicrofacetDistribution* distribution,const IFresnel* fresnel) 
-        : _distribution(distribution), _fresnel(fresnel)
+    CookTorranceBSDF::CookTorranceBSDF(const IMicrofacetDistribution* distribution,const IFresnel* fresnel, core::Spectrum reflectance)
+        : _distribution(distribution), _fresnel(fresnel), _reflectance(reflectance)
     {
         _type.BSDF_REFLECTION = false; 
         _type.BSDF_TRANSMISSION = false;
@@ -27,7 +27,8 @@ namespace bsdfs
         //See Microfacet Models for Refraction through Rough Surfaces 2007 (20)
         //n is in the normal space (0,0,1)
         core::Vec3 microfacet_normal = MicrofacetNormal(scattered_direction, incident_direction);
-        core::Prec cos_theta_scatterd_micro = std::abs(scattered_direction.dot(microfacet_normal));
+        //core::Prec cos_theta_scatterd_micro = std::abs(scattered_direction.dot(microfacet_normal));
+        core::Prec cos_theta_scatterd_micro = std::abs(incident_direction.dot(microfacet_normal));
         core::SpectrumPasses fresnel = _fresnel->Evaluate(cos_theta_scatterd_micro);
         core::Prec distribution = _distribution->Distribution(microfacet_normal);
         core::Prec shadowing = _distribution->ShadowMasking(scattered_direction,incident_direction);

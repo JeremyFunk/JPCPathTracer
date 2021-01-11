@@ -8,7 +8,7 @@ namespace bsdfs
     class CookTorranceBSDF : public IBXDF
     {
     public:
-        CookTorranceBSDF(const IMicrofacetDistribution* distribution,const IFresnel* fresnel);
+        CookTorranceBSDF(const IMicrofacetDistribution* distribution,const IFresnel* fresnel, core::Spectrum reflectance);
         virtual BXDFResult EvaluateAll(const core::Vec3& scattered_direction,const core::Vec2& random_point) const override;
         virtual core::SpectrumPasses Scattering(const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const override;
         virtual core::Prec Pdf(const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const override;
@@ -18,5 +18,6 @@ namespace bsdfs
         const IMicrofacetDistribution* _distribution;
         const IFresnel* _fresnel;
         core::BxDFType _type;
+        core::Spectrum _reflectance;
     };
 }
