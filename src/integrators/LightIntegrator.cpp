@@ -35,6 +35,7 @@ namespace integrators
         core::SpectrumPasses luminance;
 
         if(surfaceInteraction.has_value()){
+            luminance+=surfaceInteraction->Material->Illumination(surfaceInteraction->Interaction, ray);
             core::IBSDF* bsdf = surfaceInteraction->Material->ComputeBSDF(surfaceInteraction->Interaction, memory);
             luminance+=IntegrateLights(ray,surfaceInteraction.value(),_scene,bsdf);
             delete bsdf;
