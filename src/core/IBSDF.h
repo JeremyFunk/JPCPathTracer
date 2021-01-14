@@ -32,6 +32,7 @@ namespace core {
         virtual SpectrumPasses Scattering(const Vec3& scattered_direction,const Vec3& incident_direction) const = 0;
         virtual Prec Pdf(const Vec3& scattered_direction,const Vec3& incident_direction) const = 0;
         virtual Vec3 SampleIncidentDirection(const Vec3& scattered_direction, const Vec2& random_point) const = 0;
+        virtual ~IBSDF() {}
 
     };
 }

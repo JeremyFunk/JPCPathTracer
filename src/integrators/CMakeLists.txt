@@ -1,10 +1,12 @@
 set(AUTOSRC
+"PathIntegrator.cpp"
 "BasicIntegrator.cpp"
-"DebugIntegrator.cpp"
 "LightIntegrator.cpp"
-"BasicIntegrator.h"
-"DebugIntegrator.h"
+"DebugIntegrator.cpp"
 "LightIntegrator.h"
+"DebugIntegrator.h"
+"PathIntegrator.h"
+"BasicIntegrator.h"
 )
 
 

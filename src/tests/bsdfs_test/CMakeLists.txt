@@ -1,9 +1,9 @@
 set(AUTOSRC
-"BeckmannTest.cpp"
-"bsdf_test.cpp"
-"BxdfDebugger.cpp"
 "diffuse_bxdf.cpp"
+"bsdf_test.cpp"
+"BeckmannTest.cpp"
 "glossy_bxdf.cpp"
+"BxdfDebugger.cpp"
 "BxdfDebugger.h"
 )
 set(INC

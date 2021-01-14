@@ -17,7 +17,6 @@ namespace bsdfs {
         virtual core::SpectrumPasses Scattering(const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const override;
         virtual core::Prec Pdf(const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const override;
         virtual core::Vec3 SampleIncidentDirection(const core::Vec3& scattered_direction, const core::Vec2& random_point) const override;
-
         ~BSDF();
         
     private:
@@ -31,4 +30,6 @@ namespace bsdfs {
         core::Vec3 _normal;
 
     };
+    
+    
 }

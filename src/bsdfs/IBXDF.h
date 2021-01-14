@@ -24,6 +24,7 @@ namespace bsdfs {
         virtual core::Prec Pdf(const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const = 0;
         virtual core::Vec3 SampleIncidentDirection(const core::Vec3& scattered_direction, const core::Vec2& random_point) const = 0;
         virtual core::BxDFType GetType() const = 0;
+        virtual ~IBXDF() {}
 
     };
 }
