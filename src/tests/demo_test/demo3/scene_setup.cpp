@@ -12,23 +12,24 @@
 std::string ProjectPath()
 {
     //return "E:\\dev\\pathTrace\\local\\jcp-path-tracer\\resource\\";
-    return "H:\\dev\\path-tracing\\JPCPathTracer\\";
+    //return "H:\\dev\\path-tracing\\JPCPathTracer\\";
+    return "/home/chris/Dev/path_tracing/JPCPathTracer/";
 }
 
 std::string PlainPath()
 {
-    return ProjectPath()+"resource\\plain.obj";
+    return ProjectPath()+"resource/plain.obj";
 }
 
 std::string MonkeyPath()
 {
 
-    return ProjectPath()+"resource\\Susan.obj";
+    return ProjectPath()+"resource/Susan.obj";
 }
 
 std::string IcospherePath()
 {
-    return ProjectPath() + "resource\\icosphere.obj";
+    return ProjectPath() + "resource/icosphere.obj";
 }
 
 std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes() 

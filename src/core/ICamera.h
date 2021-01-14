@@ -2,7 +2,9 @@
 #include "Ray.h"
 #include "ISampler.h"
 #include <memory>
-#include <vcruntime.h>
+#ifdef _MSC_VER
+    #include <vcruntime.h>
+#endif
 namespace core {
     class ICamera
     {

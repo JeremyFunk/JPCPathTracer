@@ -4,7 +4,7 @@
 #include "bsdfs/IMicrofacetDistribution.h"
 #include "core/Linalg.h"
 #include <memory>
-#include <color\ColorValue.h>
+#include <color/ColorValue.h>
 
 namespace materials
 {

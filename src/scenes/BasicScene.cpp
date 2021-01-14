@@ -63,7 +63,7 @@ namespace scenes
         //shapeList->push_back(std::make_shared<shapes::Sphere>(Vec3(0,0,-15),6, material_red));
         //shapeList.push_back(std::make_shared<shapes::Sphere>(Vec3(0,0,-9),1, material_white));
         //lightList.push_back(std::make_shared<lights::PointLight>(Vec3(-8, 0, -5), RGBSpectrum::FromRGB({100,0,0})));
-        lightList.push_back(std::make_shared<lights::PointLight>(Vec3(3, 0, -3), RGBSpectrum::FromRGB({0,0,50})));
+        //lightList.push_back(std::make_shared<lights::PointLight>(Vec3(3, 0, -3), RGBSpectrum::FromRGB({0,0,50})));
         //lightList.push_back(std::make_shared<lights::PointLight>(Vec3(0, 0, -5), RGBSpectrum::FromRGB({5,5,5})));
 
         //lightList.push_back(std::make_shared<lights::DirectionalLight>(Vec3(0, 0, -1).normalized(), RGBSpectrum::FromRGB({0,.2,0})));

@@ -1,7 +1,9 @@
 #pragma once
 #include "Linalg.h"
 #include <memory>
-#include <vcruntime.h>
+#ifdef _MSC_VER
+    #include <vcruntime.h>
+#endif
 #include <array>
 #include <vector>
 #include "constants.h"

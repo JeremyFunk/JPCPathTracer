@@ -4,7 +4,6 @@
 #include "cameras/ProjectionCamera.h"
 #include "scenes/BasicScene.h"
 #include "integrators/BasicIntegrator.h"
-#include "integrators/PathIntegrator.h"
 #include "filters/GaussianFilter.h"
 #include "films/BasicFilm.h"
 #include <memory>
@@ -17,11 +16,11 @@ int main()
     auto sampler = std::make_shared<samplers::StratifiedSampler>();
     auto camera = std::make_shared<cameras::ProjectionCamera>(width,height,1);
     auto scene = std::make_shared<scenes::BasicScene>();
-    auto integrator = std::make_shared<integrators::PathIntegrator>();
+    auto integrator = std::make_shared<integrators::BasicIntegrator>();
     integrator->Init(scene);
     auto filter = std::make_shared<filters::GaussianFilter>(0.5);
     auto film = std::make_shared<films::BasicFilm>(width,height);
-    auto renderer = std::make_shared<renderers::BasicRenderer>();
+    auto renderer = std::make_shared<renderers::BasicRenderer>(1);
     renderer->Init(sampler, camera, scene, integrator, filter, film);
     renderer->Render();
     film->WriteImage("demo2.png");

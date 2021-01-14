@@ -1,8 +1,9 @@
 #pragma once
 
 #include "core/ISampler.h"
-#include <vcruntime.h>
-
+#ifdef _MSC_VER
+    #include <vcruntime.h>
+#endif
 namespace samplers
 {
     

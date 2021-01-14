@@ -1,6 +1,8 @@
 #include "MemoryArea.h"
 #include <cmath>
-#include <corecrt_malloc.h>
+#ifdef _MSC_VER
+    #include <corecrt_malloc.h>
+#endif
 #include <unordered_map>
 
 

@@ -36,7 +36,7 @@ int main()
     integrator->Init(scene);
     auto filter = std::make_shared<filters::GaussianFilter>(0.5);
     auto film = std::make_shared<films::BasicFilm>(width,height);
-    auto renderer = std::make_shared<renderers::BasicRenderer>();
+    auto renderer = std::make_shared<renderers::BasicRenderer>(1);
     renderer->Init(sampler, camera, scene, integrator, filter, film);
     renderer->Render();
     film->WriteImage("demo1.png");

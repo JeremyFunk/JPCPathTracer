@@ -1,6 +1,9 @@
 #pragma once
 #include "Spectrum.h"
-#include <vcruntime.h>
+#ifdef _MSC_VER
+    #include <vcruntime.h>
+#endif
+
 namespace core {
 
     class CombinedPass
