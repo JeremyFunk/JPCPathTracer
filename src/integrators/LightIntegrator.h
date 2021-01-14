@@ -4,6 +4,7 @@
 #include "core/Ray.h"
 #include "core/IScene.h"
 #include "core/SpectrumPasses.h"
+#include "core/SurfaceProperties.h"
 #include "textures/Texture.h"
 #include "utilities/textureLoader.h"
 #include "core/constants.h"
@@ -12,6 +13,7 @@
 namespace integrators
 {
 
+    core::SpectrumPasses IntegrateLights(const core::Ray& ray,const core::SurfaceProperties& properties,const std::shared_ptr<core::IScene> scene,core::IBSDF* bsdf);
 
     class LightIntegrator : public core::IIntegrator
     {
@@ -21,6 +23,5 @@ namespace integrators
 
     private:
         std::shared_ptr<core::IScene> _scene;
-        std::shared_ptr<textures::Texture> texture;
     };
 }
