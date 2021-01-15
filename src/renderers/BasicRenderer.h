@@ -23,7 +23,8 @@ namespace renderers
         std::shared_ptr<IIntegrator> _integrator;
         std::shared_ptr<IFilm> _film;
         std::shared_ptr<IFilter> _filter;
-        int _sample_count;
+        int _sample_count_x;
+        int _sample_count_y;
         bool _multithread;
     };
 }

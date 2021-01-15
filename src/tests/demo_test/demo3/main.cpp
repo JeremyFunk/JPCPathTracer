@@ -15,7 +15,7 @@
 class TestIntegrator : public integrators::DebugIntegrator
 {
 public:
-    virtual core::Vec3 PixelEffect(core::SurfaceProperties& properties, const core::Ray& ray, std::shared_ptr<core::ISampler> sampler, core::MemoryArea& memory,
+    virtual core::Vec3 PixelEffect(core::SurfaceProperties& properties, const core::Ray& ray, const core::Vec2& sample, core::MemoryArea& memory,
         const std::shared_ptr<core::IScene>& scene) const
     {
         //core::Vec3 normal = properties.Interaction.Normal;

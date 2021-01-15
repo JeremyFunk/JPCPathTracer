@@ -29,7 +29,12 @@ namespace integrators
     void LightIntegrator::Init(std::shared_ptr<core::IScene> scene){
         _scene = scene;
     }
-    core::SpectrumPasses LightIntegrator::Integrate(const core::Ray& ray,const std::shared_ptr<core::ISampler>& sampler,core::MemoryArea& memory) const{
+    
+    size_t LightIntegrator::Get2DSampleCount() 
+    {
+        return 1;
+    }
+    core::SpectrumPasses LightIntegrator::Integrate(const core::Ray& ray,const core::Vec2* samples,core::MemoryArea& memory) const{
         auto surfaceInteraction = _scene->Intersect(ray);
         
         core::SpectrumPasses luminance;

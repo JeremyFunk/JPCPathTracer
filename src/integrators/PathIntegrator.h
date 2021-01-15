@@ -9,7 +9,8 @@ namespace integrators
     public:
         PathIntegrator(core::SpectrumPasses sky_color = core::SpectrumPasses::FromValue(0),int max_depth = 5);
         virtual void Init(std::shared_ptr<core::IScene> scene) override;
-        virtual core::SpectrumPasses Integrate(const core::Ray& ray,const std::shared_ptr<core::ISampler>& sampler,core::MemoryArea& memory) const override;  
+        virtual size_t Get2DSampleCount() override;
+        virtual core::SpectrumPasses Integrate(const core::Ray& ray,const core::Vec2* samples,core::MemoryArea& memory) const override;  
     private:
         std::shared_ptr<core::IScene> _scene;
         core::SpectrumPasses _sky_color;

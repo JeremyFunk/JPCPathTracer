@@ -1,5 +1,6 @@
 #pragma once
 #include "core/IIntegrator.h"
+#include "core/Linalg.h"
 #include "core/Spectrum.h"
 #include "core/Ray.h"
 #include "core/IScene.h"
@@ -19,7 +20,8 @@ namespace integrators
     {
     public:
         virtual void Init(std::shared_ptr<core::IScene> scene) override;
-        virtual core::SpectrumPasses Integrate(const core::Ray& ray,const std::shared_ptr<core::ISampler>& sampler,core::MemoryArea& memory) const override;
+        virtual size_t Get2DSampleCount() override;
+        virtual core::SpectrumPasses Integrate(const core::Ray& ray,const core::Vec2* samples,core::MemoryArea& memory) const override;
 
     private:
         std::shared_ptr<core::IScene> _scene;

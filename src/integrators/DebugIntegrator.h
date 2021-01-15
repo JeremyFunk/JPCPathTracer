@@ -8,8 +8,9 @@ namespace integrators {
     {
     public:
         virtual void Init(std::shared_ptr<core::IScene> scene);
-        virtual core::SpectrumPasses Integrate(const core::Ray& ray,const std::shared_ptr<core::ISampler>& sampler,core::MemoryArea& memory) const;
-        virtual core::Vec3 PixelEffect(core::SurfaceProperties& properties,const core::Ray& ray, std::shared_ptr<core::ISampler> sampler,core::MemoryArea& memory, 
+        virtual size_t Get2DSampleCount();
+        virtual core::SpectrumPasses Integrate(const core::Ray& ray,const core::Vec2* samples,core::MemoryArea& memory) const;
+        virtual core::Vec3 PixelEffect(core::SurfaceProperties& properties,const core::Ray& ray,const core::Vec2& sample,core::MemoryArea& memory, 
             const std::shared_ptr<core::IScene>& scene) const = 0;
     private:
         std::shared_ptr<core::IScene> _scene;
