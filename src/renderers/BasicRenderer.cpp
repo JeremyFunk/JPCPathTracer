@@ -1,4 +1,5 @@
 #include "BasicRenderer.h"
+#include "core/Bsdf.h"
 #include "core/Linalg.h"
 #include "core/MemoryArea.h"
 #include "core/Spectrum.h"
@@ -31,6 +32,7 @@ namespace renderers
         _integrator = integrator;
         _film = film;
         _filter = filter;
+        _bsdf_info = _scene->GetBsdfInfo();
     }
 
 
@@ -70,11 +72,13 @@ namespace renderers
 
     void BasicRenderer::EvaluateTile(int tX, int tY, int tW, int tH){
         auto myTile = std::make_unique<FilmTile>(_filter, Bounds2D<int>(tX+tW, tX, tY+tH, tY));
-        MemoryArea ThreadMemory;
+        BsdfMemoryPtr thread_memory = CreateBsdfMemory(_bsdf_info);
         auto threadSampler = _sampler->Clone();
         
-        int sample_count = _integrator->Get2DSampleCount();
-        auto samples = std::make_shared<std::vector<core::Vec2>>(_sample_count_x*_sample_count_y*sample_count);
+        
+        int sample_count = _sample_count_x*_sample_count_y;
+
+        auto samples = _integrator->SetupSamples(sample_count);
 
         for(int x = tX; x < tX+tW; x++){
             for(int y = tY; y < tY+tH; y++){
@@ -84,19 +88,20 @@ namespace renderers
                 //{
                 //    std::cout << "Test" << std::endl;
                 //}
-                threadSampler->Get2DSampleArray(_sample_count_y, _sample_count_x, sample_count, samples->data());
-                
-                for(int sample_idx_y = 0; sample_idx_y < _sample_count_y; sample_idx_y++){
-                    for(int sample_idx_x = 0; sample_idx_x < _sample_count_x; sample_idx_x++)
-                    {
-                        core::Vec2* sample_start = &samples->operator[](_sample_count_x*sample_count*sample_idx_y+sample_idx_x*sample_count);
 
-                        auto ray = _camera->GenerateRay(threadSampler, Vec2i(x,y));
-                        SpectrumPasses sample_pass = _integrator->Integrate(ray,sample_start,ThreadMemory);
-                        Vec3 rgb = sample_pass.GetCombined().ToRGB();
-                        
-                        myTile->AddSample(sample_pass, ray.LensPosition);
-                    }
+                _integrator->FillSamples(threadSampler, samples, sample_count);
+                
+                for(int sample_idx = 0; sample_idx < sample_count; sample_idx++)
+                {
+
+                    core::Vec2* sample_start = _integrator->SetStartSample(samples->data(), sample_idx, sample_count);
+
+                    auto ray = _camera->GenerateRay(threadSampler, Vec2i(x,y));
+                    SpectrumPasses sample_pass = _integrator->Integrate(ray,sample_start,thread_memory);
+                    Vec3 rgb = sample_pass.GetCombined().ToRGB();
+                    
+                    myTile->AddSample(sample_pass, ray.LensPosition);
+                    
                 }
             }   
         }

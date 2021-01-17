@@ -11,12 +11,14 @@ namespace integrators
 {
     using namespace core;
 
-    class BasicIntegrator : public IIntegrator
+    class BasicIntegrator final : public IIntegrator
     {
     public:
-        virtual void Init(std::shared_ptr<IScene> scene) override;
-        virtual size_t Get2DSampleCount() override;
-        virtual SpectrumPasses Integrate(const Ray& ray,const core::Vec2* samples,MemoryArea& memory) const override;
+        void Init(std::shared_ptr<IScene> scene) override;
+        std::unique_ptr<std::vector<Vec2>> SetupSamples(int max_sample_count) const override;
+        void FillSamples(std::shared_ptr<ISampler> sampler, std::unique_ptr<std::vector<Vec2>>& data,int max_sample_count) const override;
+        core::Vec2* SetStartSample(core::Vec2* samples, int sampling_idx,int max_sample_count) const override;
+        SpectrumPasses Integrate(const Ray& ray,const Vec2* samples,BsdfMemoryPtr memory) const override;
 
     private:
         std::shared_ptr<IScene> _scene;

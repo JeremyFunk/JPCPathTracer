@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Bsdf.h"
 #include "core/IRenderer.h"
 #include "core/IFilm.h"
 
@@ -26,5 +27,6 @@ namespace renderers
         int _sample_count_x;
         int _sample_count_y;
         bool _multithread;
+        BsdfMemoryInfo _bsdf_info;
     };
 }

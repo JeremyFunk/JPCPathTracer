@@ -9,11 +9,23 @@ namespace integrators
         _scene = scene;
     }
     
-    size_t BasicIntegrator::Get2DSampleCount() 
+    std::unique_ptr<std::vector<Vec2>> BasicIntegrator::SetupSamples(int max_sample_count) const 
     {
-        return 1;
+        return nullptr;
     }
-    SpectrumPasses BasicIntegrator::Integrate(const Ray& ray,const core::Vec2* samples,MemoryArea& memory) const{
+    
+    void BasicIntegrator::FillSamples(std::shared_ptr<ISampler> sampler, std::unique_ptr<std::vector<Vec2>>& data,int max_sample_count) const 
+    {
+        
+    }
+    
+    core::Vec2* BasicIntegrator::SetStartSample(core::Vec2* samples, int sampling_idx,int max_sample_count) const 
+    {
+        return nullptr;
+    }
+    
+
+    SpectrumPasses BasicIntegrator::Integrate(const Ray& ray,const core::Vec2* samples,BsdfMemoryPtr memory) const{
         auto spectrum = RGBSpectrum::FromRGB(Vec3(ray.Direction[0]*.5+.5, ray.Direction[1]*.5+.5, ray.Direction[2]*.5+.5));
         return SpectrumPasses(spectrum);
     }
