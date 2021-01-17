@@ -174,6 +174,11 @@ namespace core {
                 _data[i] = std::clamp(_data[i], low, high);
             return *this;
         }
+
+        bool IsZero()
+        {
+            return _data[0] == 0 && _data[1] == 0 && _data[2] == 0;
+        }
     };
 
     // RGBSpectrum sqrt(const RGBSpectrum &s){

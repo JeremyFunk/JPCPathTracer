@@ -1,10 +1,10 @@
 set(AUTOSRC
-"DebugSampler.cpp"
-"SphereSamplers.cpp"
 "StrafifiedSampler.cpp"
-"DebugSampler.h"
+"SphereSamplers.cpp"
+"DebugSampler.cpp"
 "SphereSamplers.h"
 "StratifiedSampler.h"
+"DebugSampler.h"
 )
 
 

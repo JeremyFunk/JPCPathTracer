@@ -1,5 +1,6 @@
 #include "DebugSampler.h"
 #include "core/Linalg.h"
+#include <memory>
 
 namespace samplers
 {
@@ -18,14 +19,17 @@ namespace samplers
         return std::make_shared<DebugSampler>();
     }
     
-    std::unique_ptr<std::vector<core::Prec>> DebugSampler::Get1DSampleArray(size_t size)
+    void DebugSampler::Get1DSampleArray(size_t dim, size_t sample_count, core::Prec* desination) 
     {
-        return nullptr;
+        for(int i = 0; i <dim*sample_count; i++ ) 
+            desination[i] = Get1DSample();
     }
     
-    std::unique_ptr < std::vector < core::Vec2 >> DebugSampler::Get2DSampleArray(size_t size_x, size_t size_y)
+    void DebugSampler::Get2DSampleArray(size_t dim_y,size_t dim_x, size_t sample_count, core::Vec2* desination) 
     {
-        
-        return nullptr;
+        for(int i = 0; i <dim_y*dim_x*sample_count; i++ ) 
+            desination[i] = Get2DSample();
     }
+    
+
 }

@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+/*#include "gtest/gtest.h"
 #include "bsdfs/BSDF.h"
 #include "bsdfs/DiffuseBxdf.h"
 #include "bsdfs/IBXDF.h"
@@ -18,4 +18,4 @@ namespace bsdfs {
         //samplers::StratifiedSampler
         delete diffuse;
     }
-}
+}*/

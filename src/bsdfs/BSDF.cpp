@@ -1,19 +1,20 @@
 #include "BSDF.h"
 #include "bsdfs/IBXDF.h"
+#include "core/IBSDF.h"
 #include "core/Linalg.h"
 #include "core/SpectrumPasses.h"
 #include <iostream>
 namespace bsdfs {
     BSDF::BSDF(IBXDF* bxdfs,int bxdfs_count,const core::Vec3& normal)
-        : Bxdfs(bxdfs), BxdfsCount(bxdfs_count)
+        : _bxdfs(bxdfs), _bxdfs_count(bxdfs_count)
     {
         SetNormal(normal);
     }
     
     BSDF::~BSDF() 
     {
-        for(int i = BxdfsCount - 1; i >= 0; i--)
-            delete &Bxdfs[i];
+        for(int i = _bxdfs_count - 1; i >= 0; i--)
+            delete &_bxdfs[i];
     }
     
     void BSDF::SetNormal(const core::Vec3& normal) 
@@ -31,37 +32,48 @@ namespace bsdfs {
 
     }
     
-    core::DirectionInfo BSDF::Evaluate(const core::Vec3& incoming_direction,const core::Vec2& random_point,
-                core::BxDFType type) 
+    core::SpectrumPasses BSDF::Scattering(const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const 
     {
-        core::Vec3 incoming_direction_ns = WorldToLocal(incoming_direction);
-        // if (incoming_direction_ns[2] < 0) {
-        //     incoming_direction_ns = -incoming_direction_ns;
-        // }
-        core::DirectionInfo result;
-        BXDFDirectionInfo dir_info =  Bxdfs[0].Evaluate(incoming_direction_ns, random_point);
-        result.OutgoingDirection = dir_info.OutgoingDirection;
-        result.Pdf = dir_info.Pdf;
-        result.SurfaceColor = core::SpectrumPasses(dir_info.SurfaceColor);
-        //result.OutgoingDirection = incoming_direction;
-        //result.OutgoingDirection= {0,0,1};
-        if (result.OutgoingDirection[2] < 0)
-           result.OutgoingDirection = -result.OutgoingDirection;
-        // result.OutgoingDirection = -result.OutgoingDirection;
-        result.OutgoingDirection = LocalToWorld(result.OutgoingDirection);
-        //result.SurfaceColor = core::SpectrumPasses(core::Spectrum::FromRGB({ 1,1,1 }));
-        core::Vec3 reflection_ray = incoming_direction - 2 * _normal.dot(incoming_direction) * _normal;
-        //result.OutgoingDirection = reflection_ray;
-        //std::cout << result.OutgoingDirection[0] << std::endl;
-        return result;
+        core::Vec3 scat_dir_local = WorldToLocal(scattered_direction);
+        core::Vec3 inc_dir_local = WorldToLocal(incident_direction);
+        core::SpectrumPasses scattering_result=_bxdfs[0].Scattering(scat_dir_local, inc_dir_local);
+
+        return scattering_result;
     }
     
-    core::Vec3 BSDF::WorldToLocal(core::Vec3 x) 
+    core::Prec BSDF::Pdf(const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const 
+    {
+        core::Vec3 scat_dir_local = WorldToLocal(scattered_direction);
+        core::Vec3 inc_dir_local = WorldToLocal(incident_direction);
+        core::Prec pdf = _bxdfs[0].Pdf(scat_dir_local, inc_dir_local);
+
+        return pdf;
+    }
+    
+    core::Vec3 BSDF::SampleIncidentDirection(const core::Vec3& scattered_direction, const core::Vec2& random_point) const 
+    {
+        core::Vec3 scat_dir_local = WorldToLocal(scattered_direction);
+        core::Vec3 inc_dir_local = _bxdfs[0].SampleIncidentDirection(scat_dir_local, random_point);
+        core::Vec3 incident_direction = LocalToWorld(inc_dir_local);
+        return incident_direction;
+    }
+    
+    core::BSDFResult BSDF::EvaluateAll(const core::Vec3& scattered_direction,const core::Vec2& random_point,core::BxDFType type ) const
+    {
+        core::BSDFResult result;
+        result.IncidentDirection = SampleIncidentDirection(scattered_direction,random_point);
+        result.Pdf = Pdf(scattered_direction, result.IncidentDirection);
+        result.Scattering = Scattering(scattered_direction, result.IncidentDirection);
+        return result;
+    }
+        
+    
+    core::Vec3 BSDF::WorldToLocal(core::Vec3 x) const
     {
         return core::Vec3({x.dot(_tangent1),x.dot(_tangent2),x.dot(_normal)});
     }
     
-    core::Vec3 BSDF::LocalToWorld(core::Vec3 x) 
+    core::Vec3 BSDF::LocalToWorld(core::Vec3 x) const
     {
         return core::Vec3({
             _tangent1[0]*x[0]+_tangent2[0]*x[1]+_normal[0]*x[2],

@@ -1,56 +1,52 @@
 #include "LightIntegrator.h"
+#include "core/IBSDF.h"
+#include "core/ILight.h"
+#include "core/Linalg.h"
+#include "core/SpectrumPasses.h"
 
 namespace integrators
 {
-
-
-    void LightIntegrator::Init(std::shared_ptr<IScene> scene){
-        _scene = scene;
-    }
-    SpectrumPasses LightIntegrator::Integrate(const Ray& ray,const std::shared_ptr<ISampler>& sampler,MemoryArea& memory) const{
-        auto surfaceInteraction = _scene->Intersect(ray);
-        
-        if(surfaceInteraction.has_value()){
-            //return SpectrumPasses(Spectrum(RGBSpectrum::FromRGB({surfaceInteraction->Interaction.UV[0], surfaceInteraction->Interaction.UV[1], 0})));
-            //return SpectrumPasses(RGBSpectrum::FromRGB({1,1,1}));
-            surfaceInteraction->Interaction.Point += surfaceInteraction->Interaction.Normal * ERROR_THICCNESS;
-            //auto minDist = std::max((Prec).1, surfaceInteraction->Distance * (Prec).05);
-            //return SpectrumPasses(RGBSpectrum::FromRGB({minDist,minDist,minDist}));
-            return IntegrateAllLights(surfaceInteraction->Interaction);
-        }
-
-        return SpectrumPasses();
-    }
-    SpectrumPasses LightIntegrator::IntegrateAllLights(const SurfaceInteraction& interaction) const{
-        Spectrum spectrum = Spectrum();
-
-        for(auto l : _scene->GetLights()){
-            auto info = l->GetLightInformation(interaction.Point);
-
-            //spectrum = RGBSpectrum::FromRGB({1,1,1});
-            //continue;
-            //spectrum += RGBSpectrum::FromRGB((-info.Direction) * (Prec).5 + Vec3(.5,.5,.5));
-            //continue;
-            auto intersectionTest = _scene->Intersect(Ray(interaction.Point, -info.Direction));
-            auto dot = std::max((Prec)0, (interaction.Normal).dot(-info.Direction));
-
-            // auto minDist = -(interaction.Point + Vec3(0,0,1)) * .2;
-            // spectrum = RGBSpectrum::FromRGB({minDist[2],minDist[2],minDist[2]});
-            // continue;
-            // spectrum += RGBSpectrum::FromRGB({dot,dot,dot}) ;
-            Vec3 normalColor = (interaction.Normal * (Prec)0.5) + Vec3(0.5, 0.5, 0.5);
-
-            spectrum += RGBSpectrum::FromRGB(normalColor);
-            if(!intersectionTest.has_value() || intersectionTest->Interaction.Distance > info.Distance){
-                //spectrum += l->Illumination(interaction.Point, info) * dot;
-                //auto minDist = (interaction.Distance - 3.8f) * .3f;
-                //spectrum += RGBSpectrum::FromRGB({minDist, minDist, minDist});
-                //spectrum = RGBSpectrum::FromRGB({1,1,1});
-                //auto minDist = std::max((Prec).1, -(interaction.Point[2]));
-                //spectrum = RGBSpectrum::FromRGB({minDist,minDist,minDist});
+    core::SpectrumPasses IntegrateLights(const core::Ray& ray,const core::SurfaceProperties& properties,const std::shared_ptr<core::IScene> scene,core::IBSDF* bsdf) 
+    {
+        core::SpectrumPasses luminance;
+        for(const std::shared_ptr<core::ILight>& light : scene->GetLights())
+        {
+            core::Vec3 interaction_point = properties.Interaction.Point + properties.Interaction.Normal* ERROR_THICCNESS;
+            auto light_info = light->GetLightInformation(interaction_point);
+            auto light_blocked = scene->Intersect(core::Ray(interaction_point, -light_info.Direction));
+            if(!light_blocked.has_value())
+            {
+                core::SpectrumPasses light_luminance = light->Illumination(interaction_point, light_info);
+                core::SpectrumPasses bsdf_luminance = bsdf->Scattering(-ray.Direction, -light_info.Direction);
+                luminance+= light_luminance*bsdf_luminance* std::abs(ray.Direction.dot(light_info.Direction));
             }
         }
-        
-        return SpectrumPasses(spectrum);
+        return luminance;
     }
+
+
+
+    void LightIntegrator::Init(std::shared_ptr<core::IScene> scene){
+        _scene = scene;
+    }
+    
+    size_t LightIntegrator::Get2DSampleCount() 
+    {
+        return 1;
+    }
+    core::SpectrumPasses LightIntegrator::Integrate(const core::Ray& ray,const core::Vec2* samples,core::MemoryArea& memory) const{
+        auto surfaceInteraction = _scene->Intersect(ray);
+        
+        core::SpectrumPasses luminance;
+
+        if(surfaceInteraction.has_value()){
+            luminance+=surfaceInteraction->Material->Illumination(surfaceInteraction->Interaction, ray);
+            core::IBSDF* bsdf = surfaceInteraction->Material->ComputeBSDF(surfaceInteraction->Interaction, memory);
+            luminance+=IntegrateLights(ray,surfaceInteraction.value(),_scene,bsdf);
+            delete bsdf;
+        }
+
+        return luminance;
+    }
+    
 }

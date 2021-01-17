@@ -2,7 +2,7 @@
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
 
-#include "bsdfs/DiffuseBxdf.h"
+#include "bsdfs/LambertianBRDF.h"
 #include"bsdfs/IBXDF.h"
 #include"bsdfs/BSDF.h"
 
@@ -23,7 +23,7 @@ namespace materials
     
     core::IBSDF* BasicMaterial::ComputeBSDF(const core::SurfaceInteraction& interaction, core::MemoryArea& memory_area) const 
     {
-        bsdfs::IBXDF* bxdf = (bsdfs::IBXDF*) memory_area.Create<bsdfs::DiffuseBxdf>(core::Spectrum::FromRGB(_color->GetColor(interaction.UV)));
+        bsdfs::IBXDF* bxdf = (bsdfs::IBXDF*) memory_area.Create<bsdfs::LambertianBRDF>(core::Spectrum::FromRGB(_color->GetColor(interaction.UV)));
         return memory_area.Create<bsdfs::BSDF>(bxdf,1,interaction.Normal);
     }
 }

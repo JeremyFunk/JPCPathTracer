@@ -4,19 +4,19 @@
 #include "Ray.h"
 #include "core/SpectrumPasses.h"
 namespace core {
-    struct DirectionInfo
+    struct BSDFResult
     {
     public:
-        DirectionInfo(SpectrumPasses surface_color,
-        float pdf,  Vec3 outgoing_direction) : SurfaceColor(surface_color),Pdf(pdf), OutgoingDirection(outgoing_direction) {}
+        BSDFResult(SpectrumPasses scattering,
+        float pdf,  Vec3 incident_direction) : Scattering(scattering),Pdf(pdf), IncidentDirection(incident_direction) {}
 
-        DirectionInfo(){}
+        BSDFResult(){}
 
-        SpectrumPasses SurfaceColor;
-        Vec3 OutgoingDirection;
+        SpectrumPasses Scattering;
+        Vec3 IncidentDirection;
         float Pdf = 1;    
     };
-    class BxDFType
+    struct BxDFType
     {
         bool BSDF_REFLECTION = true; 
         bool BSDF_TRANSMISSION = true;
@@ -27,8 +27,12 @@ namespace core {
     class IBSDF
     {
     public:
-        //Outgoing Direction should be an Random Variable on a hemisphere
-        virtual DirectionInfo Evaluate(const Vec3& incoming_direction,const Vec2& random_point,BxDFType type = BxDFType()) = 0;
+        //all Direction should be normalized
+        virtual BSDFResult EvaluateAll(const Vec3& scattered_direction,const Vec2& random_point,BxDFType type = BxDFType()) const = 0;
+        virtual SpectrumPasses Scattering(const Vec3& scattered_direction,const Vec3& incident_direction) const = 0;
+        virtual Prec Pdf(const Vec3& scattered_direction,const Vec3& incident_direction) const = 0;
+        virtual Vec3 SampleIncidentDirection(const Vec3& scattered_direction, const Vec2& random_point) const = 0;
+        virtual ~IBSDF() {}
 
     };
 }

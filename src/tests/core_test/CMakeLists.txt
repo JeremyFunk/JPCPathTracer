@@ -1,6 +1,6 @@
 set(AUTOSRC
-"bounds3D_test.cpp"
 "MemoryAreaTest.cpp"
+"bounds3D_test.cpp"
 )
 set(INC
 "../")

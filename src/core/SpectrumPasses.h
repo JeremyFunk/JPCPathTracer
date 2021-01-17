@@ -1,6 +1,9 @@
 #pragma once
 #include "Spectrum.h"
-#include <vcruntime.h>
+#ifdef _MSC_VER
+    #include <vcruntime.h>
+#endif
+
 namespace core {
 
     class CombinedPass
@@ -106,6 +109,11 @@ namespace core {
         CombinedPass Clamp(Prec low, Prec high) {
             _combined_pass.Clamp(low, high);
             return *this;
+        }
+
+        bool IsZero()
+        {
+            return _combined_pass.IsZero();
         }
 
         static CombinedPass FromValue(const Prec& value);

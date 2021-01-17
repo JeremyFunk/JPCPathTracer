@@ -1,9 +1,9 @@
 set(AUTOSRC
 "Sphere.cpp"
-"Triangle.cpp"
 "TriangleMesh.cpp"
-"Sphere.h"
+"Triangle.cpp"
 "TriangleMesh.h"
+"Sphere.h"
 )
 
 

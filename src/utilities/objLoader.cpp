@@ -27,7 +27,7 @@ namespace utilities
             while(std::getline(file, line)){
                 auto splitted = split(line, " ");
 
-                if(line._Starts_with("v ")){
+                if(line.rfind("v ",0)==0){
                     core::Prec v1 = std::stof(splitted[1]);
                     core::Prec v2 = std::stof(splitted[2]);
                     core::Prec v3 = std::stof(splitted[3]);
@@ -39,7 +39,7 @@ namespace utilities
                     vertices.push_back(vec4[0]);
                     vertices.push_back(vec4[1]);
                     vertices.push_back(vec4[2]);
-                }else if(line._Starts_with("vn ")){
+                }else if(line.rfind("vn ",0)==0){
                     core::Prec v1 = std::stof(splitted[1]);
                     core::Prec v2 = std::stof(splitted[2]);
                     core::Prec v3 = std::stof(splitted[3]);
@@ -57,7 +57,7 @@ namespace utilities
                     // normals.push_back(vec3[0]);
                     // normals.push_back(vec3[1]);
                     // normals.push_back(vec3[2]);
-                }else if(line._Starts_with("vt ")){
+                }else if(line.rfind("vt ",0)==0){
                     core::Prec v1 = std::stof(splitted[1]);
                     core::Prec v2 = std::stof(splitted[2]);
     
@@ -65,7 +65,7 @@ namespace utilities
                     uvs.push_back(-v2);
                 }
 
-                if(line._Starts_with("f ")){
+                if(line.rfind("f ",0)==0){
                     auto face1 = split(splitted[1], "/");
                     auto face2 = split(splitted[2], "/");
                     auto face3 = split(splitted[3], "/");
@@ -97,7 +97,7 @@ namespace utilities
             }
             file.close();
         }else{
-            std::cout<<"Hallo welt";
+            std::cout << "Could not open the path: " << path << std::endl;
         }
 
         auto mesh = std::make_shared<shapes::TriangleMesh>(std::make_shared<std::vector<core::Prec>>(vertices), std::make_shared<std::vector<core::Prec>>(normals), 

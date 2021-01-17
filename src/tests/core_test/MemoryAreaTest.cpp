@@ -1,13 +1,12 @@
 #include "gtest/gtest.h"
 #include "core/IBSDF.h"
-#include "bsdfs/DiffuseBxdf.h"
 #include "bsdfs/BSDF.h"
 #include "core/Linalg.h"
 #include "core/MemoryArea.h"
 
 
 namespace core {
-
+    /*
     struct Interface
     {
         virtual Vec3 GetNormale() = 0;
@@ -53,5 +52,5 @@ namespace core {
         Vec3 normal = {1,0,0};
         //bsdfs::BSDF* bsdf = memory_area.Create<bsdfs::BSDF>(bxdfs,normal);
 
-    }
+    }*/
 }

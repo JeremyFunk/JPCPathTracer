@@ -1,8 +1,8 @@
 set(AUTOSRC
 "BVHAccel.cpp"
 "BVHHelperStructs.cpp"
-"BVHAccel.h"
 "BVHHelperStructs.h"
+"BVHAccel.h"
 )
 
 

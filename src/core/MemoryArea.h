@@ -1,6 +1,8 @@
 #pragma once
 
-#include <vcruntime.h>
+#ifdef _MSC_VER
+    #include <vcruntime.h>
+#endif
 #include "memory"
 namespace core
 {
