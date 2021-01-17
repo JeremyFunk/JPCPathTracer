@@ -43,8 +43,8 @@ public:
 
 int main()
 {
-    int width = 1080 / 4;
-    int height = 720 / 4;
+    int width = 1080;
+    int height = 720;
     int sample_count = 5;
     auto sampler = std::make_shared<samplers::StratifiedSampler>();
     auto camera = std::make_shared<cameras::ProjectionCamera>(width,height,1);
