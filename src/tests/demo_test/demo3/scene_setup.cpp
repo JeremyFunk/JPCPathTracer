@@ -14,7 +14,7 @@ std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes()
     std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> shapeList = std::make_shared<std::vector<std::shared_ptr<core::IShape>>>();
 
 
-    auto texture = utilities::textureLoader::LoadColorValueTexture("C:\\Users\\Jerem\\Desktop\\Image1.jpg");
+    //auto texture = utilities::textureLoader::LoadColorValueTexture("C:\\Users\\Jerem\\Desktop\\Image1.jpg");
     //auto texture = utilities::textureLoader::LoadColorValueTexture("F:\\blenderhilfe vol 1\\blenderHilfe Textures Vol1 2\\Boden\\Boden - Holz\\Boden_Parket_001_COL2_tiled.jpg");
     using namespace core;
 
@@ -27,13 +27,13 @@ std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes()
         Spectrum::FromRGB({.3,.3,.8}),.05);
 
     std::shared_ptr<IMaterial> material_white = std::make_shared<materials::BasicMaterial>(
-        texture,1);
+       std::make_shared<color::ColorValueVec3>(color::ColorValueVec3({1,1,1})),1);
 
     core::Transformation m (core::Vec3(0, 0, -8), core::Vec3(0, 0, 0), core::Vec3(1.3,.9,1));
     //E:\\dev\\pathTrace\\local\\jcp-path-tracer\\resource\\plain.obj
     //std::string path = "C:\\Users\\Jerem\\Desktop\\plain.obj";
 
-    std::string path = "C:\\Users\\Jerem\\Desktop\\plain.obj";
+    std::string path = "E:\\dev\\pathTrace\\local\\jcp-path-tracer\\resource\\plain.obj";
     auto mesh = utilities::LoadMesh(path,material_pink, std::make_shared<core::Transformation>(m), shapeList);
 
     // shapes::Triangle triangle(mesh, idxs); 
@@ -45,23 +45,10 @@ std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes()
     core::Transformation mMonkey(core::Vec3(2, 0, -5), core::Vec3(0, 0, 0), core::Vec3(.8,.8,.8));
 
     //E:\\dev\\pathTrace\\local\\jcp-path-tracer\\resource\\Susan.obj
-    std::string monkey = "C:\\Users\\Jerem\\Desktop\\Icosphere.obj";
+    std::string monkey = "E:\\dev\\pathTrace\\local\\jcp-path-tracer\\resource\\Susan.obj";
 
     //std::string monkey = "H:\\dev\\path-tracing\\jcp-path-tracer\\resource\\Susan.obj";
     auto monkeyMesh = utilities::LoadMesh(monkey,material_red, std::make_shared<core::Transformation>(mMonkey), shapeList);
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     
     // std::shared_ptr<core::IMaterial> material_red = std::make_shared<materials::BasicMaterial>(
