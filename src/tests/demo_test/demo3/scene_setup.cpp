@@ -11,7 +11,7 @@
 
 std::string ProjectPath()
 {
-    return "E:\\dev\\pathTrace\\jcp-path-tracer\\";
+    return "E:\\dev\\pathTrace\\JPCPathTracer\\";
     //return "H:\\dev\\path-tracing\\JPCPathTracer\\";
     //return "/home/chris/Dev/path_tracing/JPCPathTracer/";
 }
