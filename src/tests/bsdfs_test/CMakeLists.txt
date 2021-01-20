@@ -1,10 +1,8 @@
 set(AUTOSRC
 "diffuse_bxdf.cpp"
+"Lambertian_test.cpp"
 "bsdf_test.cpp"
-"BeckmannTest.cpp"
 "glossy_bxdf.cpp"
-"BxdfDebugger.cpp"
-"BxdfDebugger.h"
 )
 set(INC
 "../")

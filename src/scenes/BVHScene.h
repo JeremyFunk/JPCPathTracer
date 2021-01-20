@@ -21,6 +21,8 @@ namespace scenes
         
         virtual std::vector<std::shared_ptr<ILight>> GetLights() const override;
 
+        virtual BsdfMemoryInfo GetBsdfInfo() const override;
+
     private:
         std::shared_ptr<accel::BVHAccel> _bvh_tree;
         std::shared_ptr<std::vector<std::shared_ptr<IShape>>> _shapeList;

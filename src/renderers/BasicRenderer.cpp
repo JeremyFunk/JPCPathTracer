@@ -1,7 +1,6 @@
 #include "BasicRenderer.h"
 #include "core/Bsdf.h"
 #include "core/Linalg.h"
-#include "core/MemoryArea.h"
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
 #include <algorithm>
@@ -88,7 +87,6 @@ namespace renderers
                 //{
                 //    std::cout << "Test" << std::endl;
                 //}
-
                 _integrator->FillSamples(threadSampler, samples, sample_count);
                 
                 for(int sample_idx = 0; sample_idx < sample_count; sample_idx++)

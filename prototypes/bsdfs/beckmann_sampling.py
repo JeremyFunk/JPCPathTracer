@@ -24,5 +24,5 @@ def beckmann_sampling(random_point,alpha):
     return np.array([x, y, z])
 
 if __name__ == '__main__':
-    f = lambda x : beckmann_sampling(x,1.6)
+    f = lambda x : beckmann_sampling(x,0.6)
     test_sampling(f,10)

@@ -48,6 +48,9 @@ namespace shapes
 
         virtual core::Bounds3D<core::Prec> WorldBoundary() const final;
 
+
+        virtual std::vector<std::shared_ptr<const core::IMaterial>> GetMaterials() const final;
+
     private:
         std::shared_ptr<TriangleMesh> _mesh;
         int _index;

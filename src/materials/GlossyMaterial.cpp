@@ -1,4 +1,4 @@
-#include "GlossyMaterial.h"
+/*#include "GlossyMaterial.h"
 #include "bsdfs/BSDF.h"
 #include "bsdfs/BeckmannDistribution.h"
 #include "bsdfs/CookTorranceBSDF.h"
@@ -30,4 +30,4 @@ namespace materials
             core::Spectrum::FromRGB(_color->GetColor(interaction.UV)));
         return memory_area.Create<bsdfs::BSDF>(bxdf,1,interaction.Normal);
     }
-}
+}*/

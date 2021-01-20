@@ -1,15 +1,16 @@
 #include "BasicMaterial.h"
+#include "core/Bsdf.h"
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
 
-#include "bsdfs/LambertianBRDF.h"
-#include"bsdfs/IBXDF.h"
-#include"bsdfs/BSDF.h"
+#include "bsdfs/LambertianBSDF.h"
+#include <memory>
+
 
 namespace materials
 {
     BasicMaterial::BasicMaterial(std::shared_ptr<color::ColorValue> color, core::Prec illumination=0)
-        : _color(color), _illumination(illumination)
+        : _color(color), _illumination(illumination), _lambertian(std::make_shared<bsdfs::LambertianBSDF>())
     {
         
     }
@@ -21,9 +22,22 @@ namespace materials
         return core::SpectrumPasses(color *_illumination);
     }
     
-    core::IBSDF* BasicMaterial::ComputeBSDF(const core::SurfaceInteraction& interaction, core::MemoryArea& memory_area) const 
+    void BasicMaterial::OverrideBSDF(core::BsdfMemoryPtr& memory, const core::SurfaceInteraction& interaction) const 
     {
-        bsdfs::IBXDF* bxdf = (bsdfs::IBXDF*) memory_area.Create<bsdfs::LambertianBRDF>(core::Spectrum::FromRGB(_color->GetColor(interaction.UV)));
-        return memory_area.Create<bsdfs::BSDF>(bxdf,1,interaction.Normal);
+        core::ResetBsdfMemory(memory, interaction.Normal);
+        bsdfs::LambertianParams* params = _lambertian.Setup(memory,1);
+        core::Spectrum color = core::Spectrum::FromRGB(_color->GetColor(interaction.UV));
+        params->Reflectance = color;
     }
+    
+    core::BsdfMemoryInfo BasicMaterial::GetBsdfInfo() const 
+    {
+        core::BsdfMemoryInfo info;
+        info.max_bsdf_count = 1;
+        auto size = _lambertian.GetMaxSize();
+        info.max_byte_size = size;
+        return info;
+    }
+    
+
 }

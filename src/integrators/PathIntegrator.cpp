@@ -5,6 +5,7 @@
 #include "core/Ray.h"
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
+#include <iostream>
 namespace integrators
 {
 
@@ -12,6 +13,13 @@ namespace integrators
     {
         int X,Y;
     };
+
+    SampleCount PathIntegrator::GetSampleCount(int max_sample_count) const
+    {
+        int sample_count_x = floor(sqrt(max_sample_count));
+        int sample_count_y = sample_count_x;
+        return {sample_count_x,sample_count_y};
+    }
 
     PathIntegrator::PathIntegrator(core::SpectrumPasses sky_color, int max_depth)
         : _sky_color(sky_color), _max_depth(max_depth)
@@ -52,7 +60,7 @@ namespace integrators
     core::SpectrumPasses PathIntegrator::Integrate(const core::Ray& ray,const core::Vec2* samples,core::BsdfMemoryPtr bsdf_memory) const 
     {
         if(ray.Depth>=_max_depth)
-            return core::Spectrum::FromValue(0);
+            return core::Spectrum::FromValue(1);
         std::optional<core::SurfaceProperties> surface_properties = _scene->Intersect(ray);
     
         core::SpectrumPasses luminance;
@@ -81,10 +89,5 @@ namespace integrators
         return luminance;
     }
 
-    SampleCount LightIntegrator::GetSampleCount(int max_sample_count) const
-    {
-        int sample_count_x = floor(sqrt(max_sample_count));
-        int sample_count_y = sample_count_x;
-        return {sample_count_x,sample_count_y};
-    }
+    
 }

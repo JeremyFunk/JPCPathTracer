@@ -33,9 +33,9 @@ namespace core {
     BsdfMemoryPtr CreateBsdfMemory(BsdfMemoryInfo info);
 
     //returns the bsdf parameter memory
-    void* MallocBsdf(BsdfMemoryPtr& memory,int size, Prec weight,const BsdfClosure* callback);
+    void* MallocBsdf(BsdfMemoryPtr& memory,int size, Prec weight,const BsdfClosure* closure, size_t alignment);
 
-    BsdfMemoryPtr CloneBsdf(const BsdfMemoryPtr& memory);
+    void ResetBsdfMemory(BsdfMemoryPtr& memory, Vec3 normal);
 
     BsdfResult EvaluateAllBsdf(const BsdfMemoryPtr& memory, const Vec3& scattered_direction,const Vec2& random_point);
 
@@ -45,6 +45,7 @@ namespace core {
 
     Vec3 SampleIncidentDirectionBsdf(const BsdfMemoryPtr& memory, const Vec3& scattered_direction, const Vec2& random_point);
 
+    
 
 
 

@@ -22,4 +22,9 @@ namespace shapes
 
         return triangles;
     }
+    
+    std::vector<std::shared_ptr<const core::IMaterial>> Triangle::GetMaterials() const 
+    {
+        return {_mesh->Material};
+    }
 }
