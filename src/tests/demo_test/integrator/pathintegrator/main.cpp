@@ -34,11 +34,11 @@ public:
         core::SpectrumPasses surface_color = core::ScatteringBsdf(memory,-ray.Direction, incident_dir);
 
 
-        core::Vec3 normal = incident_ray.Direction;//ray.Direction - 2*ray.Direction.dot(properties.Interaction.Normal)*properties.Interaction.Normal;
+        core::Vec3 normal = properties.Interaction.Normal;//incident_ray.Direction;//ray.Direction - 2*ray.Direction.dot(properties.Interaction.Normal)*properties.Interaction.Normal;
         core::Vec3 color = core::Vec3{0.5,0.5,0.5}+normal*0.5;
         
-        //return color;
-        return surface_color.GetCombined().ToRGB();
+        return color;
+        //return surface_color.GetCombined().ToRGB();
         //return {pdf,pdf,pdf};
         //return {1,0,0};
         

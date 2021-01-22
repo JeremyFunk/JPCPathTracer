@@ -47,7 +47,7 @@ std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes()
     auto material_red_glossy = std::make_shared<materials::GlossyMaterial>(color_red,0);
     auto material_green = std::make_shared<materials::BasicMaterial>(color_green,0);  
     auto material_white = std::make_shared<materials::BasicMaterial>(color_white,100);
-    auto material_white_glossy = std::make_shared<materials::GlossyMaterial>(color_white,0.02);
+    auto material_white_glossy = std::make_shared<materials::GlossyMaterial>(color_white,0.);
 
     core::Transformation plain_transformation (core::Vec3(0, 0, -8), core::Vec3(0, 0, 0), core::Vec3(1.3,.9,1));
     auto mesh = utilities::LoadMesh(PlainPath(), material_white_glossy, std::make_shared<core::Transformation>(plain_transformation), shapeList);
@@ -56,9 +56,10 @@ std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes()
     
     //core::Transformation monkey_transformation(core::Vec3(0, 0, -5), core::Vec3(0, 0, 0), core::Vec3(.8,.8,.8));
     //auto monkeyMesh = utilities::LoadMesh(MonkeyPath(), material_white_glossy, std::make_shared<core::Transformation>(monkey_transformation), shapeList);
-    core::Transformation icosphere_transformation(core::Vec3(-3, 0, -4), core::Vec3(0, 0, 0), core::Vec3(.8,.8,.8));
-    auto icosphereMesh = utilities::LoadMesh(IcospherePath(), material_green, std::make_shared<core::Transformation>(icosphere_transformation), shapeList);
-
+    //core::Transformation icosphere_transformation(core::Vec3(-3, 0, -4), core::Vec3(0, 0, 0), core::Vec3(.8,.8,.8));
+    //auto icosphereMesh = utilities::LoadMesh(IcospherePath(), material_green, std::make_shared<core::Transformation>(icosphere_transformation), shapeList);
+    auto sphere1 = std::make_shared<shapes::Sphere>(core::Vec3(-3, 0, -4),1,material_green);
+    shapeList->push_back(sphere1);
 
     return shapeList;
 }
@@ -67,7 +68,7 @@ std::shared_ptr<std::vector<std::shared_ptr<core::ILight>>> generate_lights()
 {
     std::shared_ptr<std::vector<std::shared_ptr<core::ILight>>> lightList = std::make_shared<std::vector<std::shared_ptr<core::ILight>>>();
 
-    lightList->push_back(std::make_shared<lights::PointLight>(core::Vec3(3, 0, -4), core::RGBSpectrum::FromRGB({5000,5000,5000})));
+    lightList->push_back(std::make_shared<lights::PointLight>(core::Vec3(2, 0, -5.8), core::RGBSpectrum::FromRGB({2000,2000,2000})));
 
 
     return lightList;

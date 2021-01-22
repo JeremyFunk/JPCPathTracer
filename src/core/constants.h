@@ -16,5 +16,5 @@
     #define M_SQRT1_2  0.707106781186547524401  // 1/sqrt(2) 
 #endif
 
-#define ERROR_THICCNESS 0.000001
+#define ERROR_THICCNESS 0.00001
 #define SAMPLE_COUNT 8

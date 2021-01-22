@@ -1,4 +1,3 @@
-#pragma once
 #include "Sphere.h"
 #include "core/Bounds3D.h"
 #include "core/IShape.h"
@@ -179,6 +178,11 @@ namespace shapes
     {
         return core::Bounds3D<core::Prec>({_pos.x()+_radius, _pos.y()+_radius, _pos.z()+_radius},
                                         {_pos.x()-_radius, _pos.y()-_radius, _pos.z()-_radius});
+    }
+    
+    std::vector<std::shared_ptr<const core::IMaterial>> Sphere::GetMaterials() const
+    {
+        return {_material};
     }
     
     /*

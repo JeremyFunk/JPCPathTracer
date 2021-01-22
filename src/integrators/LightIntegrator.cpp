@@ -12,14 +12,14 @@ namespace integrators
         core::SpectrumPasses luminance;
         for(const std::shared_ptr<core::ILight>& light : scene->GetLights())
         {
-            core::Vec3 Prosurface_properties_point = properties.Interaction.Point + properties.Interaction.Normal* ERROR_THICCNESS;
+            core::Vec3 Prosurface_properties_point = properties.Interaction.Point + properties.Interaction.Normal*ERROR_THICCNESS;
             auto light_info = light->GetLightInformation(Prosurface_properties_point);
             auto light_blocked = scene->Intersect(core::Ray(Prosurface_properties_point, -light_info.Direction));
             if(!light_blocked.has_value())
             {
                 core::SpectrumPasses light_luminance = light->Illumination(Prosurface_properties_point, light_info);
                 core::SpectrumPasses bsdf_luminance = core::ScatteringBsdf(bsdf,-ray.Direction, -light_info.Direction);
-                luminance+= light_luminance*bsdf_luminance* std::abs(properties.Interaction.Normal.dot(light_info.Direction));
+                luminance+= light_luminance*bsdf_luminance* std::abs(properties.Interaction.Normal.dot(-light_info.Direction));
             }
         }
         return luminance;
