@@ -11,25 +11,25 @@
 
 std::string ProjectPath()
 {
-    //return "E:\\dev\\pathTrace\\local\\jcp-path-tracer\\resource\\";
+    return "E:\\dev\\pathTrace\\JPCPathTracer\\";
     //return "H:\\dev\\path-tracing\\JPCPathTracer\\";
-    return "/home/chris/Dev/path_tracing/JPCPathTracer/";
+    //return "/home/chris/Dev/path_tracing/JPCPathTracer/";
 }
 
 std::string PlainPath()
 {
-    return ProjectPath()+"resource/plain.obj";
+    return ProjectPath()+"resource\\plain.obj";
 }
 
 std::string MonkeyPath()
 {
 
-    return ProjectPath()+"resource/Susan.obj";
+    return ProjectPath()+"resource\\Susan.obj";
 }
 
 std::string IcospherePath()
 {
-    return ProjectPath() + "resource/icosphere.obj";
+    return ProjectPath() + "resource\\icosphere.obj";
 }
 
 std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes() 
@@ -50,13 +50,14 @@ std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes()
 
     core::Transformation plain_transformation (core::Vec3(0, 0, -8), core::Vec3(0, 0, 0), core::Vec3(1.3,.9,1));
     auto mesh = utilities::LoadMesh(PlainPath(), material_red, std::make_shared<core::Transformation>(plain_transformation), shapeList);
-    //auto sphere = std::make_shared<shapes::Sphere>(core::Vec3{0,0,-8},2, material_white);
-    //shapeList->push_back(sphere);
     
     //core::Transformation monkey_transformation(core::Vec3(0, 0, -5), core::Vec3(0, 0, 0), core::Vec3(.8,.8,.8));
     //auto monkeyMesh = utilities::LoadMesh(MonkeyPath(), material_white_glossy, std::make_shared<core::Transformation>(monkey_transformation), shapeList);
     core::Transformation icosphere_transformation(core::Vec3(0, 0, -4), core::Vec3(0, 0, 0), core::Vec3(.8,.8,.8));
     auto icosphereMesh = utilities::LoadMesh(IcospherePath(), material_white_glossy, std::make_shared<core::Transformation>(icosphere_transformation), shapeList);
+
+    auto sphere = std::make_shared<shapes::Sphere>(core::Vec3{-6,0,-8}, 2, material_white);
+    shapeList->push_back(sphere);
 
 
     return shapeList;

@@ -60,7 +60,9 @@ namespace samplers {
         for(int sample_idx = 0; sample_idx < sample_count; sample_idx++)
         {
             Get1DSamples(dim,dim_slice->data());
-            std::random_shuffle(dim_slice->begin(),dim_slice->end());
+            auto random_func = std::default_random_engine();
+            std::shuffle(dim_slice->begin(),dim_slice->end(), random_func);
+            // std::random_shuffle(dim_slice->begin(),dim_slice->end());
             for(int dim_idx = 0; dim_idx<dim;dim_idx++)
                 desination[sample_idx*sample_count+dim_idx] = dim_slice->operator[](dim_idx); 
         }
@@ -73,7 +75,9 @@ namespace samplers {
         for(int sample_idx = 0; sample_idx < sample_count; sample_idx++)
         {
             Get2DSamples(dim_x,dim_y,dim_slice->data());
-            std::random_shuffle(dim_slice->begin(),dim_slice->end());
+            auto random_func = std::default_random_engine();
+            std::shuffle(dim_slice->begin(),dim_slice->end(), random_func);
+            // std::random_shuffle(dim_slice->begin(),dim_slice->end());
             for(int dim_y_idx = 0; dim_y_idx<dim_x;dim_y_idx++)
                 for(int dim_x_idx = 0; dim_x_idx<dim_x;dim_x_idx++)
                     desination[dim_y_idx*dim_x*sample_count+ dim_x_idx*sample_count+sample_idx] 

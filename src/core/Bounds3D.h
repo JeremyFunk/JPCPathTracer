@@ -4,6 +4,8 @@
 
 #include <optional>
 
+#include <iostream>
+
 namespace core
 {
     template<typename T>
@@ -115,7 +117,7 @@ namespace core
 
         if(x_min > z_max || z_min > x_max)
             return false;
-
+            
         if(y_min > x_min)
             x_min = y_min;
 
@@ -127,6 +129,7 @@ namespace core
 
         if(z_max < x_max)
             x_max = z_max;
+        
 
         if(min_distance)
         {
