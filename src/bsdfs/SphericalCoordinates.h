@@ -25,6 +25,13 @@ namespace bsdfs
         return Sin2Theta(v) / Cos2Theta(v);
     }
 
+    inline core::Prec Tan2Theta(const core::Prec& cos2_theta) {
+        core::Prec sin2_theta = 1 -cos2_theta;
+        core::Prec tan2_theta = sin2_theta / cos2_theta;
+        return tan2_theta;
+    }
+
+
     inline core::Prec CosPhi(const core::Vec3& v) {
         core::Prec sinTheta = SinTheta(v);
         return (sinTheta == 0) ? 1 : std::clamp<core::Prec>(v[0] / sinTheta, -1, 1);
@@ -44,8 +51,8 @@ namespace bsdfs
         return v1[2]*v2[2]>0;
     }
 
-    inline core::Vec3 Reflect(const core::Vec3& v1,const core::Vec3& v2)
+    inline core::Vec3 Reflect(const core::Vec3& v1,const core::Vec3& normal)
     {
-        return  -v1 + 2 * v1.dot(v2) * v2;
+        return  -v1 + 2 * v1.dot(normal) * normal;
     }
 }

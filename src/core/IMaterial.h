@@ -12,4 +12,6 @@ namespace core {
         virtual void OverrideBSDF(BsdfMemoryPtr& memory, const SurfaceInteraction& interaction) const = 0;
         virtual BsdfMemoryInfo GetBsdfInfo() const = 0;
     };
+
+    
 }

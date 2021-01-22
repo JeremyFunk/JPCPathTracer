@@ -60,7 +60,7 @@ namespace integrators
     core::SpectrumPasses PathIntegrator::Integrate(const core::Ray& ray,const core::Vec2* samples,core::BsdfMemoryPtr bsdf_memory) const 
     {
         if(ray.Depth>=_max_depth)
-            return core::Spectrum::FromValue(1);
+            return core::Spectrum::FromValue(0);
         std::optional<core::SurfaceProperties> surface_properties = _scene->Intersect(ray);
     
         core::SpectrumPasses luminance;
@@ -80,7 +80,7 @@ namespace integrators
             if( (! surface_color.IsZero() ) && pdf > 0)
             {
                 core::SpectrumPasses subray_radiance = Integrate(incident_ray,samples, std::move(bsdf_memory));
-                luminance += subray_radiance/pdf * surface_color * std::abs(ray.Direction.dot(incident_dir));;
+                luminance += subray_radiance/pdf * surface_color * std::abs(incident_ray.Direction.dot(surface_properties->Interaction.Normal));
             }
 
         }else {

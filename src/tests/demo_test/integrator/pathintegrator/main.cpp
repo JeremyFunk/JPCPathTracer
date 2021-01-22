@@ -34,10 +34,11 @@ public:
         core::SpectrumPasses surface_color = core::ScatteringBsdf(memory,-ray.Direction, incident_dir);
 
 
-        core::Vec3 normal = incident_dir;
+        core::Vec3 normal = incident_ray.Direction;//ray.Direction - 2*ray.Direction.dot(properties.Interaction.Normal)*properties.Interaction.Normal;
         core::Vec3 color = core::Vec3{0.5,0.5,0.5}+normal*0.5;
-        return properties.Material->Illumination(properties.Interaction, ray).GetCombined().ToRGB();
-        //return surface_color.GetCombined().ToRGB();
+        
+        //return color;
+        return surface_color.GetCombined().ToRGB();
         //return {pdf,pdf,pdf};
         //return {1,0,0};
         
@@ -48,7 +49,7 @@ int main()
 {
     int width = 500;
     int height = 300;
-    int sample_count = 625;
+    int sample_count = 64;
     auto sampler = std::make_shared<samplers::StratifiedSampler>();
     auto camera = std::make_shared<cameras::ProjectionCamera>(width,height,1);
 
@@ -57,8 +58,8 @@ int main()
     auto lightList = generate_lights();
 
     auto scene = std::make_shared<scenes::BVHScene>(shapeList, lightList);
-    auto integrator = std::make_shared<integrators::PathIntegrator>(core::Spectrum::FromRGB({0,0,0}),5);
-    //auto integrator = std::make_shared<IncidentDirIntegrator>(2);
+    auto integrator = std::make_shared<integrators::PathIntegrator>(core::Spectrum::FromRGB({0,0,0}),2);
+    //auto integrator = std::make_shared<IncidentDirIntegrator>(1);
     integrator->Init(scene);
     auto filter = std::make_shared<filters::GaussianFilter>(0.5);
     auto film = std::make_shared<films::BasicFilm>(width,height);

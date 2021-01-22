@@ -3,13 +3,16 @@
 #include "core/Linalg.h"
 namespace bsdfs
 {
-    class DielectricFresnel : public IFresnel
+    struct DielectricFresnelParams
+    {
+        core::Prec IndexOfRefractionInner = 1.45;
+        core::Prec IndexOfRefractionOuter = 1;
+    };
+    class DielectricFresnel : public IFresnel<DielectricFresnelParams>
     {
     public:
-        DielectricFresnel(core::Prec index_of_refraction_inner = 1.45,core::Prec index_of_refraction_outer = 1);
-        virtual core::Spectrum Evaluate( core::Prec cos_theta_incoming) const override;
+        virtual core::Spectrum Evaluate(const DielectricFresnelParams* params, core::Prec cos_theta_incoming) const override;
     private:
-        core::Prec _index_of_refraction_inner;
-        core::Prec _index_of_refraction_outer;
+
     };
 }
