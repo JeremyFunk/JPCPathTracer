@@ -3,7 +3,7 @@
 #include "Ray.h"
 #include <optional>
 
-namespace core {
+namespace jpc_tracer {
     template<class T>
     class Bounds2D
     {
@@ -54,8 +54,8 @@ namespace core {
     //     // T ZMax;
     //     // T ZMin;
 
-    //     core::Vec3 Max;
-    //     core::Vec3 Min;
+    //     Vec3 Max;
+    //     Vec3 Min;
 
     //     T Size() const;
 
@@ -166,15 +166,15 @@ namespace core {
         
     //     return true;
 
-    //     // core::Prec intersection1 = 0;
-    //     // core::Prec intersection2 = 0;
+    //     // Prec intersection1 = 0;
+    //     // Prec intersection2 = 0;
 
     //     // for (int i = 0; i < 3; i++)
     //     // {
-    //     //     core::Prec inv_ray_dir = 1 / ray.Direction[i];
+    //     //     Prec inv_ray_dir = 1 / ray.Direction[i];
 
-    //     //     core::Prec near_solution = (Min[i] - ray.Origin[i]) * inv_ray_dir;
-    //     //     core::Prec far_solution = (Max[i] - ray.Origin[i]) * inv_ray_dir;
+    //     //     Prec near_solution = (Min[i] - ray.Origin[i]) * inv_ray_dir;
+    //     //     Prec far_solution = (Max[i] - ray.Origin[i]) * inv_ray_dir;
 
     //     //     if(near_solution > far_solution)
     //     //         std::swap(near_solution, far_solution);

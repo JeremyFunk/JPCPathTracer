@@ -7,26 +7,26 @@
 #include "core/Linalg.h"
 #include "core/Spectrum.h"
 #include <memory>
-namespace bsdfs
+namespace jpc_tracer
 {
     template<class FresnelParamsT,class DistributionParamsT>
     struct CookTorranceParams
     {
         FresnelParamsT Fresnel;
         DistributionParamsT Distribution;
-        core::Spectrum Reflectance;
+        Spectrum Reflectance;
     };
 
     template<class FresnelParamsT,class DistributionParamsT>
-    class CookTorranceBSDFClosure final: public core::BsdfClosureGeneric<CookTorranceParams<FresnelParamsT,DistributionParamsT>>
+    class CookTorranceBSDFClosure final: public BsdfClosureGeneric<CookTorranceParams<FresnelParamsT,DistributionParamsT>>
     {
     public:
         CookTorranceBSDFClosure(std::shared_ptr<IFresnel<FresnelParamsT>> fresnel, std::shared_ptr<IMicrofacetDistribution<DistributionParamsT>> distribution);
         using ParamsT = CookTorranceParams<FresnelParamsT,DistributionParamsT>;
-        virtual core::BsdfResult EvaluateAll(const ParamsT* params, const core::Vec3& scattered_direction,const core::Vec2& random_point) const;
-        virtual core::Spectrum Scattering(const ParamsT* params, const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const;
-        virtual core::Prec Pdf(const ParamsT* params, const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const;
-        virtual core::Vec3 SampleIncidentDirection(const ParamsT* params, const core::Vec3& scattered_direction, const core::Vec2& random_point) const;
+        virtual BsdfResult EvaluateAll(const ParamsT* params, const Vec3& scattered_direction,const Vec2& random_point) const;
+        virtual Spectrum Scattering(const ParamsT* params, const Vec3& scattered_direction,const Vec3& incident_direction) const;
+        virtual Prec Pdf(const ParamsT* params, const Vec3& scattered_direction,const Vec3& incident_direction) const;
+        virtual Vec3 SampleIncidentDirection(const ParamsT* params, const Vec3& scattered_direction, const Vec2& random_point) const;
     private:
         std::shared_ptr<IFresnel<FresnelParamsT>> _fresnel;
         std::shared_ptr<IMicrofacetDistribution<DistributionParamsT>> _distribution;
@@ -39,44 +39,44 @@ namespace bsdfs
     }
     
     template<class FresnelParamsT, class DistributionParamsT>
-    core::BsdfResult CookTorranceBSDFClosure<FresnelParamsT, DistributionParamsT>::EvaluateAll(const ParamsT* params, const core::Vec3& scattered_direction,const core::Vec2& random_point) const
+    BsdfResult CookTorranceBSDFClosure<FresnelParamsT, DistributionParamsT>::EvaluateAll(const ParamsT* params, const Vec3& scattered_direction,const Vec2& random_point) const
     {
-        return core::BsdfResult();
+        return BsdfResult();
     }
     
 
 
 
     template<class FresnelParamsT, class DistributionParamsT>
-    core::Spectrum CookTorranceBSDFClosure<FresnelParamsT, DistributionParamsT>::Scattering(const CookTorranceParams<FresnelParamsT,DistributionParamsT>* params, 
-    const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const
+    Spectrum CookTorranceBSDFClosure<FresnelParamsT, DistributionParamsT>::Scattering(const CookTorranceParams<FresnelParamsT,DistributionParamsT>* params, 
+    const Vec3& scattered_direction,const Vec3& incident_direction) const
     {
-            core::Prec cos_scattered = CosTheta(scattered_direction);
-            core::Prec cos_incident = CosTheta(incident_direction);
-            core::Vec3 microfacet_normal = scattered_direction+incident_direction;
+            Prec cos_scattered = CosTheta(scattered_direction);
+            Prec cos_incident = CosTheta(incident_direction);
+            Vec3 microfacet_normal = scattered_direction+incident_direction;
             microfacet_normal = microfacet_normal.normalized();
-            core::Prec D = _distribution->Distribution(&params->Distribution,microfacet_normal);
-            core::Prec G = _distribution->ShadowMasking(&params->Distribution,scattered_direction,incident_direction);
-            core::Spectrum F =_fresnel->Evaluate(&params->Fresnel,CosTheta(scattered_direction));
+            Prec D = _distribution->Distribution(&params->Distribution,microfacet_normal);
+            Prec G = _distribution->ShadowMasking(&params->Distribution,scattered_direction,incident_direction);
+            Spectrum F =_fresnel->Evaluate(&params->Fresnel,CosTheta(scattered_direction));
             return params->Reflectance*F * D*G / (4*cos_scattered*cos_incident);
     }
     
     template<class FresnelParamsT, class DistributionParamsT>
-    core::Prec CookTorranceBSDFClosure<FresnelParamsT, DistributionParamsT>::Pdf(const CookTorranceParams<FresnelParamsT,DistributionParamsT>* params, 
-    const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const
+    Prec CookTorranceBSDFClosure<FresnelParamsT, DistributionParamsT>::Pdf(const CookTorranceParams<FresnelParamsT,DistributionParamsT>* params, 
+    const Vec3& scattered_direction,const Vec3& incident_direction) const
     {
-        core::Vec3 microfacet_normal = scattered_direction+incident_direction;
+        Vec3 microfacet_normal = scattered_direction+incident_direction;
         microfacet_normal = microfacet_normal.normalized();
         return _distribution->Pdf(&params->Distribution,scattered_direction,microfacet_normal) / (4*microfacet_normal.dot(scattered_direction)) ;
     }
     
     template<class FresnelParamsT, class DistributionParamsT>
-    core::Vec3 CookTorranceBSDFClosure<FresnelParamsT, DistributionParamsT>::SampleIncidentDirection(const CookTorranceParams<FresnelParamsT,DistributionParamsT>* params, 
-    const core::Vec3& scattered_direction, const core::Vec2& random_point) const
+    Vec3 CookTorranceBSDFClosure<FresnelParamsT, DistributionParamsT>::SampleIncidentDirection(const CookTorranceParams<FresnelParamsT,DistributionParamsT>* params, 
+    const Vec3& scattered_direction, const Vec2& random_point) const
     {
-        core::Vec3 microfacet_normal = _distribution->SampleFromDistribution(&params->Distribution,random_point);
+        Vec3 microfacet_normal = _distribution->SampleFromDistribution(&params->Distribution,random_point);
 
-        core::Vec3 incident_direction = Reflect(scattered_direction, microfacet_normal);
+        Vec3 incident_direction = Reflect(scattered_direction, microfacet_normal);
 
         if(! SameHemiSphereNormalSpace(incident_direction, scattered_direction))
             return -incident_direction;

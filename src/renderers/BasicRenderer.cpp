@@ -11,14 +11,14 @@
 #include <omp.h>
 #include <vector>
 
-namespace renderers
+namespace jpc_tracer
 {
  
      BasicRenderer::BasicRenderer(int sample_count,bool multithread) 
         : _multithread(multithread)
      {
-         _sample_count_x = ceil(sqrt(sample_count));
-         _sample_count_y = ceil(sqrt(sample_count));
+         _sample_count_x = std::ceil(std::sqrt(sample_count));
+         _sample_count_y = std::ceil(std::sqrt(sample_count));
      }
  
 
@@ -92,7 +92,7 @@ namespace renderers
                 for(int sample_idx = 0; sample_idx < sample_count; sample_idx++)
                 {
 
-                    core::Vec2* sample_start = _integrator->SetStartSample(samples->data(), sample_idx, sample_count);
+                    Vec2* sample_start = _integrator->SetStartSample(samples->data(), sample_idx, sample_count);
 
                     auto ray = _camera->GenerateRay(threadSampler, Vec2i(x,y));
                     SpectrumPasses sample_pass = _integrator->Integrate(ray,sample_start,thread_memory);

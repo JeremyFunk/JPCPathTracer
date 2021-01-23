@@ -1,7 +1,7 @@
 #include "Transformation.h"
 
 
-namespace core
+namespace jpc_tracer
 {
     Transformation::Transformation(Vec3 position, Vec3 rotation, Vec3 scale) : Position(position), Rotation(rotation), Scale(scale), L2W( Mat4x4::Identity()), Rot2W(Mat3x3::Identity())
     {

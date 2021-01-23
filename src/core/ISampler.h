@@ -7,7 +7,7 @@
 #include <array>
 #include <vector>
 #include "constants.h"
-namespace core {
+namespace jpc_tracer {
     class ISampler
     {
     public:

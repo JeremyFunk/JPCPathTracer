@@ -11,28 +11,28 @@
 #include "utilities/objLoader.h"
 #include "materials/BasicMaterial.h"
 
-namespace accel_test
+namespace jpc_tracer
 {
     TEST(accelerators_test, shity_bvh_build)
     {
-        std::shared_ptr<core::IMaterial> material_white = std::make_shared<materials::BasicMaterial>(
-            std::make_shared<color::ColorValueVec3>(color::ColorValueVec3({1,1,1})),1);
+        std::shared_ptr<IMaterial> material_white = std::make_shared<BasicMaterial>(
+            std::make_shared<ColorValueVec3>(ColorValueVec3({1,1,1})),1);
 
-        auto transformation = std::make_shared<core::Transformation>(core::Vec3(0, 0, -8), core::Vec3(0, 0, 0), core::Vec3(1,1,1));
+        auto transformation = std::make_shared<Transformation>(Vec3(0, 0, -8), Vec3(0, 0, 0), Vec3(1,1,1));
 
-        auto shapesList = std::make_shared<std::vector<std::shared_ptr<core::IShape>>>();
+        auto shapesList = std::make_shared<std::vector<std::shared_ptr<IShape>>>();
 
         std::string path = "C:\\Users\\stade\\Desktop\\Cube.obj";
-        auto mesh = utilities::LoadMesh(path, material_white, transformation, shapesList);
+        auto mesh = LoadMesh(path, material_white, transformation, shapesList);
 
         auto triangles = mesh->GenerateTriangles();
 
-        auto shapeList = std::make_shared<std::vector<std::shared_ptr<core::IShape>>>();
+        auto shapeList = std::make_shared<std::vector<std::shared_ptr<IShape>>>();
 
         for( auto triangle : *triangles)
             shapeList->push_back(triangle);
 
-        accel::BVHAccel bvh(shapeList, 1);
+        BVHAccel bvh(shapeList, 1);
 
         bvh.BuildBVH();
         
@@ -41,7 +41,7 @@ namespace accel_test
         // auto mesh_bound = (*triangles)[0]->WorldBoundary();
 
         // for (int i = 0; i < triangles->size(); i++)
-        //     mesh_bound = core::Union(mesh_bound, (*triangles)[i]->WorldBoundary());
+        //     mesh_bound = Union(mesh_bound, (*triangles)[i]->WorldBoundary());
 
         // auto first_Max = (*out)[0].Bounds.Max;
         // auto first_Min = (*out)[0].Bounds.Min;
@@ -56,26 +56,26 @@ namespace accel_test
 
     TEST(accelerators_test, shity_bvh_intersect)
     {
-        std::shared_ptr<core::IMaterial> material_white = std::make_shared<materials::BasicMaterial>(
-            std::make_shared<color::ColorValueVec3>(color::ColorValueVec3({1,1,1})),1);
+        std::shared_ptr<IMaterial> material_white = std::make_shared<BasicMaterial>(
+            std::make_shared<ColorValueVec3>(ColorValueVec3({1,1,1})),1);
 
-        auto transformation = std::make_shared<core::Transformation>(core::Vec3(0, 0, -8), core::Vec3(0, 0, 0), core::Vec3(1,1,1));
+        auto transformation = std::make_shared<Transformation>(Vec3(0, 0, -8), Vec3(0, 0, 0), Vec3(1,1,1));
 
-        auto shapeList = std::make_shared<std::vector<std::shared_ptr<core::IShape>>>();
+        auto shapeList = std::make_shared<std::vector<std::shared_ptr<IShape>>>();
 
         std::string path = "E:\\dev\\pathTrace\\JPCPathTracer\\resource\\Susan.obj";
-        auto mesh = utilities::LoadMesh(path, material_white, transformation, shapeList);
+        auto mesh = LoadMesh(path, material_white, transformation, shapeList);
 
         // auto triangles = mesh->GenerateTriangles();
 
-        // auto shapeList = std::make_shared<std::vector<std::shared_ptr<core::IShape>>>();
+        // auto shapeList = std::make_shared<std::vector<std::shared_ptr<IShape>>>();
 
         // for( auto triangle : *triangles)
         //     shapeList->push_back(triangle);
 
-        accel::BVHAccel bvh(shapeList, 1);
+        BVHAccel bvh(shapeList, 1);
 
-        core::Ray ray({0,0,0},{0,0,-1});
+        Ray ray({0,0,0},{0,0,-1});
 
         auto out = bvh.Traversal(ray);
 

@@ -5,7 +5,7 @@
 #include "samplers/StratifiedSampler.h"
 #include "iostream"
 
-namespace samplers {
+namespace jpc_tracer {
 
     TEST(stratified_sampler,Rand1D)
     {
@@ -26,9 +26,9 @@ namespace samplers {
     TEST(stratified_sampler,Array1D)
     {
         StratifiedSampler sampler;
-        auto samples = std::vector<core::Prec>(8);
+        auto samples = std::vector<Prec>(8);
         sampler.Get1DSampleArray(8,1,samples.data());
-        for(const core::Prec& sample : samples)
+        for(const Prec& sample : samples)
         {
             EXPECT_TRUE(0 <= sample);
             EXPECT_TRUE(sample < 1);
@@ -39,9 +39,9 @@ namespace samplers {
     TEST(stratified_sampler,Array2D)
     {
         StratifiedSampler sampler;
-        auto samples = std::vector<core::Vec2>(8*8);
+        auto samples = std::vector<Vec2>(8*8);
         sampler.Get2DSampleArray(8,8,1,samples.data());
-        for(const core::Vec2& sample : samples)
+        for(const Vec2& sample : samples)
         {
             EXPECT_TRUE(0 <= sample[0]);
             EXPECT_TRUE(sample[0] < 1);

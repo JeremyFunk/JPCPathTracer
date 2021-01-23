@@ -5,40 +5,40 @@
 #include "core/Linalg.h"
 #include "shapes/TriangleMesh.h"
 
-namespace shapes_test
+namespace jpc_tracer
 {
     auto get_mesh()
     {
-        std::vector<core::Prec> vertices = {0,0,0, 1,1,1, 2,2,2};
-        std::vector<core::Prec> normals = {0,0,0, 1,1,1, 2,2,2};
-        std::vector<core::Prec> uvs= {0,0,0, 1,1,1, 2,2,2};
+        std::vector<Prec> vertices = {0,0,0, 1,1,1, 2,2,2};
+        std::vector<Prec> normals = {0,0,0, 1,1,1, 2,2,2};
+        std::vector<Prec> uvs= {0,0,0, 1,1,1, 2,2,2};
         std::vector<int> indices= {0,0,0, 3,3,3, 6,6,6};
 
-        auto ptr_vertices = std::make_shared<std::vector<core::Prec>>(vertices);
-        auto ptr_normals = std::make_shared<std::vector<core::Prec>>(normals);
-        auto ptr_uvs = std::make_shared<std::vector<core::Prec>>(uvs);
+        auto ptr_vertices = std::make_shared<std::vector<Prec>>(vertices);
+        auto ptr_normals = std::make_shared<std::vector<Prec>>(normals);
+        auto ptr_uvs = std::make_shared<std::vector<Prec>>(uvs);
         auto ptr_indices = std::make_shared<std::vector<int>>(indices);
 
-        std::shared_ptr<shapes::TriangleMesh> mesh = std::make_shared<shapes::TriangleMesh>(std::make_shared<std::vector<core::Prec>>(vertices),
-                                                        std::make_shared<std::vector<core::Prec>>(normals),
-                                                        std::make_shared<std::vector<core::Prec>>(uvs),
+        std::shared_ptr<TriangleMesh> mesh = std::make_shared<TriangleMesh>(std::make_shared<std::vector<Prec>>(vertices),
+                                                        std::make_shared<std::vector<Prec>>(normals),
+                                                        std::make_shared<std::vector<Prec>>(uvs),
                                                         std::make_shared<std::vector<int>>(indices),
                                                         nullptr, nullptr );
     }
 
     TEST(shapes_test, triangle_mesh)
     {
-        std::vector<core::Prec> vertices = {0,0,0, 0,0,0, 0,0,0, 1,1,1, 1,1,1, 1,1,1, 2,2,2,2,2,2,2,2,2,2,2,2};
-        std::vector<core::Prec> normals = {0,0,0, 1,1,1, 2,2,2};
-        std::vector<core::Prec> uvs= {0,0,0, 1,1,1, 2,2,2};
+        std::vector<Prec> vertices = {0,0,0, 0,0,0, 0,0,0, 1,1,1, 1,1,1, 1,1,1, 2,2,2,2,2,2,2,2,2,2,2,2};
+        std::vector<Prec> normals = {0,0,0, 1,1,1, 2,2,2};
+        std::vector<Prec> uvs= {0,0,0, 1,1,1, 2,2,2};
         std::vector<int> indices= {0,0,0, 3,3,3, 6,6,6};
 
-        auto ptr_vertices = std::make_shared<std::vector<core::Prec>>(vertices);
-        auto ptr_normals = std::make_shared<std::vector<core::Prec>>(normals);
-        auto ptr_uvs = std::make_shared<std::vector<core::Prec>>(uvs);
+        auto ptr_vertices = std::make_shared<std::vector<Prec>>(vertices);
+        auto ptr_normals = std::make_shared<std::vector<Prec>>(normals);
+        auto ptr_uvs = std::make_shared<std::vector<Prec>>(uvs);
         auto ptr_indices = std::make_shared<std::vector<int>>(indices);
 
-        std::shared_ptr<shapes::TriangleMesh> mesh = std::make_shared<shapes::TriangleMesh>(ptr_vertices,
+        std::shared_ptr<TriangleMesh> mesh = std::make_shared<TriangleMesh>(ptr_vertices,
                                                         ptr_normals,
                                                         ptr_uvs,
                                                         ptr_indices,
@@ -69,15 +69,15 @@ namespace shapes_test
     //     std::vector<float> vertices {1.f,2.f,3.f,4.f,5.f,6.f,7.f,8.f,9.f};
     //     auto mesh = get_mesh(vertices.data());
 
-    //     shapes::Triangle_Indices idxs;
+    //     Triangle_Indices idxs;
 
     //     idxs.vertex_1_idx = 0;
     //     idxs.vertex_2_idx = 3;
     //     idxs.vertex_3_idx = 6;
 
-    //     shapes::Triangle triangle(mesh, idxs);
+    //     Triangle triangle(mesh, idxs);
 
-    //     core::Bounds3D<core::Prec> comp(7, 1, 8, 2, 9, 3);
+    //     Bounds3D<Prec> comp(7, 1, 8, 2, 9, 3);
 
     //     auto bound_out = triangle.WorldBoundary();
 
@@ -95,15 +95,15 @@ namespace shapes_test
     //     std::vector<float> vertices {1,1,1, 1,2,1, 2,1,1};
     //     auto mesh = get_mesh(vertices.data());
 
-    //     shapes::Triangle_Indices idxs;
+    //     Triangle_Indices idxs;
 
     //     idxs.vertex_1_idx = 0;
     //     idxs.vertex_2_idx = 3;
     //     idxs.vertex_3_idx = 6;
 
-    //     shapes::Triangle triangle(mesh, idxs);
+    //     Triangle triangle(mesh, idxs);
 
-    //     core::Ray ray({0,0,0}, {1,1.5,1});
+    //     Ray ray({0,0,0}, {1,1.5,1});
 
     //    EXPECT_TRUE(triangle.IsIntersecting(ray));
     //}

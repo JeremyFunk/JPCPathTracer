@@ -4,7 +4,7 @@
 #include <fstream>
 #include <string>
 
-namespace utilities
+namespace jpc_tracer
 {
-    std::shared_ptr<shapes::TriangleMesh> LoadMesh(std::string path,std::shared_ptr<core::IMaterial> material, std::shared_ptr<core::Transformation> transformation, std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> shapes);
+    std::shared_ptr<TriangleMesh> LoadMesh(std::string path,std::shared_ptr<IMaterial> material, std::shared_ptr<Transformation> transformation, std::shared_ptr<std::vector<std::shared_ptr<IShape>>> shapes);
 }

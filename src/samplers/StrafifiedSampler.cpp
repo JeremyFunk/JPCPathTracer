@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace samplers {
+namespace jpc_tracer {
      StratifiedSampler::StratifiedSampler()
         : _generator(0,1) , _gen(_random_device())
     {
@@ -11,25 +11,25 @@ namespace samplers {
     }
     
 
-    core::Prec StratifiedSampler::Get1DSample() 
+    Prec StratifiedSampler::Get1DSample() 
     {
-        const core::Prec epsilon = 0.0001;
+        const Prec epsilon = 0.0001;
         return std::min(_generator(_gen),1-epsilon);
     }
 
-    core::Vec2 StratifiedSampler::Get2DSample() 
+    Vec2 StratifiedSampler::Get2DSample() 
     {
         return {Get1DSample(),Get1DSample()};
     }
 
 
-    std::shared_ptr<core::ISampler> StratifiedSampler::Clone() 
+    std::shared_ptr<ISampler> StratifiedSampler::Clone() 
     {
         return std::make_shared<StratifiedSampler>();
     }
     
 
-    void StratifiedSampler::Get1DSamples(size_t size,core::Prec* desination)
+    void StratifiedSampler::Get1DSamples(size_t size,Prec* desination)
     {
 
         for(int i= 0; i < size; i++)
@@ -38,7 +38,7 @@ namespace samplers {
     }
     
 
-    void StratifiedSampler::Get2DSamples(size_t size_x,size_t size_y,core::Vec2* desination) 
+    void StratifiedSampler::Get2DSamples(size_t size_x,size_t size_y,Vec2* desination) 
     {
         
         for(int y = 0; y < size_y; y++)
@@ -46,17 +46,17 @@ namespace samplers {
             for(int x = 0; x < size_x; x++)
             {
                 
-                core::Vec2& sample = desination[y*size_y+x];
-                sample[0] = ((core::Prec)x+ Get1DSample() )/ ((core::Prec)size_x);
-                sample[1] = ((core::Prec)y+ Get1DSample() )/ ((core::Prec)size_y);
+                Vec2& sample = desination[y*size_y+x];
+                sample[0] = ((Prec)x+ Get1DSample() )/ ((Prec)size_x);
+                sample[1] = ((Prec)y+ Get1DSample() )/ ((Prec)size_y);
             }
         }
     }
 
 
-    void StratifiedSampler::Get1DSampleArray(size_t dim, size_t sample_count,core::Prec* desination) 
+    void StratifiedSampler::Get1DSampleArray(size_t dim, size_t sample_count,Prec* desination) 
     {
-        auto dim_slice = std::make_unique<std::vector<core::Prec>> (dim);
+        auto dim_slice = std::make_unique<std::vector<Prec>> (dim);
         for(int sample_idx = 0; sample_idx < sample_count; sample_idx++)
         {
             Get1DSamples(dim,dim_slice->data());
@@ -69,9 +69,9 @@ namespace samplers {
     }
 
 
-    void StratifiedSampler::Get2DSampleArray(size_t dim_y,size_t dim_x, size_t sample_count,core::Vec2* desination) 
+    void StratifiedSampler::Get2DSampleArray(size_t dim_y,size_t dim_x, size_t sample_count,Vec2* desination) 
     {
-        auto dim_slice = std::make_unique<std::vector<core::Vec2>> (dim_y*dim_x);
+        auto dim_slice = std::make_unique<std::vector<Vec2>> (dim_y*dim_x);
         for(int sample_idx = 0; sample_idx < sample_count; sample_idx++)
         {
             Get2DSamples(dim_x,dim_y,dim_slice->data());

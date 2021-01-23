@@ -1,7 +1,7 @@
 #include "BasicIntegrator.h"
 
 
-namespace integrators
+namespace jpc_tracer
 {
 
 
@@ -19,13 +19,13 @@ namespace integrators
         
     }
     
-    core::Vec2* BasicIntegrator::SetStartSample(core::Vec2* samples, int sampling_idx,int max_sample_count) const 
+    Vec2* BasicIntegrator::SetStartSample(Vec2* samples, int sampling_idx,int max_sample_count) const 
     {
         return nullptr;
     }
     
 
-    SpectrumPasses BasicIntegrator::Integrate(const Ray& ray,const core::Vec2* samples,BsdfMemoryPtr memory) const{
+    SpectrumPasses BasicIntegrator::Integrate(const Ray& ray,const Vec2* samples,BsdfMemoryPtr memory) const{
         auto spectrum = RGBSpectrum::FromRGB(Vec3(ray.Direction[0]*.5+.5, ray.Direction[1]*.5+.5, ray.Direction[2]*.5+.5));
         return SpectrumPasses(spectrum);
     }

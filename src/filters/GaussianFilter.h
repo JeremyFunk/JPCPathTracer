@@ -1,14 +1,14 @@
 #pragma once
 #include "core/IFilter.h"
 #include "core/Linalg.h"
-namespace filters
+namespace jpc_tracer
 {
-    class GaussianFilter : public core::IFilter 
+    class GaussianFilter : public IFilter 
     {
     public:
-        GaussianFilter(core::Prec standard_deviation = 2);
-        float Evaluate(core::Vec2 point) override;
+        GaussianFilter(Prec standard_deviation = 2);
+        float Evaluate(Vec2 point) override;
     private:
-        core::Prec _std_derivative;
+        Prec _std_derivative;
     };
 }

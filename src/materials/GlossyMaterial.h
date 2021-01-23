@@ -9,24 +9,24 @@
 #include <color/ColorValue.h>
 #include "bsdfs/CookTorranceBSDF.h"
 
-namespace materials
+namespace jpc_tracer
 {
-    class GlossyMaterial final: public core::IMaterial
+    class GlossyMaterial final: public IMaterial
     {
     public:
-        GlossyMaterial(std::shared_ptr<color::ColorValue> color,core::Prec roughness);
-        virtual core::SpectrumPasses Illumination(const core::SurfaceInteraction& interaction, const core::Ray& ray) const override;
-        //virtual core::IBSDF* ComputeBSDF(const core::SurfaceInteraction& interaction, core::MemoryArea& memory_area) const override;
+        GlossyMaterial(std::shared_ptr<ColorValue> color,Prec roughness);
+        virtual SpectrumPasses Illumination(const SurfaceInteraction& interaction, const Ray& ray) const override;
+        //virtual IBSDF* ComputeBSDF(const SurfaceInteraction& interaction, MemoryArea& memory_area) const override;
 
-        virtual void OverrideBSDF(core::BsdfMemoryPtr& memory, const core::SurfaceInteraction& interaction) const override;
-        virtual core::BsdfMemoryInfo GetBsdfInfo() const override;
+        virtual void OverrideBSDF(BsdfMemoryPtr& memory, const SurfaceInteraction& interaction) const override;
+        virtual BsdfMemoryInfo GetBsdfInfo() const override;
         ~GlossyMaterial();
         
     private:
-        std::shared_ptr<color::ColorValue> _color;
-        std::shared_ptr<core::BsdfGeneric<bsdfs::CookTorranceParams<bsdfs::DielectricFresnelParams, bsdfs::BeckmannParams>>> _bsdf;
-        core::Prec _alpha;
+        std::shared_ptr<ColorValue> _color;
+        std::shared_ptr<BsdfGeneric<CookTorranceParams<DielectricFresnelParams, BeckmannParams>>> _bsdf;
+        Prec _alpha;
     };
 
-    core::Prec RoughnessToAlpha(core::Prec roughness);
+    Prec RoughnessToAlpha(Prec roughness);
 }

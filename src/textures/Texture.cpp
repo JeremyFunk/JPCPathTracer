@@ -2,20 +2,20 @@
 
 
 
-namespace textures
+namespace jpc_tracer
 {
     Texture::Texture(std::shared_ptr<std::vector<double>> pixels, int width, int height) : _pixels(pixels), _width(width), _height(height)
     {
         
     }
     
-    core::Vec3 Texture::GetPixel(int x, int y) 
+    Vec3 Texture::GetPixel(int x, int y) 
     {
         int idx = (x*_width+y)*3;
-        return core::Vec3((*_pixels)[idx],(*_pixels)[idx+1],(*_pixels)[idx+1]);
+        return Vec3((*_pixels)[idx],(*_pixels)[idx+1],(*_pixels)[idx+1]);
     }
     
-    core::Vec3 Texture::GetPixel(core::Vec2 uv) 
+    Vec3 Texture::GetPixel(Vec2 uv) 
     {
         int x = (int)(uv[0]*_width)%_width;
         int y = (int)(uv[1]*_height)%_height;
@@ -31,7 +31,7 @@ namespace textures
             y += _height;
 
         int idx = (y*_width+x)*3;
-        return core::Vec3((*_pixels)[idx],(*_pixels)[idx+1],(*_pixels)[idx+2]);
-        //return core::Vec3(x/(core::Prec)_width, y/(core::Prec)_height, 0);
+        return Vec3((*_pixels)[idx],(*_pixels)[idx+1],(*_pixels)[idx+2]);
+        //return Vec3(x/(Prec)_width, y/(Prec)_height, 0);
     }
 }

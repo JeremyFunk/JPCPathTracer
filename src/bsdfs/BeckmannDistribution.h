@@ -2,21 +2,21 @@
 #include "IMicrofacetDistribution.h"
 #include "core/Linalg.h"
 
-namespace bsdfs
+namespace jpc_tracer
 {
     struct BeckmannParams
     {
-        core::Prec Alpha;
+        Prec Alpha;
     };
 
     class BeckmannDistribution final: public IMicrofacetDistribution<BeckmannParams>
     {
     public:
-        virtual core::Prec Distribution(const BeckmannParams* params,const core::Vec3& microfacet_normal) const;
-        virtual core::Prec ShadowMasking(const BeckmannParams* params,const core::Vec3& scattered_direction,const core::Vec3& incident_direction) const;
-        virtual core::Vec3 SampleFromDistribution(const BeckmannParams* params, const core::Vec2 random_point) const;
-        virtual core::Prec Pdf(const BeckmannParams* params,const core::Vec3& scattered_direction,const core::Vec3& micorfacet_normal) const;
-        virtual core::Prec Lambda(const BeckmannParams* params,const core::Vec3& direction) const;
+        virtual Prec Distribution(const BeckmannParams* params,const Vec3& microfacet_normal) const;
+        virtual Prec ShadowMasking(const BeckmannParams* params,const Vec3& scattered_direction,const Vec3& incident_direction) const;
+        virtual Vec3 SampleFromDistribution(const BeckmannParams* params, const Vec2 random_point) const;
+        virtual Prec Pdf(const BeckmannParams* params,const Vec3& scattered_direction,const Vec3& micorfacet_normal) const;
+        virtual Prec Lambda(const BeckmannParams* params,const Vec3& direction) const;
         virtual ~BeckmannDistribution(){}
     };
 }

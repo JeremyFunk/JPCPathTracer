@@ -2,7 +2,7 @@
 #include "Linalg.h"
 #include "Bounds2D.h"
 #include "core/Bounds2D.h"
-namespace core {
+namespace jpc_tracer {
     class IFilter
     {
     public:

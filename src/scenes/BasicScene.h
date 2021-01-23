@@ -7,9 +7,9 @@
 #include "lights/DirectionalLight.h"
 #include "lights/PointLight.h"
 
-namespace scenes
+namespace jpc_tracer
 {
-    using namespace core;
+
     class BasicScene : public IScene
     {
     public:

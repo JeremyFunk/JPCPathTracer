@@ -3,7 +3,7 @@
 #include <limits.h>
 
 
-namespace lights
+namespace jpc_tracer
 {
     DirectionalLight::DirectionalLight(const Vec3& direction, const Spectrum& spectrum){
         _spectrum = spectrum;

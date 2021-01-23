@@ -6,23 +6,23 @@
 #include <memory>
 #include <optional>
 
-namespace shapes
+namespace jpc_tracer
 {
-    class Sphere final: public core::IShape
+    class Sphere final: public IShape
     {
     public:
-        Sphere(const core::Vec3& pos, const core::Prec& radius, std::shared_ptr<const core::IMaterial> material);
+        Sphere(const Vec3& pos, const Prec& radius, std::shared_ptr<const IMaterial> material);
 
         
-        virtual std::optional<core::IntersectionData> Intersect(const core::Ray& ray) const final;
-        virtual const core::SurfaceProperties GetSurfaceProperties(const core::Ray& ray,const core::IntersectionData& data) const final;
+        virtual std::optional<IntersectionData> Intersect(const Ray& ray) const final;
+        virtual const SurfaceProperties GetSurfaceProperties(const Ray& ray,const IntersectionData& data) const final;
 
-        virtual core::Bounds3D<core::Prec> WorldBoundary() const final;
-        virtual std::vector<std::shared_ptr<const core::IMaterial>> GetMaterials() const final;
+        virtual Bounds3D<Prec> WorldBoundary() const final;
+        virtual std::vector<std::shared_ptr<const IMaterial>> GetMaterials() const final;
     
     private:
-        const core::Vec3 _pos;
-        const core::Prec _radius;
-        const std::shared_ptr<const core::IMaterial> _material;
+        const Vec3 _pos;
+        const Prec _radius;
+        const std::shared_ptr<const IMaterial> _material;
     };
 }

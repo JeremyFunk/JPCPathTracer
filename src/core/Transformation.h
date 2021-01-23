@@ -3,7 +3,7 @@
 #include "core/Transformation.h"
 #include<memory.h>
 
-namespace core
+namespace jpc_tracer
 {
     
     class Transformation

@@ -9,7 +9,7 @@
 #include <memory>
 
 
-namespace shapes
+namespace jpc_tracer
 {
     class TriangleMesh;
     class Triangle;
@@ -19,37 +19,37 @@ namespace shapes
     public:
         TriangleMesh() = default;
         
-        TriangleMesh(std::shared_ptr<std::vector<core::Prec>> vertices, std::shared_ptr<std::vector<core::Prec>> normals, 
-                        std::shared_ptr<std::vector<core::Prec>> uvs, std::shared_ptr<std::vector<int>> indices,
-                        std::shared_ptr<core::IMaterial> material, std::shared_ptr<core::Transformation> transformation);
+        TriangleMesh(std::shared_ptr<std::vector<Prec>> vertices, std::shared_ptr<std::vector<Prec>> normals, 
+                        std::shared_ptr<std::vector<Prec>> uvs, std::shared_ptr<std::vector<int>> indices,
+                        std::shared_ptr<IMaterial> material, std::shared_ptr<Transformation> transformation);
         
-        void Transform(std::shared_ptr<core::Transformation> data);
+        void Transform(std::shared_ptr<Transformation> data);
 
-        std::shared_ptr<std::vector<core::Prec>> Vertices;
-        std::shared_ptr<std::vector<core::Prec>> Normals;
-        std::shared_ptr<std::vector<core::Prec>> UVs;
+        std::shared_ptr<std::vector<Prec>> Vertices;
+        std::shared_ptr<std::vector<Prec>> Normals;
+        std::shared_ptr<std::vector<Prec>> UVs;
         std::shared_ptr<std::vector<int>> Indices;
 
-        std::shared_ptr<core::IMaterial> Material;
-        std::shared_ptr<core::Transformation> Transformation;
+        std::shared_ptr<IMaterial> Material;
+        std::shared_ptr<Transformation> Transformation;
 
        std::shared_ptr<std::vector<std::shared_ptr<Triangle>>> GenerateTriangles();
     };
 
-    class Triangle final: public core::IShape
+    class Triangle final: public IShape
     {
     public:
         Triangle() = default;
         Triangle(std::shared_ptr<TriangleMesh> mesh, int index);
 
-        virtual std::optional<core::IntersectionData> Intersect(const core::Ray& ray) const final;
+        virtual std::optional<IntersectionData> Intersect(const Ray& ray) const final;
         
-        virtual const core::SurfaceProperties GetSurfaceProperties(const core::Ray& ray,const core::IntersectionData& data) const final;
+        virtual const SurfaceProperties GetSurfaceProperties(const Ray& ray,const IntersectionData& data) const final;
 
-        virtual core::Bounds3D<core::Prec> WorldBoundary() const final;
+        virtual Bounds3D<Prec> WorldBoundary() const final;
 
 
-        virtual std::vector<std::shared_ptr<const core::IMaterial>> GetMaterials() const final;
+        virtual std::vector<std::shared_ptr<const IMaterial>> GetMaterials() const final;
 
     private:
         std::shared_ptr<TriangleMesh> _mesh;

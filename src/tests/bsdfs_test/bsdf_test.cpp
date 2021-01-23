@@ -6,16 +6,16 @@
 #include "core/Spectrum.h"
 #include "samplers/StratifiedSampler.h"
 
-namespace bsdfs {
+namespace jpc_tracer {
 
-    using namespace core;
+
     TEST(bsdfs_test,word_to_local)
     {
-        IBXDF* diffuse = new bsdfs::DiffuseBxdf(Spectrum::FromRGB({1,1,1}));
+        IBXDF* diffuse = new DiffuseBxdf(Spectrum::FromRGB({1,1,1}));
         Vec3 normal = {0.4,0.5,.2};
         normal.normalize();
         BSDF bsdf(diffuse,1,normal);
-        //samplers::StratifiedSampler
+        //StratifiedSampler
         delete diffuse;
     }
 }*/

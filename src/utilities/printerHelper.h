@@ -2,7 +2,7 @@
 #include "core/Ray.h"
 #include <iostream>
 
-namespace utilities
+namespace jpc_tracer
 {
-    void PrintRay(const core::Ray& ray);
+    void PrintRay(const Ray& ray);
 }

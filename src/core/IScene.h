@@ -6,7 +6,7 @@
 #include "SurfaceProperties.h"
 #include "Bsdf.h"
 
-namespace core {
+namespace jpc_tracer {
 
 
     class IScene

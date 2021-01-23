@@ -8,7 +8,7 @@
 #include "core/Linalg.h"
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
-namespace bsdfs {
+namespace jpc_tracer {
     TEST(glossy,roughness0)
     {
         auto fresnel = std::make_shared<FresnelNoOp>();
@@ -17,29 +17,29 @@ namespace bsdfs {
         using BsdfClosureT = CookTorranceBSDFClosure<int, BeckmannParams>;
         
         auto bsdf_closure =std::make_shared<BsdfClosureT>(fresnel,distribution);
-        auto bsdf = std::make_shared<core::BsdfGeneric<BsdfParamsT>>(bsdf_closure);
+        auto bsdf = std::make_shared<BsdfGeneric<BsdfParamsT>>(bsdf_closure);
 
-        core::BsdfMemoryInfo info;
+        BsdfMemoryInfo info;
         info.max_byte_size = bsdf->GetMaxSize();
         info.max_bsdf_count = 1;
 
-        auto memory = core::CreateBsdfMemory(info);
-        core::ResetBsdfMemory(memory, {0,1,0});
+        auto memory = CreateBsdfMemory(info);
+        ResetBsdfMemory(memory, {0,1,0});
 
         auto params = bsdf->Setup(memory,1);
         params->Distribution.Alpha = 0.023;
-        params->Reflectance = core::Spectrum::FromRGB({1,1,1});
+        params->Reflectance = Spectrum::FromRGB({1,1,1});
 
-        core::Vec3 scattered_direction = {-1,1,-1};
+        Vec3 scattered_direction = {-1,1,-1};
         scattered_direction = scattered_direction.normalized();
-        core::Vec3 incident_direction = {1,1,1};
+        Vec3 incident_direction = {1,1,1};
         incident_direction = incident_direction.normalized();
 
-        core::SpectrumPasses color =  core::ScatteringBsdf(memory, scattered_direction, incident_direction);
+        SpectrumPasses color =  ScatteringBsdf(memory, scattered_direction, incident_direction);
 
-        core::Vec3 rgb = color.GetCombined().ToRGB();
+        Vec3 rgb = color.GetCombined().ToRGB();
 
-        core::Prec pdf = core::PdfBsdf(memory, scattered_direction, incident_direction);
+        Prec pdf = PdfBsdf(memory, scattered_direction, incident_direction);
 
         //EXPECT_EQ(rgb[0],1);
         //EXPECT_EQ(rgb[1],1);
@@ -56,38 +56,38 @@ namespace bsdfs {
         using BsdfClosureT = CookTorranceBSDFClosure<int, BeckmannParams>;
         
         auto bsdf_closure =std::make_shared<BsdfClosureT>(fresnel,distribution);
-        auto bsdf = std::make_shared<core::BsdfGeneric<BsdfParamsT>>(bsdf_closure);
+        auto bsdf = std::make_shared<BsdfGeneric<BsdfParamsT>>(bsdf_closure);
 
-        core::BsdfMemoryInfo info;
+        BsdfMemoryInfo info;
         info.max_byte_size = bsdf->GetMaxSize();
         info.max_bsdf_count = 1;
 
-        auto memory = core::CreateBsdfMemory(info);
-        core::Vec3 normal = {0,1,0};
-        core::ResetBsdfMemory(memory, normal);
+        auto memory = CreateBsdfMemory(info);
+        Vec3 normal = {0,1,0};
+        ResetBsdfMemory(memory, normal);
 
         auto params = bsdf->Setup(memory,1);
         params->Distribution.Alpha = 0.2;
-        params->Reflectance = core::Spectrum::FromRGB({1,1,1});
+        params->Reflectance = Spectrum::FromRGB({1,1,1});
 
-        core::Vec3 scattered_direction = {-1,1,-1};
+        Vec3 scattered_direction = {-1,1,-1};
         scattered_direction = scattered_direction.normalized();
-        core::Vec3 incident_direction = {1,1,1};
+        Vec3 incident_direction = {1,1,1};
         incident_direction = incident_direction.normalized();
 
-        core::SpectrumPasses color =  core::ScatteringBsdf(memory, scattered_direction, incident_direction);
+        SpectrumPasses color =  ScatteringBsdf(memory, scattered_direction, incident_direction);
 
-        core::Prec pdf = core::PdfBsdf(memory, scattered_direction, incident_direction);
+        Prec pdf = PdfBsdf(memory, scattered_direction, incident_direction);
 
-        core::Vec3 rgb = color.GetCombined().ToRGB();
+        Vec3 rgb = color.GetCombined().ToRGB();
 
         EXPECT_NEAR(rgb[0],6,0.1);
         EXPECT_NEAR(rgb[1],6,0.1);
         EXPECT_NEAR(rgb[2],6,0.1);
 
-        core::Prec cos = incident_direction.dot(normal);
+        Prec cos = incident_direction.dot(normal);
 
-        core::Prec test_val = ( rgb[0]/pdf) *cos;
+        Prec test_val = ( rgb[0]/pdf) *cos;
 
         EXPECT_NEAR(test_val,1,0.1);
         EXPECT_NEAR(pdf,0.2,0.0001);

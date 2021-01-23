@@ -1,14 +1,14 @@
 #pragma once
 #include "Linalg.h"
 
-namespace core {
+namespace jpc_tracer {
     class SurfaceInteraction
     {
     public:
-        core::Vec3 Point;
-        core::Vec3 Normal;
-        core::Vec2 UV;
-        core::Prec Distance;
+        Vec3 Point;
+        Vec3 Normal;
+        Vec2 UV;
+        Prec Distance;
     };
 }
 

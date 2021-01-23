@@ -5,7 +5,7 @@
 #include <utility>
 
 
-namespace core {
+namespace jpc_tracer {
 
     template<class ParamsT>
     class BsdfClosureGeneric : public BsdfClosure

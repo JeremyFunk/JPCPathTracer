@@ -3,7 +3,7 @@
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
 #include <memory>
-namespace core {
+namespace jpc_tracer {
     
     struct BsdfResult
     {

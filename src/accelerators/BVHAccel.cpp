@@ -6,9 +6,9 @@
 
 
 
-namespace accel
+namespace jpc_tracer
 {
-    BVHAccel::BVHAccel(std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> shapes, const int& max_shapes_in_leaf) 
+    BVHAccel::BVHAccel(std::shared_ptr<std::vector<std::shared_ptr<IShape>>> shapes, const int& max_shapes_in_leaf) 
         : _max_shapes_in_leaf(max_shapes_in_leaf), _shapes(shapes), _shapes_info(), _tree()
     {
         BuildBVH();
@@ -42,15 +42,15 @@ namespace accel
         _tree = flattend;
     }
     
-    std::optional<core::IntersectionData> BVHAccel::Traversal(const core::Ray& ray) const
+    std::optional<IntersectionData> BVHAccel::Traversal(const Ray& ray) const
     {
         //precalculation for faster bounding box intersection
-        core::Vec3 inv_direction {1 / ray.Direction.x(), 1 / ray.Direction.y(), 1 / ray.Direction.z()};
+        Vec3 inv_direction {1 / ray.Direction.x(), 1 / ray.Direction.y(), 1 / ray.Direction.z()};
         int dir_is_neagative[3] = {inv_direction.x() < 0, inv_direction.y() < 0, inv_direction.z() < 0};
 
         //setup
-        std::optional<core::IntersectionData> closestInteraction = std::nullopt;
-        std::optional<core::Prec> intersection_distance = std::nullopt;
+        std::optional<IntersectionData> closestInteraction = std::nullopt;
+        std::optional<Prec> intersection_distance = std::nullopt;
 
         //follow ray
         const int tree_size = _tree->size();
@@ -64,7 +64,7 @@ namespace accel
         {   
             //update intersection distance
             if(closestInteraction)
-                intersection_distance = std::make_optional<core::Prec>(closestInteraction->Distance);
+                intersection_distance = std::make_optional<Prec>(closestInteraction->Distance);
 
             //Bounding Box is intersecting
             if ((*_tree)[current_idx].Bounds.IsIntersecting(ray, intersection_distance ,inv_direction, dir_is_neagative))
@@ -78,7 +78,7 @@ namespace accel
 
                     for (int i = triangle_start; i < triangle_start + triangle_number; i++)
                     {
-                        std::optional<core::IntersectionData> surfaceInteraction = (*_shapes)[ _shapes_info[i].Shape_Idx]->Intersect(ray);
+                        std::optional<IntersectionData> surfaceInteraction = (*_shapes)[ _shapes_info[i].Shape_Idx]->Intersect(ray);
 
                         //min interaction
                         if(surfaceInteraction)
@@ -119,10 +119,10 @@ namespace accel
         BVHNode* node = allnodes->data() + offset;
 
         //overall bounding box
-        core::Bounds3D<core::Prec> total_bound = _shapes_info[start].Bounds;
+        Bounds3D<Prec> total_bound = _shapes_info[start].Bounds;
         for (int i = start + 1; i < end; i++)
         {
-            total_bound = core::Union(total_bound, _shapes_info[i].Bounds);
+            total_bound = Union(total_bound, _shapes_info[i].Bounds);
         }
 
         int number_triangles = end - start;
@@ -136,10 +136,10 @@ namespace accel
         else
         {
             //calculate children
-            core::Bounds3D<core::Prec> center_bounds(_shapes_info[start].Center, _shapes_info[start+1].Center);
+            Bounds3D<Prec> center_bounds(_shapes_info[start].Center, _shapes_info[start+1].Center);
             for(int i = start+2; i < end; i++)
             {
-                center_bounds = core::Union(center_bounds, _shapes_info[i].Center);
+                center_bounds = Union(center_bounds, _shapes_info[i].Center);
             }
 
             int maximum_extent = center_bounds.MaximumExtent();

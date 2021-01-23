@@ -1,7 +1,7 @@
 #include "DebugFilm.h"
 #include "utilities/ImageIO.h"
 
-namespace debug {
+namespace jpc_tracer {
     DebugFilm::DebugFilm(int width, int height) 
         : _width(width), _height(height)
     {
@@ -22,11 +22,11 @@ namespace debug {
         if(p >_max_val) _max_val = p;
     }
     
-    void DebugFilm::AddColor(int x, int y, core::Spectrum spec) 
+    void DebugFilm::AddColor(int x, int y, Spectrum spec) 
     {
         x = std::min(x, _width - 1);
         y = std::min(y, _height - 1);
-        core::Vec3 rgb = spec.ToRGB();
+        Vec3 rgb = spec.ToRGB();
         _pixels[y*_width*3+x*3] += rgb[0];
         _pixels[y*_width*3+x*3+1] += rgb[1];
         _pixels[y*_width*3+x*3+2] += rgb[2];
@@ -48,11 +48,11 @@ namespace debug {
         _max_val = std::max<float>(value,_max_val);
     }
     
-    void DebugFilm::SetColor(int x, int y, core::Spectrum spec)
+    void DebugFilm::SetColor(int x, int y, Spectrum spec)
     {
         x = std::min(x, _width - 1);
         y = std::min(y, _height - 1);
-        core::Vec3 rgb = spec.ToRGB();
+        Vec3 rgb = spec.ToRGB();
         _pixels[y * _width * 3 + x * 3] = rgb[0];
         _pixels[y * _width * 3 + x * 3 + 1] = rgb[1];
         _pixels[y * _width * 3 + x * 3 + 2] = rgb[2];
@@ -71,7 +71,7 @@ namespace debug {
         {
             conv_pixels->operator[](i) =_pixels[i] / _max_val * 255.0f;
         }
-        utilities::WriteImage(filepath, conv_pixels->data(), _width, _height);
+        WriteImage(filepath, conv_pixels->data(), _width, _height);
     }
     
     void DebugFilm::SaveLog(std::string filepath)
@@ -81,6 +81,6 @@ namespace debug {
         {
             conv_pixels->operator[](i) = std::log(1 + _pixels[i]) * 255.0f;
         }
-        utilities::WriteImage(filepath, conv_pixels->data(), _width, _height);
+        WriteImage(filepath, conv_pixels->data(), _width, _height);
     }
 }

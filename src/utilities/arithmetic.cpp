@@ -1,6 +1,6 @@
 #include "arithmetic.h"
 
-namespace utilities
+namespace jpc_tracer
 {
 
 }

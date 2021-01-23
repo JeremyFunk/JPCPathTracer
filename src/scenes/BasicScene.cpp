@@ -15,7 +15,7 @@
 #include "color/ColorValue.h"
 
 
-namespace scenes
+namespace jpc_tracer
 {
 
     BasicScene::BasicScene(const std::shared_ptr<std::vector<std::shared_ptr<IShape>>>& shapeList, const std::shared_ptr<std::vector<std::shared_ptr<ILight>>>& light) 
@@ -26,7 +26,7 @@ namespace scenes
 
     std::optional<SurfaceProperties> BasicScene::Intersect(const Ray& ray) const{
 
-        std::optional<core::IntersectionData> closestInteraction = std::nullopt;
+        std::optional<IntersectionData> closestInteraction = std::nullopt;
 
         for(auto shape : *_shape_list){
             auto surfaceInteraction = shape->Intersect(ray);
@@ -45,7 +45,7 @@ namespace scenes
     }
     std::optional<Prec> BasicScene::IntersectionDistance(const Ray& ray) const{
 
-        std::optional<core::IntersectionData> closestInteraction = std::nullopt;
+        std::optional<IntersectionData> closestInteraction = std::nullopt;
 
         for(auto shape : *_shape_list){
             auto surfaceInteraction = shape->Intersect(ray);
@@ -56,7 +56,7 @@ namespace scenes
             }
         }
         
-        return std::make_optional<core::Prec>(closestInteraction->Distance);
+        return std::make_optional<Prec>(closestInteraction->Distance);
     }
     std::vector<std::shared_ptr<ILight>> BasicScene::GetLights() const{
         return *_light_list;
@@ -65,7 +65,7 @@ namespace scenes
     BsdfMemoryInfo BasicScene::GetBsdfInfo() const
     {
         BsdfMemoryInfo bsdf_info = {0,0};
-        std::vector<std::shared_ptr<const core::IMaterial>> materials;
+        std::vector<std::shared_ptr<const IMaterial>> materials;
         for(const auto& shape : *_shape_list)
         {
             

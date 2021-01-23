@@ -1,9 +1,8 @@
 #pragma once
 #include "core/ICamera.h"
 
-namespace cameras
+namespace jpc_tracer
 {
-    using namespace core;
     class ProjectionCamera : public ICamera
     {
     public:

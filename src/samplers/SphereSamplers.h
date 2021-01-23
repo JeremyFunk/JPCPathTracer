@@ -1,8 +1,8 @@
 #pragma once
 #include "core/Linalg.h"
-namespace samplers
+namespace jpc_tracer
 {
-    core::Vec3 UniformSampleHemisphere(const core::Vec2& random_point);
-    core::Vec2 ConcentricSampleDisk(const core::Vec2& random_point);
-    core::Vec3 CosinusSampleHemisphere(const core::Vec2& random_point);
+    Vec3 UniformSampleHemisphere(const Vec2& random_point);
+    Vec2 ConcentricSampleDisk(const Vec2& random_point);
+    Vec3 CosinusSampleHemisphere(const Vec2& random_point);
 }

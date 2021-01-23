@@ -4,7 +4,7 @@
     #include <vcruntime.h>
 #endif
 
-namespace core {
+namespace jpc_tracer {
 
     class CombinedPass
     {

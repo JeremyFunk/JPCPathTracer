@@ -5,17 +5,17 @@
 #ifdef _MSC_VER
     #include <vcruntime.h>
 #endif
-namespace samplers
+namespace jpc_tracer
 {
     
-    class DebugSampler : public core::ISampler
+    class DebugSampler : public ISampler
     {
     public:
         DebugSampler() = default;
-        virtual core::Prec Get1DSample() override;
-        virtual core::Vec2 Get2DSample() override;
-        virtual std::shared_ptr<core::ISampler> Clone() override;
-        virtual void Get1DSampleArray(size_t dim, size_t sample_count, core::Prec* desination) override;
-        virtual void Get2DSampleArray(size_t dim_y,size_t dim_x, size_t sample_count, core::Vec2* desination)  override;
+        virtual Prec Get1DSample() override;
+        virtual Vec2 Get2DSample() override;
+        virtual std::shared_ptr<ISampler> Clone() override;
+        virtual void Get1DSampleArray(size_t dim, size_t sample_count, Prec* desination) override;
+        virtual void Get2DSampleArray(size_t dim_y,size_t dim_x, size_t sample_count, Vec2* desination)  override;
     };
 }

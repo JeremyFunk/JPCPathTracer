@@ -3,7 +3,7 @@
 
 
 
-namespace lights
+namespace jpc_tracer
 {
     PointLight::PointLight(const Vec3& position, const Spectrum& spectrum){
         _spectrum = spectrum;

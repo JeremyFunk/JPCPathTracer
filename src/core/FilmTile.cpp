@@ -3,7 +3,7 @@
 #include "core/SpectrumPasses.h"
 #include <iostream>
 
-namespace core {
+namespace jpc_tracer {
     FilmTile::FilmTile(std::shared_ptr<IFilter> filter, Bounds2D<int> bounds) 
         : Bounds(bounds), _filter(filter)
     {

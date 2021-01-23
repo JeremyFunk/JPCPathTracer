@@ -17,28 +17,28 @@
 #include <memory>
 #include "TestLightIntegrator.h"
 #include "scenes/BasicScene.h"
+namespace jpc_tracer {
 
-
-class IncidentDirIntegrator : public integrators::DebugBsdfIntegrator
+class IncidentDirIntegrator : public DebugBsdfIntegrator
 {
 public:
-    IncidentDirIntegrator(int max_depth) : integrators::DebugBsdfIntegrator(max_depth) {}
-    virtual core::Vec3 PixelEffect(core::SurfaceProperties& properties, const core::Ray& ray, const core::Vec2& sample, core::BsdfMemoryPtr& memory,
-        const std::shared_ptr<core::IScene>& scene) const
+    IncidentDirIntegrator(int max_depth) : DebugBsdfIntegrator(max_depth) {}
+    virtual Vec3 PixelEffect(SurfaceProperties& properties, const Ray& ray, const Vec2& sample, BsdfMemoryPtr& memory,
+        const std::shared_ptr<IScene>& scene) const
     {
         
         properties.Material->OverrideBSDF(memory,properties.Interaction);
 
-        core::Vec3 interaction_point = properties.Interaction.Point + properties.Interaction.Normal* ERROR_THICCNESS;
+        Vec3 interaction_point = properties.Interaction.Point + properties.Interaction.Normal* ERROR_THICCNESS;
 
-        core::Vec3 incident_dir = core::SampleIncidentDirectionBsdf(memory,-ray.Direction, sample);
-        core::Prec pdf = core::PdfBsdf(memory,-ray.Direction, incident_dir);
-        core::Ray incident_ray(interaction_point,incident_dir,ray.Depth+1);
-        core::SpectrumPasses surface_color = core::ScatteringBsdf(memory,-ray.Direction, incident_dir);
+        Vec3 incident_dir = SampleIncidentDirectionBsdf(memory,-ray.Direction, sample);
+        Prec pdf = PdfBsdf(memory,-ray.Direction, incident_dir);
+        Ray incident_ray(interaction_point,incident_dir,ray.Depth+1);
+        SpectrumPasses surface_color = ScatteringBsdf(memory,-ray.Direction, incident_dir);
 
 
-        core::Vec3 normal = properties.Interaction.Normal;//incident_ray.Direction;//ray.Direction - 2*ray.Direction.dot(properties.Interaction.Normal)*properties.Interaction.Normal;
-        core::Vec3 color = core::Vec3{0.5,0.5,0.5}+normal*0.5;
+        Vec3 normal = properties.Interaction.Normal;//incident_ray.Direction;//ray.Direction - 2*ray.Direction.dot(properties.Interaction.Normal)*properties.Interaction.Normal;
+        Vec3 color = Vec3{0.5,0.5,0.5}+normal*0.5;
         
         //return color;
         //return surface_color.GetCombined().ToRGB();
@@ -48,27 +48,31 @@ public:
     }
 };
 
+
+}
+
 int main()
 {
+    using namespace jpc_tracer;
     int width = 500;
     int height = 300;
-    int sample_count = 2;
-    auto sampler = std::make_shared<samplers::StratifiedSampler>();
-    auto camera = std::make_shared<cameras::ProjectionCamera>(width,height,1);
+    int sample_count = 64;
+    auto sampler = std::make_shared<StratifiedSampler>();
+    auto camera = std::make_shared<ProjectionCamera>(width,height,1);
 
     //Scene Setup
     auto shapeList = generate_shapes();
     auto lightList = generate_lights();
 
-    auto scene = std::make_shared<scenes::BVHScene>(shapeList, lightList);
-    //auto scene = std::make_shared<scenes::BasicScene>(shapeList, lightList);
-    auto integrator = std::make_shared<integrators::PathIntegrator>(core::Spectrum::FromRGB({0,0,0}),2);
+    auto scene = std::make_shared<BVHScene>(shapeList, lightList);
+    //auto scene = std::make_shared<BasicScene>(shapeList, lightList);
+    auto integrator = std::make_shared<PathIntegrator>(Spectrum::FromRGB({0,0,0}),2);
     //auto integrator = std::make_shared<IncidentDirIntegrator>(1);
     //auto integrator = std::make_shared<TestLightIntegrator>();
     integrator->Init(scene);
-    auto filter = std::make_shared<filters::GaussianFilter>(0.5);
-    auto film = std::make_shared<films::BasicFilm>(width,height);
-    auto renderer = std::make_shared<renderers::BasicRenderer>(sample_count,true);
+    auto filter = std::make_shared<GaussianFilter>(0.5);
+    auto film = std::make_shared<BasicFilm>(width,height);
+    auto renderer = std::make_shared<BasicRenderer>(sample_count,true);
     renderer->Init(sampler, camera, scene, integrator, filter, film);
     renderer->Render();
     film->WriteImage("pathintegrator.png");

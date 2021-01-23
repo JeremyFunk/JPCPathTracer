@@ -5,9 +5,9 @@
 #include "core/Spectrum.h"
 #include "core/ILight.h"
 
-namespace lights
+namespace jpc_tracer
 {
-    using namespace core;
+
     class DirectionalLight : public ILight
     {
     public:

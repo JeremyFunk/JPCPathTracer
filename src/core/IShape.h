@@ -9,7 +9,7 @@
 #include <optional>
 #include <vector>
 
-namespace core {
+namespace jpc_tracer {
     
     class IntersectionData;
     class IShape
@@ -17,7 +17,7 @@ namespace core {
     public:
         virtual std::optional<IntersectionData> Intersect(const Ray& ray) const= 0;
         virtual const SurfaceProperties GetSurfaceProperties(const Ray& ray,const IntersectionData& data) const = 0;
-        virtual core::Bounds3D<core::Prec> WorldBoundary() const = 0;
+        virtual Bounds3D<Prec> WorldBoundary() const = 0;
         virtual std::vector<std::shared_ptr<const IMaterial>> GetMaterials() const = 0;
     };
 

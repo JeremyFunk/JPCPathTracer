@@ -4,19 +4,19 @@
 #include <vector>
 #include <iostream>
 
-namespace utilities
+namespace jpc_tracer
 {
     std::vector<std::string> split(const std::string& str, const std::string& delim);
 
 
-    std::shared_ptr<shapes::TriangleMesh> LoadMesh(std::string path,std::shared_ptr<core::IMaterial> material, std::shared_ptr<core::Transformation> transformation, std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> shapes)
+    std::shared_ptr<TriangleMesh> LoadMesh(std::string path,std::shared_ptr<IMaterial> material, std::shared_ptr<Transformation> transformation, std::shared_ptr<std::vector<std::shared_ptr<IShape>>> shapes)
     {
-        //auto m = core::LinAlg::GetRotationMatrix(core::Vec3(0, 0, 90));
+        //auto m = LinAlg::GetRotationMatrix(Vec3(0, 0, 90));
 
 
-        std::vector<core::Prec> vertices;
-        std::vector<core::Prec> normals;
-        std::vector<core::Prec> uvs;
+        std::vector<Prec> vertices;
+        std::vector<Prec> normals;
+        std::vector<Prec> uvs;
         
         std::vector<int> indices;
 
@@ -28,38 +28,38 @@ namespace utilities
                 auto splitted = split(line, " ");
 
                 if(line.rfind("v ",0)==0){
-                    core::Prec v1 = std::stof(splitted[1]);
-                    core::Prec v2 = std::stof(splitted[2]);
-                    core::Prec v3 = std::stof(splitted[3]);
+                    Prec v1 = std::stof(splitted[1]);
+                    Prec v2 = std::stof(splitted[2]);
+                    Prec v3 = std::stof(splitted[3]);
 
 
 
-                    core::Vec4 vec4 = transformation->L2W * core::Vec4(v1, v2, v3, 1);
+                    Vec4 vec4 = transformation->L2W * Vec4(v1, v2, v3, 1);
 
                     vertices.push_back(vec4[0]);
                     vertices.push_back(vec4[1]);
                     vertices.push_back(vec4[2]);
                 }else if(line.rfind("vn ",0)==0){
-                    core::Prec v1 = std::stof(splitted[1]);
-                    core::Prec v2 = std::stof(splitted[2]);
-                    core::Prec v3 = std::stof(splitted[3]);
+                    Prec v1 = std::stof(splitted[1]);
+                    Prec v2 = std::stof(splitted[2]);
+                    Prec v3 = std::stof(splitted[3]);
 
                     
-                    core::Vec3 vec3 = (transformation->Rot2W * core::Vec3(v1, v2, v3)).normalized();
+                    Vec3 vec3 = (transformation->Rot2W * Vec3(v1, v2, v3)).normalized();
 
                     normals.push_back(v1);
                     normals.push_back(v2);
                     normals.push_back(v3);
 
                     // Normalize debug
-                    // core::Vec3 vec3 = core::Vec3(v1, v2, v3).normalized();
+                    // Vec3 vec3 = Vec3(v1, v2, v3).normalized();
 
                     // normals.push_back(vec3[0]);
                     // normals.push_back(vec3[1]);
                     // normals.push_back(vec3[2]);
                 }else if(line.rfind("vt ",0)==0){
-                    core::Prec v1 = std::stof(splitted[1]);
-                    core::Prec v2 = std::stof(splitted[2]);
+                    Prec v1 = std::stof(splitted[1]);
+                    Prec v2 = std::stof(splitted[2]);
     
                     uvs.push_back(v1);
                     uvs.push_back(-v2);
@@ -100,8 +100,8 @@ namespace utilities
             std::cout << "Could not open the path: " << path << std::endl;
         }
 
-        auto mesh = std::make_shared<shapes::TriangleMesh>(std::make_shared<std::vector<core::Prec>>(vertices), std::make_shared<std::vector<core::Prec>>(normals), 
-        std::make_shared<std::vector<core::Prec>>(uvs), std::make_shared<std::vector<int>>(indices), material, transformation);
+        auto mesh = std::make_shared<TriangleMesh>(std::make_shared<std::vector<Prec>>(vertices), std::make_shared<std::vector<Prec>>(normals), 
+        std::make_shared<std::vector<Prec>>(uvs), std::make_shared<std::vector<int>>(indices), material, transformation);
 
         
 

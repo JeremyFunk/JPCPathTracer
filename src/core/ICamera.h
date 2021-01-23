@@ -5,7 +5,7 @@
 #ifdef _MSC_VER
     #include <vcruntime.h>
 #endif
-namespace core {
+namespace jpc_tracer {
     class ICamera
     {
     public:

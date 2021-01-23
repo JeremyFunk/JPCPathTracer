@@ -4,7 +4,7 @@
 #include "Bsdf.h"
 #include "core/SpectrumPasses.h"
 
-namespace core {
+namespace jpc_tracer {
     class IMaterial
     {
     public:

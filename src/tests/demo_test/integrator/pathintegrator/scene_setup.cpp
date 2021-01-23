@@ -8,6 +8,8 @@
 #include "textures/Texture.h"
 #include "utilities/textureLoader.h"
 #include "shapes/Sphere.h"
+namespace jpc_tracer {
+
 
 std::string ProjectPath()
 {
@@ -32,44 +34,46 @@ std::string IcospherePath()
     return ProjectPath() + "resource/icosphere.obj";
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes() 
+std::shared_ptr<std::vector<std::shared_ptr<IShape>>> generate_shapes() 
 {
-    std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> shapeList = std::make_shared<std::vector<std::shared_ptr<core::IShape>>>();
+    std::shared_ptr<std::vector<std::shared_ptr<IShape>>> shapeList = std::make_shared<std::vector<std::shared_ptr<IShape>>>();
 
-    auto color_blue = std::make_shared<color::ColorValueVec3>(color::ColorValueVec3({0.2,0.2,1}));
-    auto color_red = std::make_shared<color::ColorValueVec3>(color::ColorValueVec3({1,0.2,0.2}));
-    auto color_green = std::make_shared<color::ColorValueVec3>(color::ColorValueVec3({0.2,1,0.2}));
-    auto color_white = std::make_shared<color::ColorValueVec3>(color::ColorValueVec3({1,1,1}));
+    auto color_blue = std::make_shared<ColorValueVec3>(ColorValueVec3({0.2,0.2,1}));
+    auto color_red = std::make_shared<ColorValueVec3>(ColorValueVec3({1,0.2,0.2}));
+    auto color_green = std::make_shared<ColorValueVec3>(ColorValueVec3({0.2,1,0.2}));
+    auto color_white = std::make_shared<ColorValueVec3>(ColorValueVec3({1,1,1}));
     
 
-    auto material_blue = std::make_shared<materials::BasicMaterial>(color_blue,10);
-    auto material_red = std::make_shared<materials::BasicMaterial>(color_red,0);
-    auto material_red_glossy = std::make_shared<materials::GlossyMaterial>(color_red,0);
-    auto material_green = std::make_shared<materials::BasicMaterial>(color_green,0);  
-    auto material_white = std::make_shared<materials::BasicMaterial>(color_white,100);
-    auto material_white_glossy = std::make_shared<materials::GlossyMaterial>(color_white,0.);
+    auto material_blue = std::make_shared<BasicMaterial>(color_blue,10);
+    auto material_red = std::make_shared<BasicMaterial>(color_red,0);
+    auto material_red_glossy = std::make_shared<GlossyMaterial>(color_red,0);
+    auto material_green = std::make_shared<BasicMaterial>(color_green,0);  
+    auto material_white = std::make_shared<BasicMaterial>(color_white,100);
+    auto material_white_glossy = std::make_shared<GlossyMaterial>(color_white,0.05);
 
-    core::Transformation plain_transformation (core::Vec3(0, 0, -10), core::Vec3(0, 0, 0), core::Vec3(1.3,.9,1));
-    auto mesh = utilities::LoadMesh(PlainPath(), material_white_glossy, std::make_shared<core::Transformation>(plain_transformation), shapeList);
-    //auto sphere = std::make_shared<shapes::Sphere>(core::Vec3{0,0,-8},2, material_white);
+    Transformation plain_transformation (Vec3(0, 0, -8), Vec3(0, 0, 0), Vec3(1.3,.9,1));
+    auto mesh = LoadMesh(PlainPath(), material_white_glossy, std::make_shared<Transformation>(plain_transformation), shapeList);
+    //auto sphere = std::make_shared<Sphere>(Vec3{0,0,-8},2, material_white);
     //shapeList->push_back(sphere);
     
-    //core::Transformation monkey_transformation(core::Vec3(0, 0, -5), core::Vec3(0, 0, 0), core::Vec3(.8,.8,.8));
-    //auto monkeyMesh = utilities::LoadMesh(MonkeyPath(), material_white_glossy, std::make_shared<core::Transformation>(monkey_transformation), shapeList);
-    //core::Transformation icosphere_transformation(core::Vec3(-3, 0, -4), core::Vec3(0, 0, 0), core::Vec3(.8,.8,.8));
-    //auto icosphereMesh = utilities::LoadMesh(IcospherePath(), material_green, std::make_shared<core::Transformation>(icosphere_transformation), shapeList);
-    auto sphere1 = std::make_shared<shapes::Sphere>(core::Vec3(-3, 0, -4),1,material_green);
+    //Transformation monkey_transformation(Vec3(-3, 0, -5), Vec3(0, 0, 0), Vec3(.8,.8,.8));
+    //auto monkeyMesh = LoadMesh(MonkeyPath(), material_green, std::make_shared<Transformation>(monkey_transformation), shapeList);
+    //Transformation icosphere_transformation(Vec3(-3, 0, -4), Vec3(0, 0, 0), Vec3(.8,.8,.8));
+    //auto icosphereMesh = LoadMesh(IcospherePath(), material_green, std::make_shared<Transformation>(icosphere_transformation), shapeList);
+    auto sphere1 = std::make_shared<Sphere>(Vec3(-3, 0, -4),1,material_green);
     shapeList->push_back(sphere1);
 
     return shapeList;
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<core::ILight>>> generate_lights() 
+std::shared_ptr<std::vector<std::shared_ptr<ILight>>> generate_lights() 
 {
-    std::shared_ptr<std::vector<std::shared_ptr<core::ILight>>> lightList = std::make_shared<std::vector<std::shared_ptr<core::ILight>>>();
+    std::shared_ptr<std::vector<std::shared_ptr<ILight>>> lightList = std::make_shared<std::vector<std::shared_ptr<ILight>>>();
 
-    lightList->push_back(std::make_shared<lights::PointLight>(core::Vec3(-1, 0, -7), core::RGBSpectrum::FromRGB({2000,2000,2000})));
-    //lightList->push_back(std::make_shared<lights::PointLight>(core::Vec3(2, 0, 5), core::RGBSpectrum::FromRGB({1000,1000,200})));
+    lightList->push_back(std::make_shared<PointLight>(Vec3(0, 0, -7), RGBSpectrum::FromRGB({1000,1000,1000})));
+    //lightList->push_back(std::make_shared<PointLight>(Vec3(2, 0, 5), RGBSpectrum::FromRGB({1000,1000,200})));
 
     return lightList;
+}
+
 }

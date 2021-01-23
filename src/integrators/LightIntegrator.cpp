@@ -4,29 +4,33 @@
 #include "core/Linalg.h"
 #include "core/SpectrumPasses.h"
 
-namespace integrators
+namespace jpc_tracer
 {
-    core::SpectrumPasses IntegrateLights(const core::Ray& ray,const core::SurfaceProperties& properties,const std::shared_ptr<core::IScene> scene,
-    core::BsdfMemoryPtr& bsdf) 
+    SpectrumPasses IntegrateLights(const Ray& ray,const SurfaceProperties& properties,const std::shared_ptr<IScene> scene,
+    BsdfMemoryPtr& bsdf) 
     {
-        core::SpectrumPasses luminance;
-        for(const std::shared_ptr<core::ILight>& light : scene->GetLights())
+        SpectrumPasses luminance;
+        for(const std::shared_ptr<ILight>& light : scene->GetLights())
         {
-            core::Vec3 Prosurface_properties_point = properties.Interaction.Point + properties.Interaction.Normal*ERROR_THICCNESS;
+            Vec3 Prosurface_properties_point = properties.Interaction.Point + properties.Interaction.Normal*ERROR_THICCNESS;
             auto light_info = light->GetLightInformation(Prosurface_properties_point);
-            auto intersection = scene->Intersect(core::Ray(Prosurface_properties_point, -light_info.Direction));
-            bool light_blocked = true;
+            auto intersection = scene->Intersect(Ray(Prosurface_properties_point, -light_info.Direction));
+            bool light_blocked = false;
             if(intersection.has_value())
             {
-                core::Prec blocked_distance = (intersection->Interaction.Point-properties.Interaction.Point).norm();
+                Prec blocked_distance = (intersection->Interaction.Point-properties.Interaction.Point).norm();
                 if(blocked_distance > light_info.Distance)
                     light_blocked = false;
+                else
+                    light_blocked = true;
+                
+                
             }
             
             if(!light_blocked)
             {
-                core::SpectrumPasses light_luminance = light->Illumination(Prosurface_properties_point, light_info);
-                core::SpectrumPasses bsdf_luminance = core::ScatteringBsdf(bsdf,-ray.Direction, -light_info.Direction);
+                SpectrumPasses light_luminance = light->Illumination(Prosurface_properties_point, light_info);
+                SpectrumPasses bsdf_luminance = ScatteringBsdf(bsdf,-ray.Direction, -light_info.Direction);
                 luminance+= light_luminance*bsdf_luminance* std::abs(properties.Interaction.Normal.dot(-light_info.Direction));
             }
         }
@@ -38,22 +42,22 @@ namespace integrators
         int X,Y;
     };
 
-    void LightIntegrator::Init(std::shared_ptr<core::IScene> scene){
+    void LightIntegrator::Init(std::shared_ptr<IScene> scene){
         _scene = scene;
     }
 
-    std::unique_ptr<std::vector<core::Vec2>> LightIntegrator::SetupSamples(int max_sample_count) const 
+    std::unique_ptr<std::vector<Vec2>> LightIntegrator::SetupSamples(int max_sample_count) const 
     {
         SampleCount sample_count = GetSampleCount(max_sample_count);
-        return std::make_unique<std::vector<core::Vec2>>(sample_count.X*sample_count.Y);
+        return std::make_unique<std::vector<Vec2>>(sample_count.X*sample_count.Y);
     }
     
-    void LightIntegrator::FillSamples(std::shared_ptr<core::ISampler> sampler, std::unique_ptr<std::vector<core::Vec2>>& data,int max_sample_count) const 
+    void LightIntegrator::FillSamples(std::shared_ptr<ISampler> sampler, std::unique_ptr<std::vector<Vec2>>& data,int max_sample_count) const 
     {
         SampleCount sample_count = GetSampleCount(max_sample_count);
         sampler->Get2DSampleArray(sample_count.Y, sample_count.X, 1, data->data());
     }
-    core::Vec2* LightIntegrator::SetStartSample(core::Vec2* samples, int sampling_idx,int max_sample_count) const 
+    Vec2* LightIntegrator::SetStartSample(Vec2* samples, int sampling_idx,int max_sample_count) const 
     {
 
 
@@ -66,10 +70,10 @@ namespace integrators
         return samples+index;
 
     }
-    core::SpectrumPasses LightIntegrator::Integrate(const core::Ray& ray,const core::Vec2* samples,core::BsdfMemoryPtr bsdf_memory) const{
+    SpectrumPasses LightIntegrator::Integrate(const Ray& ray,const Vec2* samples,BsdfMemoryPtr bsdf_memory) const{
         auto surface_properties = _scene->Intersect(ray);
         
-        core::SpectrumPasses luminance;
+        SpectrumPasses luminance;
 
         if(surface_properties.has_value()){
             luminance+=surface_properties->Material->Illumination(surface_properties->Interaction, ray);
@@ -82,7 +86,7 @@ namespace integrators
 
     SampleCount LightIntegrator::GetSampleCount(int max_sample_count) const
     {
-        int sample_count_x = floor(sqrt(max_sample_count));
+        int sample_count_x = std::floor(std::sqrt(max_sample_count));
         int sample_count_y = sample_count_x;
         return {sample_count_x,sample_count_y};
     }

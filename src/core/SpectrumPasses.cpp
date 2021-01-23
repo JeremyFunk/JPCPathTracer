@@ -1,6 +1,6 @@
 #include "SpectrumPasses.h"
 #include "core/Spectrum.h"
-namespace core
+namespace jpc_tracer
 {
     CombinedPass CombinedPass::FromValue(const Prec& value) 
     {

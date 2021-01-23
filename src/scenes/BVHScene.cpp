@@ -16,20 +16,20 @@
 #include "core/Transformation.h"
 
 
-namespace scenes
+namespace jpc_tracer
 {
 
     BVHScene::BVHScene(const std::shared_ptr<std::vector<std::shared_ptr<IShape>>>& shapeList, const std::shared_ptr<std::vector<std::shared_ptr<ILight>>>& lightList)
         : _shapeList(shapeList),
           _lightList(lightList),
-          _bvh_tree(std::make_shared<accel::BVHAccel>(shapeList, 1))
+          _bvh_tree(std::make_shared<BVHAccel>(shapeList, 1))
     {
     }
 
     std::optional<SurfaceProperties> BVHScene::Intersect(const Ray& ray) const{
 
        
-        std::optional<core::IntersectionData> closestInteraction = _bvh_tree->Traversal(ray);
+        std::optional<IntersectionData> closestInteraction = _bvh_tree->Traversal(ray);
 
         if(!closestInteraction)
             return std::nullopt;
@@ -38,12 +38,12 @@ namespace scenes
     }
     std::optional<Prec> BVHScene::IntersectionDistance(const Ray& ray) const{
         
-        std::optional<core::IntersectionData> closestInteraction = _bvh_tree->Traversal(ray);
+        std::optional<IntersectionData> closestInteraction = _bvh_tree->Traversal(ray);
 
         if(!closestInteraction)
             return std::nullopt;
         
-        return std::make_optional<core::Prec>(closestInteraction->Distance);
+        return std::make_optional<Prec>(closestInteraction->Distance);
     }
     std::vector<std::shared_ptr<ILight>> BVHScene::GetLights() const{
         return *_lightList;
@@ -52,7 +52,7 @@ namespace scenes
     BsdfMemoryInfo BVHScene::GetBsdfInfo() const
     {
         BsdfMemoryInfo bsdf_info = {0,0};
-        std::vector<std::shared_ptr<const core::IMaterial>> materials;
+        std::vector<std::shared_ptr<const IMaterial>> materials;
         for(const auto& shape : *_shapeList)
         {
             

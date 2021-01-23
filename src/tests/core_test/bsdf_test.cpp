@@ -6,13 +6,13 @@
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
 
-namespace core {
+namespace jpc_tracer {
     
     struct Parameter
     {
-        core::Vec3 color = {1,0.1,0.1};
+        Vec3 color = {1,0.1,0.1};
         float pdf;
-        core::Vec3 scattered_direction;
+        Vec3 scattered_direction;
     };
 
     class SingleColorBsdf: public BsdfClosureGeneric<Parameter>

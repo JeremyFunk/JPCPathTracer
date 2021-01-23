@@ -2,7 +2,7 @@
 #include "SurfaceInteraction.h"
 #include "IMaterial.h"
 
-namespace core {
+namespace jpc_tracer {
     
     struct SurfaceProperties
     {

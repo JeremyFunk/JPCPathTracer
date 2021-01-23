@@ -9,7 +9,7 @@
 
 
 
-namespace core {
+namespace jpc_tracer {
 
 
     template<size_t Dim>

@@ -2,7 +2,7 @@
 #include "gtest/gtest.h"
 #include <vector>
 #include "utilities/ImageIO.h"
-namespace samplers {
+namespace jpc_tracer {
 
     TEST(utilities,write_image)
     {
@@ -16,7 +16,7 @@ namespace samplers {
         for(auto val: image)
             char_img.push_back(val);
         
-        utilities::WriteImage("foo.png",char_img.data(),2,2);
+        WriteImage("foo.png",char_img.data(),2,2);
         
     }
 

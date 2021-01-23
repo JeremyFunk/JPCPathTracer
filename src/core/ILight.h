@@ -2,7 +2,7 @@
 #include "Linalg.h"
 #include "Ray.h"
 #include "core/Spectrum.h"
-namespace core {
+namespace jpc_tracer {
     struct LightInformation{
     public:
         LightInformation(Vec3 direction, Prec distance){

@@ -6,7 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-namespace core {
+namespace jpc_tracer {
 
     struct BsdfMemory
     {
@@ -63,12 +63,12 @@ namespace core {
         return Vec3({x.dot(memory->Tangent1),x.dot(memory->Tangent2),x.dot(memory->Normal)});
     }
     
-    core::Vec3 LocalToWorld(const BsdfMemoryPtr& memory,core::Vec3 x)
+    Vec3 LocalToWorld(const BsdfMemoryPtr& memory,Vec3 x)
     {
         Vec3& tangent1 = memory->Tangent1; 
         Vec3& tangent2 = memory->Tangent2; 
         Vec3& normal = memory->Normal;
-        return core::Vec3({
+        return Vec3({
             tangent1[0]*x[0]+tangent2[0]*x[1]+normal[0]*x[2],
             tangent1[1]*x[0]+tangent2[1]*x[1]+normal[1]*x[2],
             tangent1[2]*x[0]+tangent2[2]*x[1]+normal[2]*x[2]
@@ -82,7 +82,7 @@ namespace core {
         memory->FreeSpace = memory->Pool.size();
         memory->Normal = normal;
 
-        core::Vec3 temp_v = {0,0,-1};
+        Vec3 temp_v = {0,0,-1};
         if(normal[2]!=0)
         {
             temp_v = {0,-1,0};

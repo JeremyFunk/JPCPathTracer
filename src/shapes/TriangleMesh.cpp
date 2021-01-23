@@ -3,9 +3,9 @@
 
 
 
-namespace shapes
+namespace jpc_tracer
 {
-    TriangleMesh::TriangleMesh(std::shared_ptr<std::vector<core::Prec>> vertices, std::shared_ptr<std::vector<core::Prec>> normals, std::shared_ptr<std::vector<core::Prec>> uvs, std::shared_ptr<std::vector<int>> indices, std::shared_ptr<core::IMaterial> material, std::shared_ptr<core::Transformation> transformation) 
+    TriangleMesh::TriangleMesh(std::shared_ptr<std::vector<Prec>> vertices, std::shared_ptr<std::vector<Prec>> normals, std::shared_ptr<std::vector<Prec>> uvs, std::shared_ptr<std::vector<int>> indices, std::shared_ptr<IMaterial> material, std::shared_ptr<::jpc_tracer::Transformation> transformation) 
     : Vertices(vertices), Normals(normals), UVs(uvs), Indices(indices), Material(material), Transformation(transformation)
     {
         
@@ -23,7 +23,7 @@ namespace shapes
         return triangles;
     }
     
-    std::vector<std::shared_ptr<const core::IMaterial>> Triangle::GetMaterials() const 
+    std::vector<std::shared_ptr<const IMaterial>> Triangle::GetMaterials() const 
     {
         return {_mesh->Material};
     }

@@ -3,9 +3,9 @@
 
 #include <cmath>
 
-namespace utilities
+namespace jpc_tracer
 {
-    inline bool solve_quadratic(const core::Prec& a, const core::Prec& b, const core::Prec& c, core::Prec* solution1, core::Prec* solution2) 
+    inline bool solve_quadratic(const Prec& a, const Prec& b, const Prec& c, Prec* solution1, Prec* solution2) 
     {
         double discriminant = (double)b*(double)b - 4 * (double)a * (double)c;
 

@@ -3,7 +3,7 @@
 #include "Eigen/src/Core/Matrix.h"
 #include "constants.h"
 
-namespace core {
+namespace jpc_tracer {
     using Prec = float;
     using Vec4 = Eigen::Vector4f;
     using Vec3 = Eigen::Vector3f;

@@ -2,13 +2,13 @@
 #include "core/IFilm.h"
 #include <vector>
 
-namespace films
+namespace jpc_tracer
 {
-    class BasicFilm : public core::IFilm
+    class BasicFilm : public IFilm
     {
     public:
         BasicFilm(int width,int height);
-        virtual void SaveFilmTile(const core::FilmTile& tile);
+        virtual void SaveFilmTile(const FilmTile& tile);
 
         virtual void WriteImage(std::string path) const;
 

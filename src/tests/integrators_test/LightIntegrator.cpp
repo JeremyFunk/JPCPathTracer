@@ -13,15 +13,15 @@
 #include "shapes/Sphere.h"
 #include "materials/BasicMaterial.h"
 #include "lights/PointLight.h"
-namespace integrators {
+namespace jpc_tracer {
     TEST(direct_light, singleray)
     {
-        auto color = std::make_shared<color::ColorValueVec3>(color::ColorValueVec3({1,1,1}));
-        auto integrator = std::make_shared<integrators::LightIntegrator>();
+        auto color = std::make_shared<ColorValueVec3>(ColorValueVec3({1,1,1}));
+        auto integrator = std::make_shared<LightIntegrator>();
 
-        auto material = std::make_shared<materials::BasicMaterial>(color,0);
-        auto lights = std::make_shared<std::vector<std::shared_ptr<core::ILight>>>();
-        auto shapes = std::make_shared<std::vector<std::shared_ptr<core::IShape>>>();
+        auto material = std::make_shared<BasicMaterial>(color,0);
+        auto lights = std::make_shared<std::vector<std::shared_ptr<ILight>>>();
+        auto shapes = std::make_shared<std::vector<std::shared_ptr<IShape>>>();
         /*
         Scene Layout
          z
@@ -33,20 +33,20 @@ namespace integrators {
        0 - - - C - - - - x
           -2   0   2 
         */
-        auto sphere = std::make_shared<shapes::Sphere>(core::Vec3{0,0,-4},1,material);
+        auto sphere = std::make_shared<Sphere>(Vec3{0,0,-4},1,material);
         shapes->push_back(sphere);
-        auto point_light = std::make_shared<lights::PointLight>(core::Vec3{2,0,-2},core::Spectrum::FromRGB({100,100,100}));
+        auto point_light = std::make_shared<PointLight>(Vec3{2,0,-2},Spectrum::FromRGB({100,100,100}));
         lights->push_back(point_light);
 
-        auto scene = std::make_shared<scenes::BVHScene>(shapes,lights);
+        auto scene = std::make_shared<BVHScene>(shapes,lights);
         integrator->Init(scene);
-        //core::BsdfMemoryPtr memory = core::CreateBsdfMemory;
-        core::BsdfMemoryInfo info = scene->GetBsdfInfo();
+        //BsdfMemoryPtr memory = CreateBsdfMemory;
+        BsdfMemoryInfo info = scene->GetBsdfInfo();
         
-        core::BsdfMemoryPtr memory = core::CreateBsdfMemory(info);
-        core::Ray ray({0,0,0},{0,0,-1});
-        core::SpectrumPasses spec ;//= integrator->Integrate(ray, nullptr,memory );
-        core::Vec3 rgb = spec.GetCombined().ToRGB();
+        BsdfMemoryPtr memory = CreateBsdfMemory(info);
+        Ray ray({0,0,0},{0,0,-1});
+        SpectrumPasses spec ;//= integrator->Integrate(ray, nullptr,memory );
+        Vec3 rgb = spec.GetCombined().ToRGB();
         std::cout<<rgb[0]<<","<<rgb[1]<<","<<rgb[2]<<std::endl;
     }
 }

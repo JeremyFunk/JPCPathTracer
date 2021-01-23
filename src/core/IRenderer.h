@@ -7,7 +7,7 @@
 #include "IFilter.h"
 #include "core/IFilm.h"
 
-namespace core {
+namespace jpc_tracer {
     class IRenderer
     {
     public:

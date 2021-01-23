@@ -1,7 +1,7 @@
 #include "ProjectionCamera.h"
 #include "core/ISampler.h"
 
-namespace cameras
+namespace jpc_tracer
 {
     ProjectionCamera::ProjectionCamera(Prec width, Prec height, Prec nearPlane)
         : _near_plane_width (width / std::max(width, height)),

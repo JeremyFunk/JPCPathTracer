@@ -6,6 +6,9 @@
 #include "core/BsdfGeneric.h"
 #include "core/Linalg.h"
 
+namespace jpc_tracer {
+
+
 std::vector<float> rand_point_x()
 {
     return {
@@ -542,21 +545,21 @@ std::vector<float> sample_z()
 
 TEST(lambertian,val1)
 {
-    auto closure = std::make_shared<bsdfs::LambertianBSDF>();
-    core::BsdfMemoryInfo info = {0,0};
+    auto closure = std::make_shared<LambertianBSDF>();
+    BsdfMemoryInfo info = {0,0};
     info.max_bsdf_count = 1;
     
-    auto bsdf = std::make_shared<core::BsdfGeneric<bsdfs::LambertianParams>>(closure);
+    auto bsdf = std::make_shared<BsdfGeneric<LambertianParams>>(closure);
 
     info.max_byte_size = bsdf->GetMaxSize();
 
-    auto memory = core::CreateBsdfMemory(info);
+    auto memory = CreateBsdfMemory(info);
 
-    core::ResetBsdfMemory(memory, {0,0,1});
+    ResetBsdfMemory(memory, {0,0,1});
 
     bsdf->Setup(memory, 1);
 
-    core::Vec3 direction = {0,1,0};
+    Vec3 direction = {0,1,0};
     direction = direction.normalized();
 
     auto v_x = sample_x();
@@ -569,10 +572,11 @@ TEST(lambertian,val1)
 
     for(int i = 0; i< v_x.size();i++)
     {
-        core::Vec2 rand_point = {s_x[i],s_y[i]};
-        core::Vec3 sample = core::SampleIncidentDirectionBsdf(memory, direction, rand_point);
+        Vec2 rand_point = {s_x[i],s_y[i]};
+        Vec3 sample = SampleIncidentDirectionBsdf(memory, direction, rand_point);
         EXPECT_NEAR(v_x[i],sample[0],0.001);
         EXPECT_NEAR(v_y[i],sample[1],0.001);
         EXPECT_NEAR(v_z[i],sample[2],0.001);
     }
+}
 }

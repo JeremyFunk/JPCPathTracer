@@ -3,9 +3,9 @@
 #include "core/IRenderer.h"
 #include "core/IFilm.h"
 
-namespace renderers
+namespace jpc_tracer
 {
-    using namespace core;
+ 
 
     class BasicRenderer : public IRenderer
     {

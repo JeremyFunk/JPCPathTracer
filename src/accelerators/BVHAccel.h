@@ -7,14 +7,14 @@
 #include <memory>
 #include <vector>
 
-namespace accel
+namespace jpc_tracer
 {
     class BVHAccel
     {
     public:
-        BVHAccel(std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> shapes, const int& max_shapes_in_leaf);
+        BVHAccel(std::shared_ptr<std::vector<std::shared_ptr<IShape>>> shapes, const int& max_shapes_in_leaf);
 
-        std::optional<core::IntersectionData> Traversal(const core::Ray& ray) const;
+        std::optional<IntersectionData> Traversal(const Ray& ray) const;
     
         void BuildBVH();
 
@@ -26,7 +26,7 @@ namespace accel
         int linearise_tree(BVHNode* node, std::shared_ptr<std::vector<SmallBVHNode>>& flattend);
 
         const int _max_shapes_in_leaf;
-        std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> _shapes;
+        std::shared_ptr<std::vector<std::shared_ptr<IShape>>> _shapes;
         std::vector<ShapeInfo> _shapes_info;
         std::shared_ptr<std::vector<SmallBVHNode>> _tree;
     };

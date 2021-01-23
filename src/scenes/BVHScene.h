@@ -9,9 +9,9 @@
 #include "accelerators/BVHAccel.h"
 #include <memory>
 
-namespace scenes
+namespace jpc_tracer
 {
-    using namespace core;
+
     class BVHScene : public IScene
     {
     public:
@@ -24,7 +24,7 @@ namespace scenes
         virtual BsdfMemoryInfo GetBsdfInfo() const override;
 
     private:
-        std::shared_ptr<accel::BVHAccel> _bvh_tree;
+        std::shared_ptr<BVHAccel> _bvh_tree;
         std::shared_ptr<std::vector<std::shared_ptr<IShape>>> _shapeList;
         std::shared_ptr<std::vector<std::shared_ptr<ILight>>> _lightList;
     };

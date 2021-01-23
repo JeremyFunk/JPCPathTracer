@@ -1,10 +1,13 @@
 #pragma once
 #include "integrators/DebugIntegrator.h"
 
-class TestLightIntegrator final: public integrators::DebugIntegrator
+namespace jpc_tracer {
+
+class TestLightIntegrator final: public DebugIntegrator
 {
 public:
-    virtual core::Vec3 PixelEffect(core::SurfaceProperties& properties,const core::Ray& ray,const core::Vec2& sample,core::BsdfMemoryPtr& memory, 
-            const std::shared_ptr<core::IScene>& scene) const;
+    virtual Vec3 PixelEffect(SurfaceProperties& properties,const Ray& ray,const Vec2& sample,BsdfMemoryPtr& memory, 
+            const std::shared_ptr<IScene>& scene) const;
 
 };
+}
