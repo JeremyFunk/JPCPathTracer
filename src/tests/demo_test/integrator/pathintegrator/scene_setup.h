@@ -1,3 +1,4 @@
+#pragma once
 #include "core/Linalg.h"
 #include "core/IShape.h"
 #include "core/ILight.h"

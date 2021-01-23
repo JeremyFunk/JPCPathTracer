@@ -556,7 +556,8 @@ TEST(lambertian,val1)
 
     bsdf->Setup(memory, 1);
 
-    core::Vec3 direction = {0,0,0};
+    core::Vec3 direction = {0,1,0};
+    direction = direction.normalized();
 
     auto v_x = sample_x();
     auto v_y = sample_y();

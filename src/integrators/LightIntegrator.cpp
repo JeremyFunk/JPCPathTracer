@@ -14,8 +14,16 @@ namespace integrators
         {
             core::Vec3 Prosurface_properties_point = properties.Interaction.Point + properties.Interaction.Normal*ERROR_THICCNESS;
             auto light_info = light->GetLightInformation(Prosurface_properties_point);
-            auto light_blocked = scene->Intersect(core::Ray(Prosurface_properties_point, -light_info.Direction));
-            if(!light_blocked.has_value())
+            auto intersection = scene->Intersect(core::Ray(Prosurface_properties_point, -light_info.Direction));
+            bool light_blocked = true;
+            if(intersection.has_value())
+            {
+                core::Prec blocked_distance = (intersection->Interaction.Point-properties.Interaction.Point).norm();
+                if(blocked_distance > light_info.Distance)
+                    light_blocked = false;
+            }
+            
+            if(!light_blocked)
             {
                 core::SpectrumPasses light_luminance = light->Illumination(Prosurface_properties_point, light_info);
                 core::SpectrumPasses bsdf_luminance = core::ScatteringBsdf(bsdf,-ray.Direction, -light_info.Direction);

@@ -1,4 +1,5 @@
 #include "ImageIO.h"
+#include <iostream>
 namespace utilities
 {
     void WriteImage(std::string path,const unsigned char* pixels, const int width,
@@ -9,10 +10,14 @@ namespace utilities
 
         std::unique_ptr<OIIO::ImageOutput> out = OIIO::ImageOutput::create(filename);
         if (!out)
+        {
+            std::cout<<"Could not create image"<<std::endl;
             return;
+        }
         OIIO::ImageSpec spec(width, height, channels, OIIO::TypeDesc::UINT8);
         out->open(filename, spec);
         out->write_image(OIIO::TypeDesc::UINT8, pixels);
         out->close();
+        std::cout<<"Wrote image"<<std::endl;
     }
 }

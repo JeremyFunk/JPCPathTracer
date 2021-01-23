@@ -80,7 +80,7 @@ namespace integrators
             if( (! surface_color.IsZero() ) && pdf > 0)
             {
                 core::SpectrumPasses subray_radiance = Integrate(incident_ray,samples, std::move(bsdf_memory));
-                luminance += subray_radiance/pdf * surface_color * std::abs(incident_ray.Direction.dot(surface_properties->Interaction.Normal));
+                luminance += subray_radiance/pdf * surface_color * std::abs(incident_dir.dot(surface_properties->Interaction.Normal));
             }
 
         }else {

@@ -1,11 +1,11 @@
 #include "gtest/gtest.h"
 #include <memory>
 #include <vector>
+#include "core/Bsdf.h"
 #include "core/ILight.h"
 #include "core/IMaterial.h"
 #include "core/IShape.h"
 #include "core/Linalg.h"
-#include "core/MemoryArea.h"
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
 #include "integrators/LightIntegrator.h"
@@ -40,9 +40,12 @@ namespace integrators {
 
         auto scene = std::make_shared<scenes::BVHScene>(shapes,lights);
         integrator->Init(scene);
-        core::MemoryArea memory;
+        //core::BsdfMemoryPtr memory = core::CreateBsdfMemory;
+        core::BsdfMemoryInfo info = scene->GetBsdfInfo();
+        
+        core::BsdfMemoryPtr memory = core::CreateBsdfMemory(info);
         core::Ray ray({0,0,0},{0,0,-1});
-        core::SpectrumPasses spec = integrator->Integrate(ray, nullptr,memory );
+        core::SpectrumPasses spec ;//= integrator->Integrate(ray, nullptr,memory );
         core::Vec3 rgb = spec.GetCombined().ToRGB();
         std::cout<<rgb[0]<<","<<rgb[1]<<","<<rgb[2]<<std::endl;
     }

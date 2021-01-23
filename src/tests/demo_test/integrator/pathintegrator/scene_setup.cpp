@@ -49,7 +49,7 @@ std::shared_ptr<std::vector<std::shared_ptr<core::IShape>>> generate_shapes()
     auto material_white = std::make_shared<materials::BasicMaterial>(color_white,100);
     auto material_white_glossy = std::make_shared<materials::GlossyMaterial>(color_white,0.);
 
-    core::Transformation plain_transformation (core::Vec3(0, 0, -8), core::Vec3(0, 0, 0), core::Vec3(1.3,.9,1));
+    core::Transformation plain_transformation (core::Vec3(0, 0, -10), core::Vec3(0, 0, 0), core::Vec3(1.3,.9,1));
     auto mesh = utilities::LoadMesh(PlainPath(), material_white_glossy, std::make_shared<core::Transformation>(plain_transformation), shapeList);
     //auto sphere = std::make_shared<shapes::Sphere>(core::Vec3{0,0,-8},2, material_white);
     //shapeList->push_back(sphere);
@@ -68,8 +68,8 @@ std::shared_ptr<std::vector<std::shared_ptr<core::ILight>>> generate_lights()
 {
     std::shared_ptr<std::vector<std::shared_ptr<core::ILight>>> lightList = std::make_shared<std::vector<std::shared_ptr<core::ILight>>>();
 
-    lightList->push_back(std::make_shared<lights::PointLight>(core::Vec3(2, 0, -5.8), core::RGBSpectrum::FromRGB({2000,2000,2000})));
-
+    lightList->push_back(std::make_shared<lights::PointLight>(core::Vec3(-1, 0, -7), core::RGBSpectrum::FromRGB({2000,2000,2000})));
+    //lightList->push_back(std::make_shared<lights::PointLight>(core::Vec3(2, 0, 5), core::RGBSpectrum::FromRGB({1000,1000,200})));
 
     return lightList;
 }

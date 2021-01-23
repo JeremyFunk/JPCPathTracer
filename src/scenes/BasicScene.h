@@ -13,13 +13,14 @@ namespace scenes
     class BasicScene : public IScene
     {
     public:
-        BasicScene();
+        BasicScene(const std::shared_ptr<std::vector<std::shared_ptr<IShape>>>& shapeList, const std::shared_ptr<std::vector<std::shared_ptr<ILight>>>& light);
         virtual std::optional<SurfaceProperties> Intersect(const Ray& ray) const override;
         virtual std::optional<Prec> IntersectionDistance(const Ray& ray) const override;
         virtual std::vector<std::shared_ptr<ILight>> GetLights() const override;
+        virtual BsdfMemoryInfo GetBsdfInfo() const override;
 
     private:
-        std::shared_ptr<std::vector<std::shared_ptr<IShape>>> shapeList;
-        std::vector<std::shared_ptr<ILight>> lightList;
+        std::shared_ptr<std::vector<std::shared_ptr<IShape>>> _shape_list;
+        std::shared_ptr<std::vector<std::shared_ptr<ILight>>> _light_list;
     };
 }

@@ -15,14 +15,16 @@
 class TestIntegrator : public integrators::DebugIntegrator
 {
 public:
-    virtual core::Vec3 PixelEffect(core::SurfaceProperties& properties, const core::Ray& ray, const core::Vec2& sample, core::MemoryArea& memory,
+    virtual core::Vec3 PixelEffect(core::SurfaceProperties& properties, const core::Ray& ray, const core::Vec2& sample, core::BsdfMemoryPtr& memory,
         const std::shared_ptr<core::IScene>& scene) const
     {
+        return {0,0,0};
         //core::Vec3 normal = properties.Interaction.Normal;
         //core::Vec3 color = core::Vec3{0.5,0.5,0.5}+normal*0.5;
         //return color;
 
-        core::IBSDF* bsdf = properties.Material->ComputeBSDF(properties.Interaction, memory);
+        //core::IBSDF* bsdf = properties.Material->ComputeBSDF(properties.Interaction, memory);
+        
         for (const std::shared_ptr<core::ILight>& light : scene->GetLights())
         {
             core::Vec3 interaction_point = properties.Interaction.Point + properties.Interaction.Normal * ERROR_THICCNESS;
@@ -31,12 +33,11 @@ public:
             if (!light_blocked.has_value())
             {
                 core::SpectrumPasses light_luminance = light->Illumination(interaction_point, light_info);
-                core::SpectrumPasses bsdf_luminance = bsdf->Scattering(-ray.Direction, -light_info.Direction);
+                core::SpectrumPasses bsdf_luminance ;//= bsdf->Scattering(-ray.Direction, -light_info.Direction);
                 return bsdf_luminance.GetCombined().ToRGB();
                 //luminance += light_luminance * bsdf_luminance * std::abs(ray.Direction.dot(light_info.Direction));
             }
         }
-        delete bsdf;
         
     }
 };

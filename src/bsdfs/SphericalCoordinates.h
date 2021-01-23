@@ -48,7 +48,7 @@ namespace bsdfs
 
     inline bool SameHemiSphereNormalSpace(const core::Vec3& v1, const core::Vec3& v2)
     {
-        return v1[2]*v2[2]>0;
+        return v1[2]*v2[2]>=0;
     }
 
     inline core::Vec3 Reflect(const core::Vec3& v1,const core::Vec3& normal)
