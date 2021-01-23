@@ -4,8 +4,8 @@
 
 namespace jpc_tracer {
 
-std::shared_ptr<std::vector<std::shared_ptr<IShape>>> generate_shapes();
+Ref<std::vector<Ref<IShape>>> generate_shapes();
 
-std::shared_ptr<std::vector<std::shared_ptr<ILight>>> generate_lights();
+Ref<std::vector<Ref<ILight>>> generate_lights();
 
 }

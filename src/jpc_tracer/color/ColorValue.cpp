@@ -12,7 +12,7 @@ namespace jpc_tracer
         return _color;
     }
     
-    ColorValueTexture::ColorValueTexture(std::shared_ptr<Texture> texture) : _texture(texture)
+    ColorValueTexture::ColorValueTexture(Ref<Texture> texture) : _texture(texture)
     {}
     
     Vec3 ColorValueTexture::GetColor(Vec2 uv) const

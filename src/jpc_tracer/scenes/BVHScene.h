@@ -15,17 +15,17 @@ namespace jpc_tracer
     class BVHScene : public IScene
     {
     public:
-        BVHScene(const std::shared_ptr<std::vector<std::shared_ptr<IShape>>>& shapeList, const std::shared_ptr<std::vector<std::shared_ptr<ILight>>>& light);
+        BVHScene(const Ref<std::vector<Ref<IShape>>>& shapeList, const Ref<std::vector<Ref<ILight>>>& light);
         virtual std::optional<SurfaceProperties> Intersect(const Ray& ray) const override;
         virtual std::optional<Prec> IntersectionDistance(const Ray& ray) const override;
         
-        virtual std::vector<std::shared_ptr<ILight>> GetLights() const override;
+        virtual std::vector<Ref<ILight>> GetLights() const override;
 
         virtual BsdfMemoryInfo GetBsdfInfo() const override;
 
     private:
-        std::shared_ptr<BVHAccel> _bvh_tree;
-        std::shared_ptr<std::vector<std::shared_ptr<IShape>>> _shapeList;
-        std::shared_ptr<std::vector<std::shared_ptr<ILight>>> _lightList;
+        Ref<BVHAccel> _bvh_tree;
+        Ref<std::vector<Ref<IShape>>> _shapeList;
+        Ref<std::vector<Ref<ILight>>> _lightList;
     };
 }

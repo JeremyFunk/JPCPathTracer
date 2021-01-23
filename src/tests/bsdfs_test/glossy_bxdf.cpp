@@ -11,13 +11,13 @@
 namespace jpc_tracer {
     TEST(glossy,roughness0)
     {
-        auto fresnel = std::make_shared<FresnelNoOp>();
-        auto distribution = std::make_shared<BeckmannDistribution>();
+        auto fresnel = MakeRef<FresnelNoOp>();
+        auto distribution = MakeRef<BeckmannDistribution>();
         using BsdfParamsT = CookTorranceParams<int, BeckmannParams>;
         using BsdfClosureT = CookTorranceBSDFClosure<int, BeckmannParams>;
         
-        auto bsdf_closure =std::make_shared<BsdfClosureT>(fresnel,distribution);
-        auto bsdf = std::make_shared<BsdfGeneric<BsdfParamsT>>(bsdf_closure);
+        auto bsdf_closure =MakeRef<BsdfClosureT>(fresnel,distribution);
+        auto bsdf = MakeRef<BsdfGeneric<BsdfParamsT>>(bsdf_closure);
 
         BsdfMemoryInfo info;
         info.max_byte_size = bsdf->GetMaxSize();
@@ -50,13 +50,13 @@ namespace jpc_tracer {
 
     TEST(glossy,roughness02)
     {
-        auto fresnel = std::make_shared<FresnelNoOp>();
-        auto distribution = std::make_shared<BeckmannDistribution>();
+        auto fresnel = MakeRef<FresnelNoOp>();
+        auto distribution = MakeRef<BeckmannDistribution>();
         using BsdfParamsT = CookTorranceParams<int, BeckmannParams>;
         using BsdfClosureT = CookTorranceBSDFClosure<int, BeckmannParams>;
         
-        auto bsdf_closure =std::make_shared<BsdfClosureT>(fresnel,distribution);
-        auto bsdf = std::make_shared<BsdfGeneric<BsdfParamsT>>(bsdf_closure);
+        auto bsdf_closure =MakeRef<BsdfClosureT>(fresnel,distribution);
+        auto bsdf = MakeRef<BsdfGeneric<BsdfParamsT>>(bsdf_closure);
 
         BsdfMemoryInfo info;
         info.max_byte_size = bsdf->GetMaxSize();

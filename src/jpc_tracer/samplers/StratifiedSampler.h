@@ -15,7 +15,7 @@ namespace jpc_tracer
         StratifiedSampler();
         virtual Prec Get1DSample() override;
         virtual Vec2 Get2DSample() override;
-        virtual std::shared_ptr<ISampler> Clone() override;
+        virtual Ref<ISampler> Clone() override;
         void Get1DSamples(size_t size,Prec* desination);
         void Get2DSamples(size_t size_x, size_t size_y,Vec2* desination);
 

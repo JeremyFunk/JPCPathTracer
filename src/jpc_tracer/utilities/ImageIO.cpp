@@ -1,5 +1,6 @@
 #include "ImageIO.h"
 #include <iostream>
+#include "core/Base.h"
 namespace jpc_tracer
 {
     void WriteImage(std::string path,const unsigned char* pixels, const int width,
@@ -8,7 +9,7 @@ namespace jpc_tracer
         const char *filename = path.data();
         const int channels = 3; // RGB
 
-        std::unique_ptr<OIIO::ImageOutput> out = OIIO::ImageOutput::create(filename);
+        Scope<OIIO::ImageOutput> out = OIIO::ImageOutput::create(filename);
         if (!out)
         {
             std::cout<<"Could not create image"<<std::endl;

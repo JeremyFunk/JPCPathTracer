@@ -8,7 +8,7 @@ namespace jpc_tracer
     public:
         ProjectionCamera(Prec width, Prec height, Prec nearPlane);
 
-        virtual Ray GenerateRay(const std::shared_ptr<ISampler>& sampler, Vec2i pixel) const override ;
+        virtual Ray GenerateRay(const Ref<ISampler>& sampler, Vec2i pixel) const override ;
 
     private:
         Prec _aspect_ratio;

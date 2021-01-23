@@ -41,7 +41,7 @@ namespace jpc_tracer {
 
     BsdfMemoryPtr CreateBsdf()
     {
-        auto bsdfclosure = std::make_shared<SingleColorBsdf>();
+        auto bsdfclosure = MakeRef<SingleColorBsdf>();
         BsdfGeneric<Parameter> bsdf(std::move(bsdfclosure));
         BsdfMemoryInfo info = {(int)bsdf.GetMaxSize()*2,2};
         BsdfMemoryPtr bsdf_memory = CreateBsdfMemory(info);

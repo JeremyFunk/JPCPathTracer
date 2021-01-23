@@ -10,7 +10,7 @@ namespace jpc_tracer
     class textureLoader
     {
     public:
-        static std::shared_ptr<Texture> LoadTexture(std::string path){
+        static Ref<Texture> LoadTexture(std::string path){
             auto in = OIIO::ImageInput::open(path);
             if(!in){
                 std::cout<<"Image File "<<path<<" could not be opened!";
@@ -24,16 +24,16 @@ namespace jpc_tracer
                 in->read_image(OIIO::TypeDesc::DOUBLE, &pixels[0]);
                 in->close();
                 
-                return std::make_shared<Texture>(std::make_shared<std::vector<double>>(pixels), xres, yres);
+                return MakeRef<Texture>(MakeRef<std::vector<double>>(pixels), xres, yres);
             }
 
-            return std::make_shared<Texture>(nullptr,0,0);
+            return MakeRef<Texture>(nullptr,0,0);
         }
 
         
-        static std::shared_ptr<ColorValueTexture> LoadColorValueTexture(std::string path){
+        static Ref<ColorValueTexture> LoadColorValueTexture(std::string path){
 
-            return std::make_shared<ColorValueTexture>(LoadTexture(path));
+            return MakeRef<ColorValueTexture>(LoadTexture(path));
         }
     };
 }

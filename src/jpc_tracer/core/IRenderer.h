@@ -1,4 +1,5 @@
 #pragma once
+#include"Base.h"
 #include "ISampler.h"
 #include <memory>
 #include "ICamera.h"
@@ -12,9 +13,9 @@ namespace jpc_tracer {
     {
     public:
 
-        virtual void Init(std::shared_ptr<ISampler> sampler, std::shared_ptr<ICamera> camera, 
-        std::shared_ptr<IScene> scene, std::shared_ptr<IIntegrator> integrator, std::shared_ptr<IFilter> filter, 
-        std::shared_ptr<IFilm> film ) = 0;
+        virtual void Init(Ref<ISampler> sampler, Ref<ICamera> camera, 
+        Ref<IScene> scene, Ref<IIntegrator> integrator, Ref<IFilter> filter, 
+        Ref<IFilm> film ) = 0;
         virtual void Render() = 0;
         virtual void Finish() = 0;
 

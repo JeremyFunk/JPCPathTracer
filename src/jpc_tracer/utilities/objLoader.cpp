@@ -9,7 +9,7 @@ namespace jpc_tracer
     std::vector<std::string> split(const std::string& str, const std::string& delim);
 
 
-    std::shared_ptr<TriangleMesh> LoadMesh(std::string path,std::shared_ptr<IMaterial> material, std::shared_ptr<Transformation> transformation, std::shared_ptr<std::vector<std::shared_ptr<IShape>>> shapes)
+    Ref<TriangleMesh> LoadMesh(std::string path,Ref<IMaterial> material, Ref<Transformation> transformation, Ref<std::vector<Ref<IShape>>> shapes)
     {
         //auto m = LinAlg::GetRotationMatrix(Vec3(0, 0, 90));
 
@@ -100,8 +100,8 @@ namespace jpc_tracer
             std::cout << "Could not open the path: " << path << std::endl;
         }
 
-        auto mesh = std::make_shared<TriangleMesh>(std::make_shared<std::vector<Prec>>(vertices), std::make_shared<std::vector<Prec>>(normals), 
-        std::make_shared<std::vector<Prec>>(uvs), std::make_shared<std::vector<int>>(indices), material, transformation);
+        auto mesh = MakeRef<TriangleMesh>(MakeRef<std::vector<Prec>>(vertices), MakeRef<std::vector<Prec>>(normals), 
+        MakeRef<std::vector<Prec>>(uvs), MakeRef<std::vector<int>>(indices), material, transformation);
 
         
 

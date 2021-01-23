@@ -20,9 +20,9 @@ namespace jpc_tracer
 
     class ColorValueTexture : public ColorValue{
     public:
-        ColorValueTexture(std::shared_ptr<Texture> texture);
+        ColorValueTexture(Ref<Texture> texture);
         virtual Vec3 GetColor(Vec2 uv) const override;
     private:
-        std::shared_ptr<Texture> _texture;
+        Ref<Texture> _texture;
     };
 }

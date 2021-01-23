@@ -4,7 +4,7 @@
 #include <iostream>
 
 namespace jpc_tracer {
-    FilmTile::FilmTile(std::shared_ptr<IFilter> filter, Bounds2D<int> bounds) 
+    FilmTile::FilmTile(Ref<IFilter> filter, Bounds2D<int> bounds) 
         : Bounds(bounds), _filter(filter)
     {
         _width = Bounds.XMax-Bounds.XMin;

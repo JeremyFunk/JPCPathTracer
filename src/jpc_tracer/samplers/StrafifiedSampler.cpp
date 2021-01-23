@@ -23,9 +23,9 @@ namespace jpc_tracer {
     }
 
 
-    std::shared_ptr<ISampler> StratifiedSampler::Clone() 
+    Ref<ISampler> StratifiedSampler::Clone() 
     {
-        return std::make_shared<StratifiedSampler>();
+        return MakeRef<StratifiedSampler>();
     }
     
 
@@ -56,7 +56,7 @@ namespace jpc_tracer {
 
     void StratifiedSampler::Get1DSampleArray(size_t dim, size_t sample_count,Prec* desination) 
     {
-        auto dim_slice = std::make_unique<std::vector<Prec>> (dim);
+        auto dim_slice = MakeScope<std::vector<Prec>> (dim);
         for(int sample_idx = 0; sample_idx < sample_count; sample_idx++)
         {
             Get1DSamples(dim,dim_slice->data());
@@ -71,7 +71,7 @@ namespace jpc_tracer {
 
     void StratifiedSampler::Get2DSampleArray(size_t dim_y,size_t dim_x, size_t sample_count,Vec2* desination) 
     {
-        auto dim_slice = std::make_unique<std::vector<Vec2>> (dim_y*dim_x);
+        auto dim_slice = MakeScope<std::vector<Vec2>> (dim_y*dim_x);
         for(int sample_idx = 0; sample_idx < sample_count; sample_idx++)
         {
             Get2DSamples(dim_x,dim_y,dim_slice->data());

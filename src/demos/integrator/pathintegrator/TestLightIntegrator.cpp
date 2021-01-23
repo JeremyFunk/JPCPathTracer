@@ -5,7 +5,7 @@
 namespace jpc_tracer {
 
 Vec3 TestLightIntegrator::PixelEffect(SurfaceProperties& properties,const Ray& ray,const Vec2& sample,BsdfMemoryPtr& memory, 
-            const std::shared_ptr<IScene>& scene) const
+            const Ref<IScene>& scene) const
 {
         //Vec3 normal = properties.Interaction.Normal;
         //Vec3 color = Vec3{0.5,0.5,0.5}+normal*0.5;
@@ -13,7 +13,7 @@ Vec3 TestLightIntegrator::PixelEffect(SurfaceProperties& properties,const Ray& r
         
         properties.Material->OverrideBSDF(memory, properties.Interaction);
         
-        for (const std::shared_ptr<ILight>& light : scene->GetLights())
+        for (const Ref<ILight>& light : scene->GetLights())
         {
             
             Vec3 interaction_point = properties.Interaction.Point + properties.Interaction.Normal * ERROR_THICCNESS;

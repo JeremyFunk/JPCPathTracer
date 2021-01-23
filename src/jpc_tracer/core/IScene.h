@@ -1,4 +1,5 @@
 #pragma once
+#include"Base.h"
 #include<optional>
 #include <vector>
 #include "Ray.h"
@@ -15,7 +16,7 @@ namespace jpc_tracer {
 
         virtual std::optional<SurfaceProperties> Intersect(const Ray& ray) const = 0;
         virtual std::optional<Prec> IntersectionDistance(const Ray& ray) const = 0;
-        virtual std::vector<std::shared_ptr<ILight>> GetLights() const = 0;
+        virtual std::vector<Ref<ILight>> GetLights() const = 0;
         virtual BsdfMemoryInfo GetBsdfInfo() const = 0;
     };
 }

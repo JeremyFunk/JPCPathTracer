@@ -1,4 +1,5 @@
 #pragma once
+#include"Base.h"
 #include "SurfaceInteraction.h"
 #include "Ray.h"
 #include "Bsdf.h"

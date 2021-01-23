@@ -15,7 +15,7 @@ namespace jpc_tracer {
         int height = 2;
 
         Bounds2D<int> bounds(width,0,height,0);
-        auto filter = std::make_shared<GaussianFilter>(1);
+        auto filter = MakeRef<GaussianFilter>(1);
         FilmTile tile(filter,bounds);
 
         std::vector<SpectrumPasses> passes;

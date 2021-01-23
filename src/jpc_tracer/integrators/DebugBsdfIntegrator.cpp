@@ -15,18 +15,18 @@ namespace jpc_tracer {
         int X,Y;
     };
 
-    void DebugBsdfIntegrator::Init(std::shared_ptr<IScene> scene)
+    void DebugBsdfIntegrator::Init(Ref<IScene> scene)
     {
         _scene = scene;
     }
     
-    std::unique_ptr<std::vector<Vec2>> DebugBsdfIntegrator::SetupSamples(int max_sample_count) const 
+    Scope<std::vector<Vec2>> DebugBsdfIntegrator::SetupSamples(int max_sample_count) const 
     {
         SampleCount sample_count = GetSampleCount(max_sample_count);
-        return std::make_unique<std::vector<Vec2>>(sample_count.X*sample_count.Y*_max_depth);
+        return MakeScope<std::vector<Vec2>>(sample_count.X*sample_count.Y*_max_depth);
     }
     
-    void DebugBsdfIntegrator::FillSamples(std::shared_ptr<ISampler> sampler, std::unique_ptr<std::vector<Vec2>>& data,int max_sample_count) const 
+    void DebugBsdfIntegrator::FillSamples(Ref<ISampler> sampler, Scope<std::vector<Vec2>>& data,int max_sample_count) const 
     {
         SampleCount sample_count = GetSampleCount(max_sample_count);
         sampler->Get2DSampleArray(sample_count.Y, sample_count.X, _max_depth, data->data());

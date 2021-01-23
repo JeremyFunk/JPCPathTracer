@@ -19,28 +19,28 @@ namespace jpc_tracer
     public:
         TriangleMesh() = default;
         
-        TriangleMesh(std::shared_ptr<std::vector<Prec>> vertices, std::shared_ptr<std::vector<Prec>> normals, 
-                        std::shared_ptr<std::vector<Prec>> uvs, std::shared_ptr<std::vector<int>> indices,
-                        std::shared_ptr<IMaterial> material, std::shared_ptr<Transformation> transformation);
+        TriangleMesh(Ref<std::vector<Prec>> vertices, Ref<std::vector<Prec>> normals, 
+                        Ref<std::vector<Prec>> uvs, Ref<std::vector<int>> indices,
+                        Ref<IMaterial> material, Ref<Transformation> transformation);
         
-        void Transform(std::shared_ptr<Transformation> data);
+        void Transform(Ref<Transformation> data);
 
-        std::shared_ptr<std::vector<Prec>> Vertices;
-        std::shared_ptr<std::vector<Prec>> Normals;
-        std::shared_ptr<std::vector<Prec>> UVs;
-        std::shared_ptr<std::vector<int>> Indices;
+        Ref<std::vector<Prec>> Vertices;
+        Ref<std::vector<Prec>> Normals;
+        Ref<std::vector<Prec>> UVs;
+        Ref<std::vector<int>> Indices;
 
-        std::shared_ptr<IMaterial> Material;
-        std::shared_ptr<Transformation> Transformation;
+        Ref<IMaterial> Material;
+        Ref<Transformation> Transformation;
 
-       std::shared_ptr<std::vector<std::shared_ptr<Triangle>>> GenerateTriangles();
+       Ref<std::vector<Ref<Triangle>>> GenerateTriangles();
     };
 
     class Triangle final: public IShape
     {
     public:
         Triangle() = default;
-        Triangle(std::shared_ptr<TriangleMesh> mesh, int index);
+        Triangle(Ref<TriangleMesh> mesh, int index);
 
         virtual std::optional<IntersectionData> Intersect(const Ray& ray) const final;
         
@@ -49,10 +49,10 @@ namespace jpc_tracer
         virtual Bounds3D<Prec> WorldBoundary() const final;
 
 
-        virtual std::vector<std::shared_ptr<const IMaterial>> GetMaterials() const final;
+        virtual std::vector<Ref<const IMaterial>> GetMaterials() const final;
 
     private:
-        std::shared_ptr<TriangleMesh> _mesh;
+        Ref<TriangleMesh> _mesh;
         int _index;
     };
 }

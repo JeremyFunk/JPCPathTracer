@@ -16,12 +16,12 @@
 namespace jpc_tracer {
     TEST(direct_light, singleray)
     {
-        auto color = std::make_shared<ColorValueVec3>(ColorValueVec3({1,1,1}));
-        auto integrator = std::make_shared<LightIntegrator>();
+        auto color = MakeRef<ColorValueVec3>(ColorValueVec3({1,1,1}));
+        auto integrator = MakeRef<LightIntegrator>();
 
-        auto material = std::make_shared<BasicMaterial>(color,0);
-        auto lights = std::make_shared<std::vector<std::shared_ptr<ILight>>>();
-        auto shapes = std::make_shared<std::vector<std::shared_ptr<IShape>>>();
+        auto material = MakeRef<BasicMaterial>(color,0);
+        auto lights = MakeRef<std::vector<Ref<ILight>>>();
+        auto shapes = MakeRef<std::vector<Ref<IShape>>>();
         /*
         Scene Layout
          z
@@ -33,12 +33,12 @@ namespace jpc_tracer {
        0 - - - C - - - - x
           -2   0   2 
         */
-        auto sphere = std::make_shared<Sphere>(Vec3{0,0,-4},1,material);
+        auto sphere = MakeRef<Sphere>(Vec3{0,0,-4},1,material);
         shapes->push_back(sphere);
-        auto point_light = std::make_shared<PointLight>(Vec3{2,0,-2},Spectrum::FromRGB({100,100,100}));
+        auto point_light = MakeRef<PointLight>(Vec3{2,0,-2},Spectrum::FromRGB({100,100,100}));
         lights->push_back(point_light);
 
-        auto scene = std::make_shared<BVHScene>(shapes,lights);
+        auto scene = MakeRef<BVHScene>(shapes,lights);
         integrator->Init(scene);
         //BsdfMemoryPtr memory = CreateBsdfMemory;
         BsdfMemoryInfo info = scene->GetBsdfInfo();

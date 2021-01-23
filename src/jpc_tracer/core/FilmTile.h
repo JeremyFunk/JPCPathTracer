@@ -1,4 +1,5 @@
 #pragma once
+#include"Base.h"
 #include "SpectrumPasses.h"
 #include <memory>
 #include <vector>
@@ -10,7 +11,7 @@ namespace jpc_tracer {
     class FilmTile
     {
     public:
-        FilmTile(std::shared_ptr<IFilter> filter, Bounds2D<int> bounds);
+        FilmTile(Ref<IFilter> filter, Bounds2D<int> bounds);
         void AddSample(const SpectrumPasses& spectrum,Vec2 image_position,Prec weight = 1);
         void WritePixels(SpectrumPasses* destiniation);
 
@@ -27,7 +28,7 @@ namespace jpc_tracer {
         void add_to_pixel_unnormalized(int x, int y, SpectrumPasses pixel);
 
         
-        std::shared_ptr<IFilter> _filter;
+        Ref<IFilter> _filter;
         int _width = -1;
     };
 }

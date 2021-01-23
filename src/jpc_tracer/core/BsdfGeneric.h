@@ -1,4 +1,5 @@
 #pragma once
+#include"Base.h"
 #include "Bsdf.h"
 #include <iostream>
 #include <memory>
@@ -51,7 +52,7 @@ namespace jpc_tracer {
     class BsdfGeneric
     {
     public:
-        BsdfGeneric(std::shared_ptr<BsdfClosureGeneric<ParamsT>> closure) 
+        BsdfGeneric(Ref<BsdfClosureGeneric<ParamsT>> closure) 
             : _closure(closure) {
             }
         
@@ -69,6 +70,6 @@ namespace jpc_tracer {
 
 
     private:
-        std::shared_ptr<const BsdfClosureGeneric<ParamsT>> _closure;
+        Ref<const BsdfClosureGeneric<ParamsT>> _closure;
     };
 }

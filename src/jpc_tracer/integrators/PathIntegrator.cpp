@@ -27,18 +27,18 @@ namespace jpc_tracer
         
     }
 
-    void PathIntegrator::Init(std::shared_ptr<IScene> scene) 
+    void PathIntegrator::Init(Ref<IScene> scene) 
     {
         _scene =scene;
     }
     
-    std::unique_ptr<std::vector<Vec2>> PathIntegrator::SetupSamples(int max_sample_count) const 
+    Scope<std::vector<Vec2>> PathIntegrator::SetupSamples(int max_sample_count) const 
     {
         SampleCount sample_count = GetSampleCount(max_sample_count);
-        return std::make_unique<std::vector<Vec2>>(sample_count.X*sample_count.Y*_max_depth);
+        return MakeScope<std::vector<Vec2>>(sample_count.X*sample_count.Y*_max_depth);
     }
     
-    void PathIntegrator::FillSamples(std::shared_ptr<ISampler> sampler, std::unique_ptr<std::vector<Vec2>>& data,int max_sample_count) const 
+    void PathIntegrator::FillSamples(Ref<ISampler> sampler, Scope<std::vector<Vec2>>& data,int max_sample_count) const 
     {
         SampleCount sample_count = GetSampleCount(max_sample_count);
         sampler->Get2DSampleArray(sample_count.Y, sample_count.X, _max_depth, data->data());

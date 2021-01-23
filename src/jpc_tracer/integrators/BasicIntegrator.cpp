@@ -5,16 +5,16 @@ namespace jpc_tracer
 {
 
 
-    void BasicIntegrator::Init(std::shared_ptr<IScene> scene){
+    void BasicIntegrator::Init(Ref<IScene> scene){
         _scene = scene;
     }
     
-    std::unique_ptr<std::vector<Vec2>> BasicIntegrator::SetupSamples(int max_sample_count) const 
+    Scope<std::vector<Vec2>> BasicIntegrator::SetupSamples(int max_sample_count) const 
     {
         return nullptr;
     }
     
-    void BasicIntegrator::FillSamples(std::shared_ptr<ISampler> sampler, std::unique_ptr<std::vector<Vec2>>& data,int max_sample_count) const 
+    void BasicIntegrator::FillSamples(Ref<ISampler> sampler, Scope<std::vector<Vec2>>& data,int max_sample_count) const 
     {
         
     }

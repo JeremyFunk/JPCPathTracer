@@ -15,7 +15,7 @@ namespace jpc_tracer
         
     }
 
-    Ray ProjectionCamera::GenerateRay(const std::shared_ptr<ISampler>& sampler, Vec2i pixel) const{
+    Ray ProjectionCamera::GenerateRay(const Ref<ISampler>& sampler, Vec2i pixel) const{
         
         Vec2 sample = sampler->Get2DSample();
         Prec rayX =  (pixel[0] + sample[0]) * _image_width_inv * _near_plane_width * 2 - _near_plane_width;

@@ -33,7 +33,7 @@ namespace jpc_tracer {
 
     BsdfMemoryPtr CreateBsdfMemory(BsdfMemoryInfo info) 
     {
-        return std::make_shared<BsdfMemory>(info.max_byte_size,info.max_bsdf_count);
+        return MakeRef<BsdfMemory>(info.max_byte_size,info.max_bsdf_count);
     }
     
     void* MallocBsdf(BsdfMemoryPtr& memory,int size, Prec weight,const BsdfClosure* closure, size_t alignment) 

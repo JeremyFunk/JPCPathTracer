@@ -1,4 +1,5 @@
 #pragma once
+#include"Base.h"
 #include "Linalg.h"
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
@@ -28,7 +29,7 @@ namespace jpc_tracer {
 
     struct BsdfMemory;
 
-    using BsdfMemoryPtr = std::shared_ptr<BsdfMemory>;
+    using BsdfMemoryPtr = Ref<BsdfMemory>;
 
     BsdfMemoryPtr CreateBsdfMemory(BsdfMemoryInfo info);
 

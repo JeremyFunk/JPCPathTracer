@@ -66,7 +66,7 @@ namespace jpc_tracer {
 
     void DebugFilm::Save(std::string filepath)
     {
-        auto conv_pixels = std::make_unique<std::vector<unsigned char>>(_width*_height*3);
+        auto conv_pixels = MakeScope<std::vector<unsigned char>>(_width*_height*3);
         for(int i = 0 ;i < conv_pixels->size();i++)
         {
             conv_pixels->operator[](i) =_pixels[i] / _max_val * 255.0f;
@@ -76,7 +76,7 @@ namespace jpc_tracer {
     
     void DebugFilm::SaveLog(std::string filepath)
     {
-        auto conv_pixels = std::make_unique<std::vector<unsigned char>>(_width * _height * 3);
+        auto conv_pixels = MakeScope<std::vector<unsigned char>>(_width * _height * 3);
         for (int i = 0; i < conv_pixels->size(); i++)
         {
             conv_pixels->operator[](i) = std::log(1 + _pixels[i]) * 255.0f;

@@ -13,14 +13,14 @@ namespace jpc_tracer
     class BasicScene : public IScene
     {
     public:
-        BasicScene(const std::shared_ptr<std::vector<std::shared_ptr<IShape>>>& shapeList, const std::shared_ptr<std::vector<std::shared_ptr<ILight>>>& light);
+        BasicScene(const Ref<std::vector<Ref<IShape>>>& shapeList, const Ref<std::vector<Ref<ILight>>>& light);
         virtual std::optional<SurfaceProperties> Intersect(const Ray& ray) const override;
         virtual std::optional<Prec> IntersectionDistance(const Ray& ray) const override;
-        virtual std::vector<std::shared_ptr<ILight>> GetLights() const override;
+        virtual std::vector<Ref<ILight>> GetLights() const override;
         virtual BsdfMemoryInfo GetBsdfInfo() const override;
 
     private:
-        std::shared_ptr<std::vector<std::shared_ptr<IShape>>> _shape_list;
-        std::shared_ptr<std::vector<std::shared_ptr<ILight>>> _light_list;
+        Ref<std::vector<Ref<IShape>>> _shape_list;
+        Ref<std::vector<Ref<ILight>>> _light_list;
     };
 }

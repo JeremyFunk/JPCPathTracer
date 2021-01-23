@@ -545,11 +545,11 @@ std::vector<float> sample_z()
 
 TEST(lambertian,val1)
 {
-    auto closure = std::make_shared<LambertianBSDF>();
+    auto closure = MakeRef<LambertianBSDF>();
     BsdfMemoryInfo info = {0,0};
     info.max_bsdf_count = 1;
     
-    auto bsdf = std::make_shared<BsdfGeneric<LambertianParams>>(closure);
+    auto bsdf = MakeRef<BsdfGeneric<LambertianParams>>(closure);
 
     info.max_byte_size = bsdf->GetMaxSize();
 

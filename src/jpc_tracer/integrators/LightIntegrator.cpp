@@ -6,11 +6,11 @@
 
 namespace jpc_tracer
 {
-    SpectrumPasses IntegrateLights(const Ray& ray,const SurfaceProperties& properties,const std::shared_ptr<IScene> scene,
+    SpectrumPasses IntegrateLights(const Ray& ray,const SurfaceProperties& properties,const Ref<IScene> scene,
     BsdfMemoryPtr& bsdf) 
     {
         SpectrumPasses luminance;
-        for(const std::shared_ptr<ILight>& light : scene->GetLights())
+        for(const Ref<ILight>& light : scene->GetLights())
         {
             Vec3 Prosurface_properties_point = properties.Interaction.Point + properties.Interaction.Normal*ERROR_THICCNESS;
             auto light_info = light->GetLightInformation(Prosurface_properties_point);
@@ -42,17 +42,17 @@ namespace jpc_tracer
         int X,Y;
     };
 
-    void LightIntegrator::Init(std::shared_ptr<IScene> scene){
+    void LightIntegrator::Init(Ref<IScene> scene){
         _scene = scene;
     }
 
-    std::unique_ptr<std::vector<Vec2>> LightIntegrator::SetupSamples(int max_sample_count) const 
+    Scope<std::vector<Vec2>> LightIntegrator::SetupSamples(int max_sample_count) const 
     {
         SampleCount sample_count = GetSampleCount(max_sample_count);
-        return std::make_unique<std::vector<Vec2>>(sample_count.X*sample_count.Y);
+        return MakeScope<std::vector<Vec2>>(sample_count.X*sample_count.Y);
     }
     
-    void LightIntegrator::FillSamples(std::shared_ptr<ISampler> sampler, std::unique_ptr<std::vector<Vec2>>& data,int max_sample_count) const 
+    void LightIntegrator::FillSamples(Ref<ISampler> sampler, Scope<std::vector<Vec2>>& data,int max_sample_count) const 
     {
         SampleCount sample_count = GetSampleCount(max_sample_count);
         sampler->Get2DSampleArray(sample_count.Y, sample_count.X, 1, data->data());

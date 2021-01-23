@@ -4,7 +4,7 @@
 
 namespace jpc_tracer
 {
-    Texture::Texture(std::shared_ptr<std::vector<double>> pixels, int width, int height) : _pixels(pixels), _width(width), _height(height)
+    Texture::Texture(Ref<std::vector<double>> pixels, int width, int height) : _pixels(pixels), _width(width), _height(height)
     {
         
     }

@@ -18,7 +18,7 @@
 namespace jpc_tracer
 {
 
-    BasicScene::BasicScene(const std::shared_ptr<std::vector<std::shared_ptr<IShape>>>& shapeList, const std::shared_ptr<std::vector<std::shared_ptr<ILight>>>& light) 
+    BasicScene::BasicScene(const Ref<std::vector<Ref<IShape>>>& shapeList, const Ref<std::vector<Ref<ILight>>>& light) 
     : _shape_list(shapeList), _light_list(light)
     {
 
@@ -58,14 +58,14 @@ namespace jpc_tracer
         
         return std::make_optional<Prec>(closestInteraction->Distance);
     }
-    std::vector<std::shared_ptr<ILight>> BasicScene::GetLights() const{
+    std::vector<Ref<ILight>> BasicScene::GetLights() const{
         return *_light_list;
     }
 
     BsdfMemoryInfo BasicScene::GetBsdfInfo() const
     {
         BsdfMemoryInfo bsdf_info = {0,0};
-        std::vector<std::shared_ptr<const IMaterial>> materials;
+        std::vector<Ref<const IMaterial>> materials;
         for(const auto& shape : *_shape_list)
         {
             

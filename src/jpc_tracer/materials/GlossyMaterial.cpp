@@ -8,18 +8,18 @@
 
 namespace jpc_tracer
 {
-    GlossyMaterial::GlossyMaterial(std::shared_ptr<ColorValue> color,Prec roughness) 
+    GlossyMaterial::GlossyMaterial(Ref<ColorValue> color,Prec roughness) 
         : _alpha(RoughnessToAlpha(roughness)), _color(color)
     {
-        auto fresnel = std::make_shared<DielectricFresnel>();
-        auto distribution = std::make_shared<BeckmannDistribution>();
+        auto fresnel = MakeRef<DielectricFresnel>();
+        auto distribution = MakeRef<BeckmannDistribution>();
 
         using BsdfParams = CookTorranceParams<DielectricFresnelParams, BeckmannParams>;
         using BsdfClosure = CookTorranceBSDFClosure<DielectricFresnelParams, BeckmannParams>;
 
 
-        std::shared_ptr<BsdfClosureGeneric<BsdfParams>> bsdf_closure = std::make_shared<BsdfClosure>(fresnel,distribution);
-        _bsdf = std::make_shared<BsdfGeneric<BsdfParams>>(bsdf_closure);
+        Ref<BsdfClosureGeneric<BsdfParams>> bsdf_closure = MakeRef<BsdfClosure>(fresnel,distribution);
+        _bsdf = MakeRef<BsdfGeneric<BsdfParams>>(bsdf_closure);
     }
     
     SpectrumPasses GlossyMaterial::Illumination(const SurfaceInteraction& interaction, const Ray& ray) const 

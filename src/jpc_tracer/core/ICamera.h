@@ -1,4 +1,5 @@
 #pragma once
+#include"Base.h"
 #include "Ray.h"
 #include "ISampler.h"
 #include <memory>
@@ -9,6 +10,6 @@ namespace jpc_tracer {
     class ICamera
     {
     public:
-        virtual Ray GenerateRay(const std::shared_ptr<ISampler>& sampler, Vec2i pixel) const = 0 ;
+        virtual Ray GenerateRay(const Ref<ISampler>& sampler, Vec2i pixel) const = 0 ;
     };
 }

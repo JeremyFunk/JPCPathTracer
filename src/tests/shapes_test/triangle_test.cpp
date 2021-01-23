@@ -14,15 +14,15 @@ namespace jpc_tracer
         std::vector<Prec> uvs= {0,0,0, 1,1,1, 2,2,2};
         std::vector<int> indices= {0,0,0, 3,3,3, 6,6,6};
 
-        auto ptr_vertices = std::make_shared<std::vector<Prec>>(vertices);
-        auto ptr_normals = std::make_shared<std::vector<Prec>>(normals);
-        auto ptr_uvs = std::make_shared<std::vector<Prec>>(uvs);
-        auto ptr_indices = std::make_shared<std::vector<int>>(indices);
+        auto ptr_vertices = MakeRef<std::vector<Prec>>(vertices);
+        auto ptr_normals = MakeRef<std::vector<Prec>>(normals);
+        auto ptr_uvs = MakeRef<std::vector<Prec>>(uvs);
+        auto ptr_indices = MakeRef<std::vector<int>>(indices);
 
-        std::shared_ptr<TriangleMesh> mesh = std::make_shared<TriangleMesh>(std::make_shared<std::vector<Prec>>(vertices),
-                                                        std::make_shared<std::vector<Prec>>(normals),
-                                                        std::make_shared<std::vector<Prec>>(uvs),
-                                                        std::make_shared<std::vector<int>>(indices),
+        Ref<TriangleMesh> mesh = MakeRef<TriangleMesh>(MakeRef<std::vector<Prec>>(vertices),
+                                                        MakeRef<std::vector<Prec>>(normals),
+                                                        MakeRef<std::vector<Prec>>(uvs),
+                                                        MakeRef<std::vector<int>>(indices),
                                                         nullptr, nullptr );
     }
 
@@ -33,12 +33,12 @@ namespace jpc_tracer
         std::vector<Prec> uvs= {0,0,0, 1,1,1, 2,2,2};
         std::vector<int> indices= {0,0,0, 3,3,3, 6,6,6};
 
-        auto ptr_vertices = std::make_shared<std::vector<Prec>>(vertices);
-        auto ptr_normals = std::make_shared<std::vector<Prec>>(normals);
-        auto ptr_uvs = std::make_shared<std::vector<Prec>>(uvs);
-        auto ptr_indices = std::make_shared<std::vector<int>>(indices);
+        auto ptr_vertices = MakeRef<std::vector<Prec>>(vertices);
+        auto ptr_normals = MakeRef<std::vector<Prec>>(normals);
+        auto ptr_uvs = MakeRef<std::vector<Prec>>(uvs);
+        auto ptr_indices = MakeRef<std::vector<int>>(indices);
 
-        std::shared_ptr<TriangleMesh> mesh = std::make_shared<TriangleMesh>(ptr_vertices,
+        Ref<TriangleMesh> mesh = MakeRef<TriangleMesh>(ptr_vertices,
                                                         ptr_normals,
                                                         ptr_uvs,
                                                         ptr_indices,

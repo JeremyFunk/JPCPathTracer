@@ -22,8 +22,8 @@ namespace jpc_tracer
      }
  
 
-    void BasicRenderer::Init(std::shared_ptr<ISampler> sampler, std::shared_ptr<ICamera> camera, std::shared_ptr<IScene> scene,
-         std::shared_ptr<IIntegrator> integrator, std::shared_ptr<IFilter> filter ,std::shared_ptr<IFilm> film)
+    void BasicRenderer::Init(Ref<ISampler> sampler, Ref<ICamera> camera, Ref<IScene> scene,
+         Ref<IIntegrator> integrator, Ref<IFilter> filter ,Ref<IFilm> film)
     {
         _sampler = sampler;
         _camera = camera;
@@ -70,7 +70,7 @@ namespace jpc_tracer
     }
 
     void BasicRenderer::EvaluateTile(int tX, int tY, int tW, int tH){
-        auto myTile = std::make_unique<FilmTile>(_filter, Bounds2D<int>(tX+tW, tX, tY+tH, tY));
+        auto myTile = MakeScope<FilmTile>(_filter, Bounds2D<int>(tX+tW, tX, tY+tH, tY));
         BsdfMemoryPtr thread_memory = CreateBsdfMemory(_bsdf_info);
         auto threadSampler = _sampler->Clone();
         

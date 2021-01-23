@@ -1,4 +1,5 @@
 #pragma once
+#include"Base.h"
 #include "Linalg.h"
 #include "Bounds2D.h"
 #include "core/Bounds2D.h"

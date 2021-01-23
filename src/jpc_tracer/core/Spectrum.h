@@ -1,4 +1,5 @@
 #pragma once
+#include"Base.h"
 #include "Eigen/Dense"
 #include "Eigen/src/Core/Matrix.h"
 #include "Linalg.h"

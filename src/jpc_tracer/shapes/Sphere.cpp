@@ -10,7 +10,7 @@
 
 namespace jpc_tracer
 {
-    Sphere::Sphere(const Vec3& pos, const Prec& radius, std::shared_ptr<const IMaterial> material)
+    Sphere::Sphere(const Vec3& pos, const Prec& radius, Ref<const IMaterial> material)
     : _pos(pos), _radius(radius), _material(material)
     {}
     
@@ -180,7 +180,7 @@ namespace jpc_tracer
                                         {_pos.x()-_radius, _pos.y()-_radius, _pos.z()-_radius});
     }
     
-    std::vector<std::shared_ptr<const IMaterial>> Sphere::GetMaterials() const
+    std::vector<Ref<const IMaterial>> Sphere::GetMaterials() const
     {
         return {_material};
     }

@@ -15,19 +15,19 @@ namespace jpc_tracer
 {
     TEST(accelerators_test, shity_bvh_build)
     {
-        std::shared_ptr<IMaterial> material_white = std::make_shared<BasicMaterial>(
-            std::make_shared<ColorValueVec3>(ColorValueVec3({1,1,1})),1);
+        Ref<IMaterial> material_white = MakeRef<BasicMaterial>(
+            MakeRef<ColorValueVec3>(ColorValueVec3({1,1,1})),1);
 
-        auto transformation = std::make_shared<Transformation>(Vec3(0, 0, -8), Vec3(0, 0, 0), Vec3(1,1,1));
+        auto transformation = MakeRef<Transformation>(Vec3(0, 0, -8), Vec3(0, 0, 0), Vec3(1,1,1));
 
-        auto shapesList = std::make_shared<std::vector<std::shared_ptr<IShape>>>();
+        auto shapesList = MakeRef<std::vector<Ref<IShape>>>();
 
         std::string path = "C:\\Users\\stade\\Desktop\\Cube.obj";
         auto mesh = LoadMesh(path, material_white, transformation, shapesList);
 
         auto triangles = mesh->GenerateTriangles();
 
-        auto shapeList = std::make_shared<std::vector<std::shared_ptr<IShape>>>();
+        auto shapeList = MakeRef<std::vector<Ref<IShape>>>();
 
         for( auto triangle : *triangles)
             shapeList->push_back(triangle);
@@ -56,19 +56,19 @@ namespace jpc_tracer
 
     TEST(accelerators_test, shity_bvh_intersect)
     {
-        std::shared_ptr<IMaterial> material_white = std::make_shared<BasicMaterial>(
-            std::make_shared<ColorValueVec3>(ColorValueVec3({1,1,1})),1);
+        Ref<IMaterial> material_white = MakeRef<BasicMaterial>(
+            MakeRef<ColorValueVec3>(ColorValueVec3({1,1,1})),1);
 
-        auto transformation = std::make_shared<Transformation>(Vec3(0, 0, -8), Vec3(0, 0, 0), Vec3(1,1,1));
+        auto transformation = MakeRef<Transformation>(Vec3(0, 0, -8), Vec3(0, 0, 0), Vec3(1,1,1));
 
-        auto shapeList = std::make_shared<std::vector<std::shared_ptr<IShape>>>();
+        auto shapeList = MakeRef<std::vector<Ref<IShape>>>();
 
         std::string path = "E:\\dev\\pathTrace\\JPCPathTracer\\resource\\Susan.obj";
         auto mesh = LoadMesh(path, material_white, transformation, shapeList);
 
         // auto triangles = mesh->GenerateTriangles();
 
-        // auto shapeList = std::make_shared<std::vector<std::shared_ptr<IShape>>>();
+        // auto shapeList = MakeRef<std::vector<Ref<IShape>>>();
 
         // for( auto triangle : *triangles)
         //     shapeList->push_back(triangle);

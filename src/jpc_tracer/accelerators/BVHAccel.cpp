@@ -8,7 +8,7 @@
 
 namespace jpc_tracer
 {
-    BVHAccel::BVHAccel(std::shared_ptr<std::vector<std::shared_ptr<IShape>>> shapes, const int& max_shapes_in_leaf) 
+    BVHAccel::BVHAccel(Ref<std::vector<Ref<IShape>>> shapes, const int& max_shapes_in_leaf) 
         : _max_shapes_in_leaf(max_shapes_in_leaf), _shapes(shapes), _shapes_info(), _tree()
     {
         BuildBVH();
@@ -27,7 +27,7 @@ namespace jpc_tracer
 
         //generate Recursive Tree
         //max memory = size_of(Node) * 2 * number_triangles - 1
-        std::shared_ptr<std::vector<BVHNode>> allnodes = std::make_shared<std::vector<BVHNode>>(2*shapes_size - 1);
+        Ref<std::vector<BVHNode>> allnodes = MakeRef<std::vector<BVHNode>>(2*shapes_size - 1);
         //memory offset for all nodes
         int offset = 0;
 
@@ -35,7 +35,7 @@ namespace jpc_tracer
 
 
         //flatten Tree
-        std::shared_ptr<std::vector<SmallBVHNode>> flattend = std::make_shared<std::vector<SmallBVHNode>>();
+        Ref<std::vector<SmallBVHNode>> flattend = MakeRef<std::vector<SmallBVHNode>>();
         int pos = linearise_tree(root, flattend);
         
         //return
@@ -114,7 +114,7 @@ namespace jpc_tracer
         return closestInteraction;
     }
     
-    BVHNode* BVHAccel::RecursiveBuild(int start, int end, std::shared_ptr<std::vector<BVHNode>>& allnodes, int& offset)
+    BVHNode* BVHAccel::RecursiveBuild(int start, int end, Ref<std::vector<BVHNode>>& allnodes, int& offset)
     {
         BVHNode* node = allnodes->data() + offset;
 
@@ -182,7 +182,7 @@ namespace jpc_tracer
                             });
     }
     
-    int BVHAccel::linearise_tree(BVHNode* node, std::shared_ptr<std::vector<SmallBVHNode>>& flattend)
+    int BVHAccel::linearise_tree(BVHNode* node, Ref<std::vector<SmallBVHNode>>& flattend)
     {   
         //node, left, right traversal
 

@@ -6,5 +6,5 @@
 
 namespace jpc_tracer
 {
-    std::shared_ptr<TriangleMesh> LoadMesh(std::string path,std::shared_ptr<IMaterial> material, std::shared_ptr<Transformation> transformation, std::shared_ptr<std::vector<std::shared_ptr<IShape>>> shapes);
+    Ref<TriangleMesh> LoadMesh(std::string path,Ref<IMaterial> material, Ref<Transformation> transformation, Ref<std::vector<Ref<IShape>>> shapes);
 }

@@ -1,3 +1,4 @@
+#include"Base.h"
 #include "SpectrumPasses.h"
 #include "core/Spectrum.h"
 namespace jpc_tracer

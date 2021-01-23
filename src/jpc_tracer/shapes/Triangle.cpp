@@ -5,7 +5,7 @@
 
 namespace jpc_tracer
 {
-    Triangle::Triangle(std::shared_ptr<TriangleMesh> mesh, int index) : _mesh(mesh), _index(index)
+    Triangle::Triangle(Ref<TriangleMesh> mesh, int index) : _mesh(mesh), _index(index)
     {}
     
     std::optional<IntersectionData> Triangle::Intersect(const Ray& ray) const

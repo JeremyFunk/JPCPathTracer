@@ -1,4 +1,5 @@
 #pragma once
+#include"Base.h"
 #include"Linalg.h"
 #include "Ray.h"
 #include <optional>

@@ -9,8 +9,8 @@
 
 namespace jpc_tracer
 {
-    BasicMaterial::BasicMaterial(std::shared_ptr<ColorValue> color, Prec illumination=0)
-        : _color(color), _illumination(illumination), _lambertian(std::make_shared<LambertianBSDF>())
+    BasicMaterial::BasicMaterial(Ref<ColorValue> color, Prec illumination=0)
+        : _color(color), _illumination(illumination), _lambertian(MakeRef<LambertianBSDF>())
     {
         
     }

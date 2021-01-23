@@ -14,9 +14,9 @@ namespace jpc_tracer
         return {Get1DSample(), Get1DSample()};
     }
     
-    std::shared_ptr<ISampler> DebugSampler::Clone() 
+    Ref<ISampler> DebugSampler::Clone() 
     {
-        return std::make_shared<DebugSampler>();
+        return MakeRef<DebugSampler>();
     }
     
     void DebugSampler::Get1DSampleArray(size_t dim, size_t sample_count, Prec* desination) 

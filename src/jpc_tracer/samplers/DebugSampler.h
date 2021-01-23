@@ -14,7 +14,7 @@ namespace jpc_tracer
         DebugSampler() = default;
         virtual Prec Get1DSample() override;
         virtual Vec2 Get2DSample() override;
-        virtual std::shared_ptr<ISampler> Clone() override;
+        virtual Ref<ISampler> Clone() override;
         virtual void Get1DSampleArray(size_t dim, size_t sample_count, Prec* desination) override;
         virtual void Get2DSampleArray(size_t dim_y,size_t dim_x, size_t sample_count, Vec2* desination)  override;
     };

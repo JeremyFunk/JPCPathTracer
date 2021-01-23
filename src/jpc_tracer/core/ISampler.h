@@ -1,4 +1,5 @@
 #pragma once
+#include"Base.h"
 #include "Linalg.h"
 #include <memory>
 #ifdef _MSC_VER
@@ -18,6 +19,6 @@ namespace jpc_tracer {
         virtual void Get1DSampleArray(size_t dim, size_t sample_count, Prec* desination) = 0;
         //shape = {dim_y, dim_x, sample_count}
         virtual void Get2DSampleArray(size_t dim_y,size_t dim_x, size_t sample_count, Vec2* desination) = 0;
-        virtual std::shared_ptr<ISampler> Clone() = 0;
+        virtual Ref<ISampler> Clone() = 0;
     };
 }

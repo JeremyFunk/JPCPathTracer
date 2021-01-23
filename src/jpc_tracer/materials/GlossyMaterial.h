@@ -14,7 +14,7 @@ namespace jpc_tracer
     class GlossyMaterial final: public IMaterial
     {
     public:
-        GlossyMaterial(std::shared_ptr<ColorValue> color,Prec roughness);
+        GlossyMaterial(Ref<ColorValue> color,Prec roughness);
         virtual SpectrumPasses Illumination(const SurfaceInteraction& interaction, const Ray& ray) const override;
         //virtual IBSDF* ComputeBSDF(const SurfaceInteraction& interaction, MemoryArea& memory_area) const override;
 
@@ -23,8 +23,8 @@ namespace jpc_tracer
         ~GlossyMaterial();
         
     private:
-        std::shared_ptr<ColorValue> _color;
-        std::shared_ptr<BsdfGeneric<CookTorranceParams<DielectricFresnelParams, BeckmannParams>>> _bsdf;
+        Ref<ColorValue> _color;
+        Ref<BsdfGeneric<CookTorranceParams<DielectricFresnelParams, BeckmannParams>>> _bsdf;
         Prec _alpha;
     };
 

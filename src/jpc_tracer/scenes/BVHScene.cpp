@@ -19,10 +19,10 @@
 namespace jpc_tracer
 {
 
-    BVHScene::BVHScene(const std::shared_ptr<std::vector<std::shared_ptr<IShape>>>& shapeList, const std::shared_ptr<std::vector<std::shared_ptr<ILight>>>& lightList)
+    BVHScene::BVHScene(const Ref<std::vector<Ref<IShape>>>& shapeList, const Ref<std::vector<Ref<ILight>>>& lightList)
         : _shapeList(shapeList),
           _lightList(lightList),
-          _bvh_tree(std::make_shared<BVHAccel>(shapeList, 1))
+          _bvh_tree(MakeRef<BVHAccel>(shapeList, 1))
     {
     }
 
@@ -45,14 +45,14 @@ namespace jpc_tracer
         
         return std::make_optional<Prec>(closestInteraction->Distance);
     }
-    std::vector<std::shared_ptr<ILight>> BVHScene::GetLights() const{
+    std::vector<Ref<ILight>> BVHScene::GetLights() const{
         return *_lightList;
     }
     
     BsdfMemoryInfo BVHScene::GetBsdfInfo() const
     {
         BsdfMemoryInfo bsdf_info = {0,0};
-        std::vector<std::shared_ptr<const IMaterial>> materials;
+        std::vector<Ref<const IMaterial>> materials;
         for(const auto& shape : *_shapeList)
         {
             

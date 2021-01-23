@@ -24,7 +24,7 @@ class IncidentDirIntegrator : public DebugBsdfIntegrator
 public:
     IncidentDirIntegrator(int max_depth) : DebugBsdfIntegrator(max_depth) {}
     virtual Vec3 PixelEffect(SurfaceProperties& properties, const Ray& ray, const Vec2& sample, BsdfMemoryPtr& memory,
-        const std::shared_ptr<IScene>& scene) const
+        const Ref<IScene>& scene) const
     {
         
         properties.Material->OverrideBSDF(memory,properties.Interaction);
@@ -57,23 +57,23 @@ int main()
     int width = 500;
     int height = 300;
     int sample_count = 64;
-    auto sampler = std::make_shared<StratifiedSampler>();
-    auto camera = std::make_shared<ProjectionCamera>(width,height,1);
+    auto sampler = MakeRef<StratifiedSampler>();
+    auto camera = MakeRef<ProjectionCamera>(width,height,1);
 
     //Scene Setup
     auto shapeList = generate_shapes();
     auto lightList = generate_lights();
     
 
-    auto scene = std::make_shared<BVHScene>(shapeList, lightList);
-    //auto scene = std::make_shared<BasicScene>(shapeList, lightList);
-    auto integrator = std::make_shared<PathIntegrator>(Spectrum::FromRGB({0,0,0}),2);
-    //auto integrator = std::make_shared<IncidentDirIntegrator>(1);
-    //auto integrator = std::make_shared<TestLightIntegrator>();
+    auto scene = MakeRef<BVHScene>(shapeList, lightList);
+    //auto scene = MakeRef<BasicScene>(shapeList, lightList);
+    auto integrator = MakeRef<PathIntegrator>(Spectrum::FromRGB({0,0,0}),2);
+    //auto integrator = MakeRef<IncidentDirIntegrator>(1);
+    //auto integrator = MakeRef<TestLightIntegrator>();
     integrator->Init(scene);
-    auto filter = std::make_shared<GaussianFilter>(0.5);
-    auto film = std::make_shared<BasicFilm>(width,height);
-    auto renderer = std::make_shared<BasicRenderer>(sample_count,true);
+    auto filter = MakeRef<GaussianFilter>(0.5);
+    auto film = MakeRef<BasicFilm>(width,height);
+    auto renderer = MakeRef<BasicRenderer>(sample_count,true);
     renderer->Init(sampler, camera, scene, integrator, filter, film);
     renderer->Render();
     film->WriteImage("pathintegrator.png");

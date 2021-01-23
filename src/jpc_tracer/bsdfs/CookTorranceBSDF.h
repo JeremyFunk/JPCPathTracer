@@ -21,18 +21,18 @@ namespace jpc_tracer
     class CookTorranceBSDFClosure final: public BsdfClosureGeneric<CookTorranceParams<FresnelParamsT,DistributionParamsT>>
     {
     public:
-        CookTorranceBSDFClosure(std::shared_ptr<IFresnel<FresnelParamsT>> fresnel, std::shared_ptr<IMicrofacetDistribution<DistributionParamsT>> distribution);
+        CookTorranceBSDFClosure(Ref<IFresnel<FresnelParamsT>> fresnel, Ref<IMicrofacetDistribution<DistributionParamsT>> distribution);
         using ParamsT = CookTorranceParams<FresnelParamsT,DistributionParamsT>;
         virtual BsdfResult EvaluateAll(const ParamsT* params, const Vec3& scattered_direction,const Vec2& random_point) const;
         virtual Spectrum Scattering(const ParamsT* params, const Vec3& scattered_direction,const Vec3& incident_direction) const;
         virtual Prec Pdf(const ParamsT* params, const Vec3& scattered_direction,const Vec3& incident_direction) const;
         virtual Vec3 SampleIncidentDirection(const ParamsT* params, const Vec3& scattered_direction, const Vec2& random_point) const;
     private:
-        std::shared_ptr<IFresnel<FresnelParamsT>> _fresnel;
-        std::shared_ptr<IMicrofacetDistribution<DistributionParamsT>> _distribution;
+        Ref<IFresnel<FresnelParamsT>> _fresnel;
+        Ref<IMicrofacetDistribution<DistributionParamsT>> _distribution;
     };
     template<class FresnelParamsT, class DistributionParamsT>
-    CookTorranceBSDFClosure<FresnelParamsT, DistributionParamsT>::CookTorranceBSDFClosure(std::shared_ptr<IFresnel<FresnelParamsT>> fresnel, std::shared_ptr<IMicrofacetDistribution<DistributionParamsT>> distribution) 
+    CookTorranceBSDFClosure<FresnelParamsT, DistributionParamsT>::CookTorranceBSDFClosure(Ref<IFresnel<FresnelParamsT>> fresnel, Ref<IMicrofacetDistribution<DistributionParamsT>> distribution) 
         : _distribution(distribution), _fresnel(fresnel)
     {
         
