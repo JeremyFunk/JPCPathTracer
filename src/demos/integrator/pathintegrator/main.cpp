@@ -63,6 +63,7 @@ int main()
     //Scene Setup
     auto shapeList = generate_shapes();
     auto lightList = generate_lights();
+    
 
     auto scene = std::make_shared<BVHScene>(shapeList, lightList);
     //auto scene = std::make_shared<BasicScene>(shapeList, lightList);

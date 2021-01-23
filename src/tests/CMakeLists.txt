@@ -1,5 +1,4 @@
 add_subdirectory(core_test)
-add_subdirectory(demo_test)
 add_subdirectory(samplers_test)
 add_subdirectory(utilities_test)
 add_subdirectory(film_test)
