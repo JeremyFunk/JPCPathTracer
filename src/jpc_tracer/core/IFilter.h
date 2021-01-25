@@ -11,6 +11,6 @@ namespace jpc_tracer {
         //Center at 0,0
         virtual float Evaluate(Vec2 point) = 0;
         Bounds2D<int> BoundingBox;
-
+        virtual ~IFilter(){}
     };
 }

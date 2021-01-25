@@ -20,5 +20,6 @@ namespace jpc_tracer {
         //shape = {dim_y, dim_x, sample_count}
         virtual void Get2DSampleArray(size_t dim_y,size_t dim_x, size_t sample_count, Vec2* desination) = 0;
         virtual Ref<ISampler> Clone() = 0;
+        virtual ~ISampler(){}
     };
 }
