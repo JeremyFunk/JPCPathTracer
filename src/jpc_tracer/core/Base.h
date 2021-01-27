@@ -3,6 +3,7 @@
 #include<memory.h>
 #include <memory>
 #include <utility>
+#include "Logger.h"
 
 namespace jpc_tracer {
     template<class T>

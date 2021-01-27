@@ -2,6 +2,8 @@ set(AUTOSRC
 "Bsdf.cpp"
 "Transformation.cpp"
 "FilmTile.cpp"
+"JPCPathtracerApi.cpp"
+"Logger.cpp"
 "main.cpp"
 "SpectrumPasses.cpp"
 "Linalg.h"
@@ -10,6 +12,7 @@ set(AUTOSRC
 "IFilm.h"
 "Transformation.h"
 "Bounds2D.h"
+"Logger.h"
 "FilmTile.h"
 "Bounds3D.h"
 "IIntegrator.h"
@@ -19,10 +22,12 @@ set(AUTOSRC
 "ISampler.h"
 "SpectrumPasses.h"
 "IScene.h"
+"JPCPathtracerApi.h"
 "Ray.h"
 "Spectrum.h"
 "ICamera.h"
 "IFilter.h"
+"Base.h"
 "constants.h"
 "Bsdf.h"
 "IShape.h"
@@ -37,6 +42,7 @@ set(INC
 
 set(LIBS 
 eigen3
+spdlog
 )
 
 

@@ -18,5 +18,6 @@ namespace jpc_tracer {
     public:
         virtual LightInformation GetLightInformation(const Vec3& point) const = 0;
         virtual Spectrum Illumination(const Vec3& position, const LightInformation& lightInformation) const = 0;
+        virtual ~ILight(){}
     };
 }

@@ -20,5 +20,6 @@ namespace jpc_tracer {
         virtual void FillSamples(Ref<ISampler> sampler, Scope<std::vector<Vec2>>& data,int max_sample_count) const = 0;
         virtual Vec2* SetStartSample(Vec2* samples, int sampling_idx,int max_sample_count) const = 0;
         virtual SpectrumPasses Integrate(const Ray& ray,const Vec2* samples,BsdfMemoryPtr bsdf_memory) const = 0;
+        virtual ~IIntegrator(){}
     };
 }

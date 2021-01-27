@@ -1,6 +1,7 @@
 #include "ImageIO.h"
 #include <iostream>
 #include "core/Base.h"
+#include "core/Base.h"
 namespace jpc_tracer
 {
     void WriteImage(std::string path,const unsigned char* pixels, const int width,
@@ -19,6 +20,6 @@ namespace jpc_tracer
         out->open(filename, spec);
         out->write_image(OIIO::TypeDesc::UINT8, pixels);
         out->close();
-        std::cout<<"Wrote image"<<std::endl;
+        JPC_LOG_INFO("Wrote Image");
     }
 }

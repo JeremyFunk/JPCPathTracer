@@ -16,6 +16,7 @@ namespace jpc_tracer
         virtual void Render() override;
         virtual void Finish() override;
         void EvaluateTile(int x, int y, int w, int h);
+        virtual void WriteImage(std::string path) const override;
         
     private:
         Ref<ISampler> _sampler; 

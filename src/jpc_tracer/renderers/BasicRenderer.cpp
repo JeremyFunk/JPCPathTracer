@@ -109,6 +109,12 @@ namespace jpc_tracer
     }
 
 
+    void BasicRenderer::WriteImage(std::string path) const
+    {
+        _film->WriteImage(path);
+    }
+
+
     void BasicRenderer::Finish(){
         
     }

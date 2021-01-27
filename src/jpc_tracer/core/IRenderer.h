@@ -18,6 +18,7 @@ namespace jpc_tracer {
         Ref<IFilm> film ) = 0;
         virtual void Render() = 0;
         virtual void Finish() = 0;
-
+        virtual void WriteImage(std::string path) const = 0;
+        virtual ~IRenderer(){}
     };
 }
