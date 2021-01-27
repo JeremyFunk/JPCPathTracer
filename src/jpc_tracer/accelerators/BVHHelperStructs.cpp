@@ -17,6 +17,18 @@ namespace jpc_tracer
         Idx_First_Child = first_child;
         Idx_Second_Child = second_child;
     }
+    
+    SmallBVHNode::SmallBVHNode(Bounds3D<Prec> bounds, int number_shapes, int idx_shape_start, int idx_second_child) 
+        : Bounds(bounds), Number_Shapes(number_shapes), Idx_Shape_Start(idx_shape_start), Idx_Second_Child(idx_second_child)
+    {
+        
+    }
+    
+    SmallBVHNode::SmallBVHNode(Bounds3D<Prec> bounds, int number_shapes, int idx_shape_start) 
+        : Bounds(bounds), Number_Shapes(number_shapes), Idx_Shape_Start(idx_shape_start), Idx_Second_Child(0)
+    {
+        
+    }
 
     ShapeInfo::ShapeInfo(const size_t& shape_idx, const Bounds3D<Prec>& bounds) 
         : Shape_Idx(shape_idx), Bounds(bounds), 

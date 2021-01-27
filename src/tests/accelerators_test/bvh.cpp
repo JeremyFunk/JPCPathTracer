@@ -34,7 +34,7 @@ namespace jpc_tracer
 
         BVHAccel bvh(shapeList, 1);
 
-        bvh.BuildBVH();
+        //bvh.BuildBVH();
         
         // auto bounds_triangle = (*triangles)[0]->WorldBoundary();
 
