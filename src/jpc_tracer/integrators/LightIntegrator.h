@@ -12,7 +12,8 @@
 namespace jpc_tracer
 {
 
-    SpectrumPasses IntegrateLights(const Ray& ray,const SurfaceProperties& properties,const Ref<IScene> scene,BsdfMemoryPtr& memory);
+    SpectrumPasses IntegrateLights(const Ray& ray,const Vec3& interaction_point, const SurfaceInteraction& interaction,const Ref<IScene> scene,
+    const BsdfMemoryPtr& bsdf);
 
     struct SampleCount;
 

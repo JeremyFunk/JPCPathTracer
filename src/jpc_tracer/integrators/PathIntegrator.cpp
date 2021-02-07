@@ -5,7 +5,10 @@
 #include "core/Ray.h"
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
+#include "core/SurfaceInteraction.h"
 #include <iostream>
+#include "core/MonteCarlo.h"
+#include "integrators/Integration.h"
 namespace jpc_tracer
 {
 
@@ -57,6 +60,44 @@ namespace jpc_tracer
 
     }
     
+    std::tuple<SpectrumPasses,Prec> PathIntegrator::IncidentLuminance(const Ray& ray,const Vec2* samples, const SurfaceInteraction& interaction,
+    BsdfMemoryPtr bsdf_memory, Vec3 interaction_point) const
+    {
+        SpectrumPasses luminance;
+        Vec3 incident_dir = SampleIncidentDirectionBsdf(bsdf_memory,-ray.Direction, *samples);
+        samples++;
+        Prec pdf = PdfBsdf(bsdf_memory,-ray.Direction, incident_dir);
+        Ray incident_ray(interaction_point,incident_dir,ray.Depth+1);
+        SpectrumPasses surface_color = ScatteringBsdf(bsdf_memory,-ray.Direction, incident_dir);
+
+        if( (! surface_color.IsZero() ) && pdf > 0)
+        {
+            SpectrumPasses subray_radiance = Integrate(incident_ray,samples, std::move(bsdf_memory));
+            luminance = subray_radiance * surface_color * CosinusWeight(incident_dir, interaction.Normal);
+        }
+        return {luminance,pdf};
+
+    }
+
+    SpectrumPasses PathIntegrator::SurfaceLuminance(const Ray& ray,const Vec2* samples, const SurfaceProperties& surface_properties,BsdfMemoryPtr bsdf_memory) const
+    {
+        
+        SpectrumPasses luminance;
+        const SurfaceInteraction& interaction = surface_properties.Interaction;
+
+        luminance+=surface_properties.Material->Illumination(interaction, ray);
+        surface_properties.Material->OverrideBSDF( bsdf_memory,interaction);
+
+        Vec3 interaction_point = OffsetInteractionPoint(interaction);
+
+        auto light_lum = IntegrateLights(ray,interaction_point,interaction,_scene,bsdf_memory);
+        auto[incident_lum, incident_pdf] = IncidentLuminance(ray, samples, interaction, bsdf_memory, interaction_point);
+
+        luminance += ImportanceSampling<SpectrumPasses,2>({light_lum,incident_lum},{1.0,incident_pdf});
+        return luminance;
+        
+    }
+
     SpectrumPasses PathIntegrator::Integrate(const Ray& ray,const Vec2* samples,BsdfMemoryPtr bsdf_memory) const 
     {
         if(ray.Depth>=_max_depth)
@@ -65,23 +106,7 @@ namespace jpc_tracer
     
         SpectrumPasses luminance;
         if(surface_properties.has_value()){
-            luminance+=surface_properties->Material->Illumination(surface_properties->Interaction, ray);
-            surface_properties->Material->OverrideBSDF( bsdf_memory,surface_properties->Interaction);
-            luminance+=IntegrateLights(ray,surface_properties.value(),_scene,bsdf_memory);
-
-            Vec3 interaction_point = surface_properties->Interaction.Point + surface_properties->Interaction.Normal* ERROR_THICCNESS;
-
-            Vec3 incident_dir = SampleIncidentDirectionBsdf(bsdf_memory,-ray.Direction, *samples);
-            samples++;
-            Prec pdf = PdfBsdf(bsdf_memory,-ray.Direction, incident_dir);
-            Ray incident_ray(interaction_point,incident_dir,ray.Depth+1);
-            SpectrumPasses surface_color = ScatteringBsdf(bsdf_memory,-ray.Direction, incident_dir);
-
-            if( (! surface_color.IsZero() ) && pdf > 0)
-            {
-                SpectrumPasses subray_radiance = Integrate(incident_ray,samples, std::move(bsdf_memory));
-                luminance += subray_radiance/pdf * surface_color * std::abs(incident_dir.dot(surface_properties->Interaction.Normal));
-            }
+            luminance=SurfaceLuminance(ray,samples,surface_properties.value(),bsdf_memory);
 
         }else {
             luminance = _sky_color;
@@ -89,5 +114,5 @@ namespace jpc_tracer
         return luminance;
     }
 
-    
+ 
 }

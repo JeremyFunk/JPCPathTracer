@@ -53,7 +53,7 @@ std::string IcospherePath()
             auto material_red_glossy = MakeRef<GlossyMaterial>(color_red,0);
             auto material_green = MakeRef<BasicMaterial>(color_green,0);  
             auto material_white = MakeRef<BasicMaterial>(color_white,100);
-            auto material_white_glossy = MakeRef<GlossyMaterial>(color_white,0.);
+            auto material_white_glossy = MakeRef<GlossyMaterial>(color_white,0.1);
 
             Transformation plain_transformation (Vec3(0, 0, -8), Vec3(0, 0, 0), Vec3(1.3,.9,1));
             auto mesh = LoadMesh(PlainPath(), material_white_glossy, MakeRef<Transformation>(plain_transformation), shapeList);
@@ -63,7 +63,7 @@ std::string IcospherePath()
         {
             Ref<std::vector<Ref<ILight>>> lightList = MakeRef<std::vector<Ref<ILight>>>();
 
-            lightList->push_back(MakeRef<PointLight>(Vec3(-1, 0, -7), RGBSpectrum::FromRGB({2000,2000,2000})));
+            lightList->push_back(MakeRef<PointLight>(Vec3(-1, 0, -2), RGBSpectrum::FromRGB({2000,2000,2000})));
             //lightList->push_back(MakeRef<PointLight>(Vec3(2, 0, 5), RGBSpectrum::FromRGB({1000,1000,200})));
         
             return lightList;
