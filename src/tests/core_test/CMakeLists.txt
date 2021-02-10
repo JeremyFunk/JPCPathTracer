@@ -1,4 +1,5 @@
 set(AUTOSRC
+"monte_carlo.cpp"
 "bounds3D_test.cpp"
 "bsdf_test.cpp"
 )
