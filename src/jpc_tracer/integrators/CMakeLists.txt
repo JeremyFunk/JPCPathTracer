@@ -24,6 +24,7 @@ core
 utilities
 textures
 #eigen3
+boost
 )
 
 
