@@ -11,7 +11,7 @@
 #include <tuple>
 #include <type_traits>
 #include <vector>
-#include<concepts>
+//#include<concepts>
 
 
 
@@ -26,8 +26,8 @@ namespace jpc_tracer
         return result/n;
     }
 
-    template<class T,class ReturnT, class...Args >
-    concept Functor = std::is_convertible<T, std::function<ReturnT(Args... )>>::value;
+    //template<class T,class ReturnT, class...Args >
+    //concept Functor = std::is_convertible<T, std::function<ReturnT(Args... )>>::value;
 
     
     namespace MIS {
@@ -48,7 +48,7 @@ namespace jpc_tracer
         )
         {
             auto summer = [&](Prec sum, DistT dist_idx) {return sum + pdf(dist_idx,x)* rel_count(dist_idx);};
-            Prec sum = std::accumulate(std::ranges::begin(dist_range),std::ranges::end(dist_range),0.f,summer);
+            Prec sum = std::accumulate(std::begin(dist_range),std::end(dist_range),0.f,summer);
             auto p = pdf(current_dist,x);
             auto r = rel_count(current_dist);
             return p * r / sum;

@@ -14,8 +14,8 @@ namespace jpc_tracer {
 std::string ProjectPath()
 {
     //return "E:\\dev\\pathTrace\\local\\jcp-path-tracer\\resource\\";
-    //return "H:\\dev\\path-tracing\\JPCPathTracer\\";
-    return "/home/chris/Dev/path_tracing/JPCPathTracer/";
+    return "H:\\dev\\path-tracing\\JPCPathTracer\\";
+    //return "/home/chris/Dev/path_tracing/JPCPathTracer/";
 }
 
 std::string PlainPath()
