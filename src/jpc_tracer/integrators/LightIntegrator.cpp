@@ -3,35 +3,43 @@
 #include "core/ILight.h"
 #include "core/Linalg.h"
 #include "core/SpectrumPasses.h"
+#include "core/SurfaceInteraction.h"
+#include "integrators/Integration.h"
 
 namespace jpc_tracer
 {
-    SpectrumPasses IntegrateLights(const Ray& ray,const SurfaceProperties& properties,const Ref<IScene> scene,
-    BsdfMemoryPtr& bsdf) 
+
+    bool IsLightBlocked(const LightInformation& light_info, const SurfaceInteraction& interaction,const Ref<IScene> scene,const Vec3& interaction_point)
+    {
+        auto intersection = scene->Intersect(Ray(interaction_point, -light_info.Direction));
+        bool light_blocked = false;
+        if(intersection.has_value())
+        {
+            Prec blocked_distance = (intersection->Interaction.Point-interaction_point).norm();
+            if(blocked_distance > light_info.Distance)
+                light_blocked = false;
+            else
+                light_blocked = true; 
+        }
+
+        return light_blocked;
+    }
+
+    SpectrumPasses IntegrateLights(const Ray& ray,const Vec3& interaction_point, const SurfaceInteraction& interaction,const Ref<IScene> scene,
+    const BsdfMemoryPtr& bsdf) 
     {
         SpectrumPasses luminance;
         for(const Ref<ILight>& light : scene->GetLights())
         {
-            Vec3 Prosurface_properties_point = properties.Interaction.Point + properties.Interaction.Normal*ERROR_THICCNESS;
-            auto light_info = light->GetLightInformation(Prosurface_properties_point);
-            auto intersection = scene->Intersect(Ray(Prosurface_properties_point, -light_info.Direction));
-            bool light_blocked = false;
-            if(intersection.has_value())
-            {
-                Prec blocked_distance = (intersection->Interaction.Point-properties.Interaction.Point).norm();
-                if(blocked_distance > light_info.Distance)
-                    light_blocked = false;
-                else
-                    light_blocked = true;
-                
-                
-            }
+            auto light_info = light->GetLightInformation(interaction_point);
             
+            bool light_blocked = IsLightBlocked(light_info,interaction,scene,interaction_point);
             if(!light_blocked)
             {
-                SpectrumPasses light_luminance = light->Illumination(Prosurface_properties_point, light_info);
+                SpectrumPasses light_luminance = light->Illumination(interaction_point, light_info);
                 SpectrumPasses bsdf_luminance = ScatteringBsdf(bsdf,-ray.Direction, -light_info.Direction);
-                luminance+= light_luminance*bsdf_luminance* std::abs(properties.Interaction.Normal.dot(-light_info.Direction));
+                
+                luminance+= light_luminance*bsdf_luminance* CosinusWeight(interaction.Normal, -light_info.Direction);
             }
         }
         return luminance;
@@ -78,7 +86,8 @@ namespace jpc_tracer
         if(surface_properties.has_value()){
             luminance+=surface_properties->Material->Illumination(surface_properties->Interaction, ray);
             surface_properties->Material->OverrideBSDF(bsdf_memory,surface_properties->Interaction);
-            luminance+=IntegrateLights(ray,surface_properties.value(),_scene,bsdf_memory);
+            Vec3 interaction_point = OffsetInteractionPoint(surface_properties->Interaction);
+            luminance+=IntegrateLights(ray,interaction_point, surface_properties->Interaction,_scene,bsdf_memory);
         }
 
         return luminance;

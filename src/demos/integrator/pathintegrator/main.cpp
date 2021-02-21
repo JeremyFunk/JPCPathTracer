@@ -3,6 +3,7 @@
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
 #include "core/SurfaceProperties.h"
+#include "integrators/LightIntegrator.h"
 #include "renderers/BasicRenderer.h"
 #include "samplers/StratifiedSampler.h"
 #include "cameras/ProjectionCamera.h"
@@ -37,12 +38,14 @@ public:
         SpectrumPasses surface_color = ScatteringBsdf(memory,-ray.Direction, incident_dir);
 
 
-        Vec3 normal = properties.Interaction.Normal;//incident_ray.Direction;//ray.Direction - 2*ray.Direction.dot(properties.Interaction.Normal)*properties.Interaction.Normal;
+        //Vec3 normal = properties.Interaction.Normal;//incident_ray.Direction;//ray.Direction - 2*ray.Direction.dot(properties.Interaction.Normal)*properties.Interaction.Normal;
+        Vec3 normal = incident_dir;
         Vec3 color = Vec3{0.5,0.5,0.5}+normal*0.5;
         
         //return color;
-        //return surface_color.GetCombined().ToRGB();
-        return {pdf,pdf,pdf};
+        return surface_color.GetCombined().ToRGB();
+        //return properties.Material->Illumination(properties.Interaction, ray).GetCombined().ToRGB()*0.5 + Vec3{0.5,0.5,0.5};
+        //return {pdf,pdf,pdf};
         //return {1,0,0};
         
     }
@@ -53,7 +56,9 @@ public:
 
 int main()
 {
+    
     using namespace jpc_tracer;
+    Logger::Init();
     int width = 500;
     int height = 300;
     int sample_count = 64;
@@ -67,7 +72,7 @@ int main()
 
     auto scene = MakeRef<BVHScene>(shapeList, lightList);
     //auto scene = MakeRef<BasicScene>(shapeList, lightList);
-    auto integrator = MakeRef<PathIntegrator>(Spectrum::FromRGB({0,0,0}),2);
+    auto integrator = MakeRef<PathIntegrator>(Spectrum::FromRGB({0,0,0}),3);
     //auto integrator = MakeRef<IncidentDirIntegrator>(1);
     //auto integrator = MakeRef<TestLightIntegrator>();
     integrator->Init(scene);

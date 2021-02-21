@@ -2,11 +2,13 @@ set(AUTOSRC
 "BasicIntegrator.cpp"
 "DebugBsdfIntegrator.cpp"
 "DebugIntegrator.cpp"
+"Integration.cpp"
 "LightIntegrator.cpp"
 "PathIntegrator.cpp"
 "BasicIntegrator.h"
 "DebugBsdfIntegrator.h"
 "DebugIntegrator.h"
+"Integration.h"
 "LightIntegrator.h"
 "PathIntegrator.h"
 )
@@ -22,6 +24,7 @@ core
 utilities
 textures
 #eigen3
+boost
 )
 
 

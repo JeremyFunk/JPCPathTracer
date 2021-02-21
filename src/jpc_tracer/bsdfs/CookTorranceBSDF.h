@@ -5,6 +5,7 @@
 #include "core/Bsdf.h"
 #include "core/BsdfGeneric.h"
 #include "core/Linalg.h"
+#include "core/Logger.h"
 #include "core/Spectrum.h"
 #include <memory>
 namespace jpc_tracer

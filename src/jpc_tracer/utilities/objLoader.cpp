@@ -1,6 +1,7 @@
 #include "objLoader.h"
 #include "core/Linalg.h"
 #include "core/IShape.h"
+#include "core/Logger.h"
 #include <vector>
 #include <iostream>
 
@@ -44,12 +45,14 @@ namespace jpc_tracer
                     Prec v2 = std::stof(splitted[2]);
                     Prec v3 = std::stof(splitted[3]);
 
-                    
+                    //JPC_LOG_INFO("B Normal: {},{},{}",v1,v2,v3);
                     Vec3 vec3 = (transformation->Rot2W * Vec3(v1, v2, v3)).normalized();
 
-                    normals.push_back(v1);
-                    normals.push_back(v2);
-                    normals.push_back(v3);
+                    //JPC_LOG_INFO("A Normal: {},{},{}",vec3[0],vec3[1],vec3[2]);
+
+                    normals.push_back(vec3[0]);
+                    normals.push_back(vec3[1]);
+                    normals.push_back(vec3[2]);
 
                     // Normalize debug
                     // Vec3 vec3 = Vec3(v1, v2, v3).normalized();

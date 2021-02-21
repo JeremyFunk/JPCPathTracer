@@ -18,10 +18,12 @@ namespace jpc_tracer
         SpectrumPasses Integrate(const Ray& ray,const Vec2* samples,BsdfMemoryPtr bsdf_memory) const final;
     private:
         SampleCount GetSampleCount(int max_sample_count) const;
-
+        SpectrumPasses SurfaceLuminance(const Ray& ray,const Vec2* samples, const SurfaceProperties& surface_properties,BsdfMemoryPtr bsdf_memory) const;
+        std::tuple<SpectrumPasses,Prec> IncidentLuminance(const Ray& ray,const Vec2* samples, const SurfaceInteraction& interaction,
+        BsdfMemoryPtr bsdf_memory, Vec3 interaction_point) const;
         Ref<IScene> _scene;
         SpectrumPasses _sky_color;
         int _max_depth;
-
+        
     };
 }
