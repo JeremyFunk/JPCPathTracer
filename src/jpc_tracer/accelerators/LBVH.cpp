@@ -290,8 +290,6 @@ namespace jpc_tracer
         uint32_t z = LeftShift3(std::min(std::max(vec.z() * 1024.0f, 0.0f), 1023.0f));
 
         return x * 4 + y * 2 + z;
-
-        // return (LeftShift3(vec.z()) << 2) | (LeftShift3(vec.y()) << 1) | LeftShift3(vec.x());
     }
     
     inline uint32_t LBVHAccel::LeftShift3(uint32_t x) const 
@@ -301,16 +299,6 @@ namespace jpc_tracer
         x = (x * 0x00000011u) & 0xC30C30C3u;
         x = (x * 0x00000005u) & 0x49249249u;
         return x;
-
-        // if (x == (1 << 10))
-        //     x--;
-
-        // x = (x | (x << 16)) & 0b00000011000000000000000011111111;
-        // x = (x | (x <<  8)) & 0b00000011000000001111000000001111;
-        // x = (x | (x <<  4)) & 0b00000011000011000011000011000011;
-        // x = (x | (x <<  2)) & 0b00001001001001001001001001001001;
-
-        // return x;
     }
     
     void LBVHAccel::shape_intersection(const int& idx, const Ray& ray, std::optional<IntersectionData>& closestInteraction) const

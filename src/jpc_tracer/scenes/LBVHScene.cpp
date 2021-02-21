@@ -1,4 +1,4 @@
-#include "BVHScene.h"
+#include "LBVHScene.h"
 #include "accelerators/BVHAccel.h"
 #include "core/Bsdf.h"
 #include "core/IMaterial.h"
@@ -19,36 +19,36 @@
 namespace jpc_tracer
 {
 
-    BVHScene::BVHScene(const Ref<std::vector<Ref<IShape>>>& shapeList, const Ref<std::vector<Ref<ILight>>>& lightList)
+    LBVHScene::LBVHScene(const Ref<std::vector<Ref<IShape>>>& shapeList, const Ref<std::vector<Ref<ILight>>>& lightList)
         : _shapeList(shapeList),
           _lightList(lightList),
-          _bvh_tree(MakeRef<BVHAccel>(shapeList, 1))
+          _lbvh_tree(shapeList)
     {
     }
 
-    std::optional<SurfaceProperties> BVHScene::Intersect(const Ray& ray) const{
+    std::optional<SurfaceProperties> LBVHScene::Intersect(const Ray& ray) const{
 
-        std::optional<IntersectionData> closestInteraction = _bvh_tree->Traversal(ray);
+        std::optional<IntersectionData> closestInteraction = _lbvh_tree.Traversal(ray);
 
         if(!closestInteraction)
             return std::nullopt;
 
         return std::make_optional<SurfaceProperties>(closestInteraction->Shape->GetSurfaceProperties(ray, closestInteraction.value()));
     }
-    std::optional<Prec> BVHScene::IntersectionDistance(const Ray& ray) const{
+    std::optional<Prec> LBVHScene::IntersectionDistance(const Ray& ray) const{
         
-        std::optional<IntersectionData> closestInteraction = _bvh_tree->Traversal(ray);
+        std::optional<IntersectionData> closestInteraction = _lbvh_tree.Traversal(ray);
 
         if(!closestInteraction)
             return std::nullopt;
         
         return std::make_optional<Prec>(closestInteraction->Distance);
     }
-    std::vector<Ref<ILight>> BVHScene::GetLights() const{
+    std::vector<Ref<ILight>> LBVHScene::GetLights() const{
         return *_lightList;
     }
     
-    BsdfMemoryInfo BVHScene::GetBsdfInfo() const
+    BsdfMemoryInfo LBVHScene::GetBsdfInfo() const
     {
         BsdfMemoryInfo bsdf_info = {0,0};
         std::vector<Ref<const IMaterial>> materials;
@@ -70,3 +70,4 @@ namespace jpc_tracer
         return bsdf_info;
     }
 }
+

@@ -4,6 +4,7 @@
 #include "samplers/StratifiedSampler.h"
 #include "cameras/ProjectionCamera.h"
 #include "scenes/BVHScene.h"
+#include "scenes/LBVHScene.h"
 #include "integrators/LightIntegrator.h"
 #include "integrators/DebugIntegrator.h"
 #include "filters/GaussianFilter.h"
