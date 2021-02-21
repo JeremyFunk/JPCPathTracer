@@ -11,7 +11,9 @@
 
 namespace jpc_tracer
 {
-
+    bool IsLightBlocked(const LightInformation& light_info, const SurfaceInteraction& interaction,const Ref<IScene> scene,
+    const Vec3& interaction_point);
+    
     SpectrumPasses IntegrateLights(const Ray& ray,const Vec3& interaction_point, const SurfaceInteraction& interaction,const Ref<IScene> scene,
     const BsdfMemoryPtr& bsdf);
 

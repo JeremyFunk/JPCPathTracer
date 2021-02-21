@@ -1,6 +1,7 @@
 #include "TestLightIntegrator.h"
 #include "core/Linalg.h"
 #include <iostream>
+#include "integrators/LightIntegrator.h"
 
 namespace jpc_tracer {
 
@@ -19,18 +20,13 @@ Vec3 TestLightIntegrator::PixelEffect(SurfaceProperties& properties,const Ray& r
             Vec3 interaction_point = properties.Interaction.Point + properties.Interaction.Normal * ERROR_THICCNESS;
             auto light_info = light->GetLightInformation(interaction_point);
             auto intersection = scene->Intersect(Ray(interaction_point, -light_info.Direction));
-            bool light_blocked = true;
-            if(intersection.has_value())
-            {
-                Prec blocked_distance = (intersection->Interaction.Point-properties.Interaction.Point).norm();
-                if(blocked_distance > light_info.Distance)
-                    light_blocked = false;
-            }
+            bool light_blocked = IsLightBlocked(light_info, intersection->Interaction, scene, interaction_point);
             if (!light_blocked)
             {
-                return {1,1,1};
+                //return {1,1,1};
                 SpectrumPasses light_luminance = light->Illumination(interaction_point, light_info);
                 SpectrumPasses bsdf_luminance = ScatteringBsdf(memory,-ray.Direction, -light_info.Direction);
+                return bsdf_luminance.GetCombined().ToRGB();
                 Prec cos_theta = std::abs(properties.Interaction.Normal.dot(light_info.Direction));
                 //return {cos_theta,cos_theta,cos_theta};
 

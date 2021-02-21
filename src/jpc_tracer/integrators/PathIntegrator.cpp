@@ -2,6 +2,7 @@
 #include "LightIntegrator.h"
 #include "core/Bsdf.h"
 #include "core/Linalg.h"
+#include "core/Logger.h"
 #include "core/Ray.h"
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
@@ -72,7 +73,7 @@ namespace jpc_tracer
 
         if( (! surface_color.IsZero() ) && pdf > 0)
         {
-            SpectrumPasses subray_radiance = Integrate(incident_ray,samples, std::move(bsdf_memory));
+            SpectrumPasses subray_radiance = Integrate(incident_ray,samples, bsdf_memory);
             luminance = subray_radiance * surface_color * CosinusWeight(incident_dir, interaction.Normal);
         }
         return {luminance,pdf};
@@ -82,18 +83,32 @@ namespace jpc_tracer
     SpectrumPasses PathIntegrator::SurfaceLuminance(const Ray& ray,const Vec2* samples, const SurfaceProperties& surface_properties,BsdfMemoryPtr bsdf_memory) const
     {
         
-        SpectrumPasses luminance;
+        
         const SurfaceInteraction& interaction = surface_properties.Interaction;
 
-        luminance+=surface_properties.Material->Illumination(interaction, ray);
+        SpectrumPasses luminance=surface_properties.Material->Illumination(interaction, ray);
         surface_properties.Material->OverrideBSDF( bsdf_memory,interaction);
 
         Vec3 interaction_point = OffsetInteractionPoint(interaction);
 
         auto light_lum = IntegrateLights(ray,interaction_point,interaction,_scene,bsdf_memory);
         auto[incident_lum, incident_pdf] = IncidentLuminance(ray, samples, interaction, bsdf_memory, interaction_point);
+        
+        
+        auto temp = ImportanceSampling<SpectrumPasses,2>({light_lum,incident_lum},{1.0,incident_pdf});
 
-        luminance += ImportanceSampling<SpectrumPasses,2>({light_lum,incident_lum},{1.0,incident_pdf});
+        auto rbg = temp.GetCombined().ToRGB();
+        auto rbg_lum = luminance.GetCombined().ToRGB();
+        if(rbg[0]<0 || rbg[1]<0 || rbg[2]<0) JPC_LOG_ERROR("SubColor <0");
+
+
+        if(incident_pdf <0.0001) 
+        {
+            //JPC_LOG_ERROR("Low PDf");
+            temp = light_lum;  
+        };
+
+        luminance += temp;
         return luminance;
         
     }

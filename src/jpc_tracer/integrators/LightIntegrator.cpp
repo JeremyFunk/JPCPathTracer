@@ -15,7 +15,7 @@ namespace jpc_tracer
         bool light_blocked = false;
         if(intersection.has_value())
         {
-            Prec blocked_distance = (interaction.Point-interaction.Point).norm();
+            Prec blocked_distance = (intersection->Interaction.Point-interaction_point).norm();
             if(blocked_distance > light_info.Distance)
                 light_blocked = false;
             else

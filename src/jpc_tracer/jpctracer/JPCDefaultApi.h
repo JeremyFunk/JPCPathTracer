@@ -36,7 +36,8 @@ namespace jpc_tracer {
         virtual Scope<IRenderer> GetRenderer();
         virtual Scope<IRenderer> FullRenderEngine();
         ~JPCDefaultApi();
-    private:
-        DefaultSettings _settings;
+        const DefaultSettings _settings;
+    
+        
     };
 }

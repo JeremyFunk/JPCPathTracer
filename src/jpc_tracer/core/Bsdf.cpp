@@ -6,6 +6,8 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include "MonteCarlo.h"
+
 namespace jpc_tracer {
 
     struct BsdfMemory
@@ -87,8 +89,8 @@ namespace jpc_tracer {
         {
             temp_v = {0,-1,0};
         }
-        memory->Tangent1 = normal.cross(temp_v);
-        memory->Tangent2 = normal.cross(memory->Tangent1);
+        memory->Tangent1 = normal.cross(temp_v).normalized();
+        memory->Tangent2 = normal.cross(memory->Tangent1).normalized();
     }
     
     SpectrumPasses ScatteringBsdf(const BsdfMemoryPtr& memory, const Vec3& scattered_direction,const Vec3& incident_direction) 
@@ -96,7 +98,7 @@ namespace jpc_tracer {
 
         Vec3 scattered_direction_ns = WorldToLocal(memory, scattered_direction);
         Vec3 incident_direction_ns = WorldToLocal(memory, incident_direction);
-        SpectrumPasses luminance;
+        SpectrumPasses luminance = SpectrumPasses::FromValue(0);
         for(int bsdf_idx = 0; bsdf_idx< memory->BsdfCounter; bsdf_idx++)
         {
             void* parameter = memory->Parameters[bsdf_idx];
@@ -113,6 +115,7 @@ namespace jpc_tracer {
         Vec3 scattered_direction_ns = WorldToLocal(memory, scattered_direction);
         Vec3 incident_direction_ns = WorldToLocal(memory, incident_direction);
         Prec pdf = 0;
+        //already the balance heuristic
         for(int bsdf_idx = 0; bsdf_idx< memory->BsdfCounter; bsdf_idx++)
         {
             void* parameter = memory->Parameters[bsdf_idx];
@@ -128,14 +131,19 @@ namespace jpc_tracer {
     
     Vec3 SampleIncidentDirectionBsdf(const BsdfMemoryPtr& memory, const Vec3& scattered_direction, const Vec2& random_point) 
     {
-        Vec3 scattered_direction_ns = WorldToLocal(memory, scattered_direction);
-        void* parameter = memory->Parameters[0];
-        Prec weight = memory->Weights[0];
-        Vec3 incident_direction_ns = memory->Closures[0]->_SampleIncidentDirection(parameter, scattered_direction_ns, random_point);
+        
+        Vec3 scattered_direction_ns = WorldToLocal(memory, scattered_direction.normalized());
+        
+        auto[bxdf_idx, new_rand_p] = SampleDiscreteDistribution(random_point,memory->Weights);
+
+        
+        void* parameter = memory->Parameters[bxdf_idx];
+
+        Vec3 incident_direction_ns = memory->Closures[bxdf_idx]->_SampleIncidentDirection(parameter, scattered_direction_ns, new_rand_p);
         
         auto result = LocalToWorld(memory, incident_direction_ns);
         
-        return result;
+        return result.normalized();
     }
 
 

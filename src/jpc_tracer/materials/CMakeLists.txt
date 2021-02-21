@@ -1,6 +1,8 @@
 set(AUTOSRC
 "GlossyMaterial.cpp"
 "BasicMaterial.cpp"
+"GlossyDiffMaterial.cpp"
+"GlossyDiffMaterial.h"
 "GlossyMaterial.h"
 "BasicMaterial.h"
 )

@@ -37,6 +37,8 @@ namespace jpc_tracer
 
     void GlossyMaterial::OverrideBSDF(BsdfMemoryPtr& memory, const SurfaceInteraction& interaction) const
     {
+        //JPC_LOG_INFO("Normal: {},{},{}",interaction.Normal[0],interaction.Normal[1],interaction.Normal[2]);
+        
         ResetBsdfMemory(memory, interaction.Normal);
         auto params = _bsdf->Setup(memory, 1);
         params->Reflectance=Spectrum::FromRGB(_color->GetColor(interaction.UV));
