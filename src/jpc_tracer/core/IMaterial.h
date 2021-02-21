@@ -10,6 +10,7 @@ namespace jpc_tracer {
     {
     public:
         virtual SpectrumPasses Illumination(const SurfaceInteraction& interaction, const Ray& ray) const = 0;
+        //scattering_direction
         virtual void OverrideBSDF(BsdfMemoryPtr& memory, const SurfaceInteraction& interaction) const = 0;
         virtual BsdfMemoryInfo GetBsdfInfo() const = 0;
     };

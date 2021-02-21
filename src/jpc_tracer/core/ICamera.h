@@ -10,6 +10,7 @@ namespace jpc_tracer {
     class ICamera
     {
     public:
+        //virtual Ray GenerateRay(Vec2 sample, Vec2i pixel) const = 0 ;
         virtual Ray GenerateRay(const Ref<ISampler>& sampler, Vec2i pixel) const = 0 ;
         virtual ~ICamera(){}
     };

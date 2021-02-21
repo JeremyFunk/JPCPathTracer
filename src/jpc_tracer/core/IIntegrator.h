@@ -15,6 +15,7 @@ namespace jpc_tracer {
     class IIntegrator
     {
     public:
+        //Path Interface
         virtual void Init(Ref<IScene> scene) = 0;
         virtual Scope<std::vector<Vec2>> SetupSamples(int max_sample_count) const = 0;
         virtual void FillSamples(Ref<ISampler> sampler, Scope<std::vector<Vec2>>& data,int max_sample_count) const = 0;

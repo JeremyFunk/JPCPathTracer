@@ -16,6 +16,7 @@ namespace jpc_tracer {
     class IShape
     {
     public:
+        //Shape
         virtual std::optional<IntersectionData> Intersect(const Ray& ray) const= 0;
         virtual const SurfaceProperties GetSurfaceProperties(const Ray& ray,const IntersectionData& data) const = 0;
         virtual Bounds3D<Prec> WorldBoundary() const = 0;
