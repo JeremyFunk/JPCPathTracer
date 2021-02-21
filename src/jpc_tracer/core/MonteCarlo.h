@@ -3,7 +3,9 @@
 #include "core/Linalg.h"
 #include "core/Logger.h"
 #include <array>
+#include <cassert>
 #include <functional>
+#include <iostream>
 #include <iterator>
 #include <numeric>
 #include <tuple>
@@ -27,87 +29,128 @@ namespace jpc_tracer
     template<class T,class ReturnT, class...Args >
     concept Functor = std::is_convertible<T, std::function<ReturnT(Args... )>>::value;
 
+    
     namespace MIS {
-        template<class T,class InT>
-        concept Pdf = Functor<T, Prec, InT>;
-
-        template<class T, class OutT, class InT>
-        concept Func = Functor<T,OutT,InT>;
-
-        template<class T,class InT, class SampleT>
-        concept Sampler = Functor<T, InT,SampleT>;
-
-        template<class T,class InT,class DistributionT, class SampleT>
-        concept DistSampler = Functor<T, InT,DistributionT,SampleT>;
-
-        template<class T, class InT, class DistributionT>
-        concept DistPdf = Functor<T,Prec,DistributionT,InT>;
-
-        template<class T, class DistributionT, class OutT, class InT>
-        concept DistFunc = Functor<T,DistributionT,OutT,InT>;
-
-        template<class T, class DistributionT>
-        concept DistRelativeCount = Functor<T,Prec,DistributionT>;
-
-        template<class T,class DistributionT, class InT, class DistributionRangeT,class DistRelativeCountT,class DistPdfT>
-        concept Weight = Functor<T,Prec,DistributionT,InT,DistributionRangeT,DistPdfT,DistRelativeCountT> 
-            && DistPdf<DistPdfT,InT,DistributionT>
-            && DistRelativeCount<DistRelativeCountT, DistributionT>
-            && std::ranges::forward_range<DistributionRangeT>;
         
-        template<class InT, std::ranges::forward_range DistributionRangeT, DistPdf<InT,int> DistPdfT, DistRelativeCount<int> DistRelativeCountT>
-        constexpr Prec BalanceHeuristic(int current_dist, InT x, DistributionRangeT dist_range,
-        DistPdfT dist_pdf, DistRelativeCountT dist_relative_count)
+        template<
+            class DistT,
+            class DistRange,
+            class PdfT,
+            class InT,
+            class RelativeCount
+        >
+        constexpr Prec BalanceHeuristic(
+            DistT current_dist, 
+            DistRange dist_range,
+            PdfT pdf,
+            InT x,
+            RelativeCount rel_count
+        )
         {
-            
-            auto summer = [&](Prec sum, int dist_idx) {return sum + dist_pdf(dist_idx,x)* dist_relative_count(dist_idx);};
+            auto summer = [&](Prec sum, DistT dist_idx) {return sum + pdf(dist_idx,x)* rel_count(dist_idx);};
             Prec sum = std::accumulate(std::ranges::begin(dist_range),std::ranges::end(dist_range),0.f,summer);
+            auto p = pdf(current_dist,x);
+            auto r = rel_count(current_dist);
+            return p * r / sum;
+        };
 
-            return dist_pdf(current_dist,x)* dist_relative_count(current_dist) / sum;
-        }
+        enum class WeightType
+        {
+            BALANCE
+        };
+
+        template<
+            class OutT,
+            class SampleT,
+            class SamplerT,
+            class DistRange,
+            class DistT,
+            class RelativeCount,
+            class FuncT, 
+            class PdfT
+        >
+        constexpr OutT UpdateMISSum(
+            OutT previous_sum, 
+            SampleT sample,
+            const SamplerT& sampler,
+            DistRange dist_range,
+            const DistT& current_dist,   
+            const RelativeCount& relcount,   
+            const FuncT& func, 
+            const PdfT& pdf,
+            const WeightType& weight
+        )
+        {
+            auto x = sampler(sample);
+            OutT f = func(x);
+            Prec p = pdf(current_dist,x);
+            Prec w = BalanceHeuristic(current_dist,dist_range,pdf,x,relcount);
+            return previous_sum + f/p * w;
+        };
 
         
 
         template<
-            class DistributionT, 
-            class InT, 
+            class SampleRange,
+            class DistRange,
+            class DistT,
             class OutT,
-            class SampleT, 
-            std::ranges::forward_range DistributionRangeT, 
-            DistSampler<InT,DistributionT,SampleT> SamplerT,
-            DistFunc<DistributionT,OutT,InT> DistFuncT, 
-            DistPdf<InT,DistributionT> DistPdfT, 
-            DistRelativeCount<DistributionT> DistRelativeCountT,
-            Weight<DistributionT, InT, DistributionRangeT, DistRelativeCountT,DistPdfT> WeightT
- 
-        > 
-        constexpr OutT MultipleImportanceSampling(OutT start_val, DistributionRangeT dist_range, SampleT* samples,int sample_count , SamplerT dist_sampler, 
-        DistFuncT dist_func, DistPdfT dist_pdf, DistRelativeCountT dist_relative_count, WeightT weight)
+            class SamplerT,
+            class FuncT, 
+            class PdfT, 
+            class RelativeCount
+        >
+        constexpr OutT MultipleImportanceSampling(
+            SampleRange sample_range,
+            DistRange dist_range,
+            const DistT& current_dist,
+            OutT start_val,
+            const SamplerT& sampler,
+            const FuncT& func, 
+            const PdfT& pdf,
+            const RelativeCount& relcount,
+            const WeightType& weight
+            )
         {
-            auto update_sum = [&](OutT sum, SampleT sample, DistributionT dist_idx) {
-                auto x = dist_sampler(dist_idx,sample);
-                auto f = dist_func(dist_idx,x);
-                auto p = dist_pdf(dist_idx,x);
-                auto w = weight(dist_idx,x,dist_range,dist_pdf,dist_relative_count);
-                return sum + f/p * w;
-            };
+            using namespace std::placeholders;
+            using SampleT = decltype(*std::begin(sample_range));            
 
-            auto compute_dist_integral = [&](std::pair<OutT,SampleT*> sum, DistributionT dist_idx) -> std::pair<OutT,SampleT*>
-            {
-                OutT integral = sum.first; 
-                SampleT* current_sample = sum.second;
-                int dist_sample_count = dist_relative_count(dist_idx)*sample_count;
-                using namespace std::placeholders;
-                OutT dist_sum = std::accumulate(current_sample,current_sample+dist_sample_count,start_val, std::bind(update_sum,_1,_2,dist_idx));
+            int sample_count = std::distance(std::begin(sample_range), std::end(sample_range));
 
-                return std::pair{integral+ dist_sum / (Prec) dist_sample_count, current_sample+dist_sample_count};
-            };
-
-            return std::accumulate(std::ranges::begin(dist_range),std::ranges::end(dist_range),
-                std::pair{start_val,samples},
-                compute_dist_integral ).first;
-
-
+            OutT sum = std::accumulate(std::begin(sample_range),std::end(sample_range), 
+                start_val, 
+                std::bind(
+                    UpdateMISSum<OutT,SampleT,SamplerT,DistRange,DistT,RelativeCount,FuncT,PdfT>,
+                     _1,_2,sampler,dist_range,current_dist,relcount,func,pdf,weight)
+            );
+            return sum / (Prec)sample_count;
         }
+
+    }
+    template<class ProbabilityRange>
+    std::pair<int, Vec2> SampleDiscreteDistribution(Vec2 random_point, ProbabilityRange prob_range)
+    {
+        Prec sum = 0;
+        assert(random_point[0] <= 1);
+        assert(random_point[1] <= 1);
+        assert(random_point[0] >= 0);
+        assert(random_point[1] >= 0);
+        int distribution_counter = 0;
+        for(const auto& prob : prob_range )
+        {
+            if(sum + prob >= random_point[0])
+            {
+                //remap random_point
+                random_point[0]-=sum;
+                random_point[0] /= prob;
+
+                return {distribution_counter,random_point};
+            }
+            distribution_counter++;
+            sum+= prob;
+        }
+        assert(sum>=0.98);
+        return {0,random_point};
+        
     }
 }
