@@ -17,13 +17,6 @@ namespace jpc_tracer
         Bounds3D(Eigen::Matrix<T, 3, 1> vec1, Eigen::Matrix<T, 3, 1> vec2);
         Bounds3D() = default;
 
-        // T XMax;
-        // T XMin;
-        // T YMax;
-        // T YMin;
-        // T ZMax;
-        // T ZMin;
-
         Vec3 Max;
         Vec3 Min;
 
@@ -43,7 +36,6 @@ namespace jpc_tracer
     template<typename T>
     Bounds3D<T>::Bounds3D(T x_max,T x_min,T y_max,T y_min,T z_max,T z_min) 
         : Max(x_max, y_max, z_max), Min(x_min, y_min, z_min)
-        //: XMax(x_max), YMax(y_max), ZMax(z_max), XMin(x_min), YMin(y_min), ZMin(z_min)
     {}
 
     template<typename T>
@@ -52,12 +44,6 @@ namespace jpc_tracer
         Min(std::min(vec1(0, 0), vec2(0, 0)), std::min(vec1(1, 0), vec2(1, 0)), std::min(vec1(2, 0), vec2(2, 0)))
     {
     }
-    
-    //template<typename T>
-    //Bounds3D<T>::Bounds3D() 
-    //    : Max(0,0,0), Min(0,0,0)
-    //    //: XMax(0), YMax(0), ZMax(0), XMin(0), YMin(0), ZMin(0)
-    //{}
     
     template<typename T>
     T Bounds3D<T>::Size() const
@@ -156,31 +142,6 @@ namespace jpc_tracer
             return false;
         
         return true;
-
-        // Prec intersection1 = 0;
-        // Prec intersection2 = 0;
-
-        // for (int i = 0; i < 3; i++)
-        // {
-        //     Prec inv_ray_dir = 1 / ray.Direction[i];
-
-        //     Prec near_solution = (Min[i] - ray.Origin[i]) * inv_ray_dir;
-        //     Prec far_solution = (Max[i] - ray.Origin[i]) * inv_ray_dir;
-
-        //     if(near_solution > far_solution)
-        //         std::swap(near_solution, far_solution);
-            
-        //     intersection1 = near_solution > intersection1 ? near_solution : intersection1;
-
-        //     if(intersection2 == 0)
-        //         intersection2 = far_solution;
-        //     else
-        //         intersection2 = far_solution < intersection2 ? far_solution : intersection2;
-            
-        //     if(near_solution > far_solution)
-        //         return false;
-        // }
-        // return true;
     }
 
     template<class T>
