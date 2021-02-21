@@ -1,8 +1,8 @@
 set(AUTOSRC
-"diffuse_bxdf.cpp"
-"Lambertian_test.cpp"
 "bsdf_test.cpp"
+"diffuse_bxdf.cpp"
 "glossy_bxdf.cpp"
+"Lambertian_test.cpp"
 )
 set(INC
 "../")

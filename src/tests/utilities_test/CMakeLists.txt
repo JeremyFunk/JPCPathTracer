@@ -1,6 +1,6 @@
 set(AUTOSRC
-"write_image.cpp"
 "arithmetic.cpp"
+"write_image.cpp"
 )
 set(INC
 "../")

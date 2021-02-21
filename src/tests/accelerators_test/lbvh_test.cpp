@@ -3,7 +3,7 @@
 #include "core/IMaterial.h"
 #include "core/IShape.h"
 #include "core/Linalg.h"
-#include "accelerators/BVHAccel.h"
+#include "accelerators/LBVH.h"
 #include "shapes/TriangleMesh.h"
 #include "core/Ray.h"
 #include "core/Spectrum.h"
@@ -13,26 +13,26 @@
 
 namespace jpc_tracer
 {
-    TEST(accelerators_test, shity_bvh_build)
+    TEST(accelerators_test, lbvh_build)
     {
         Ref<IMaterial> material_white = MakeRef<BasicMaterial>(
             MakeRef<ColorValueVec3>(ColorValueVec3({1,1,1})),1);
 
         auto transformation = MakeRef<Transformation>(Vec3(0, 0, -8), Vec3(0, 0, 0), Vec3(1,1,1));
 
-        auto shapesList = MakeRef<std::vector<Ref<IShape>>>();
-
-        std::string path = "C:\\Users\\stade\\Desktop\\Cube.obj";
-        auto mesh = LoadMesh(path, material_white, transformation, shapesList);
-
-        auto triangles = mesh->GenerateTriangles();
-
         auto shapeList = MakeRef<std::vector<Ref<IShape>>>();
 
-        for( auto triangle : *triangles)
-            shapeList->push_back(triangle);
+        std::string path = "C:\\Users\\stade\\Desktop\\Cube.obj"; //"E:\\dev\\pathTrace\\JPCPathTracer\\resource\\Susan.obj";
+        auto mesh = LoadMesh(path, material_white, transformation, shapeList);
 
-        BVHAccel bvh(shapeList, 1);
+        //auto triangles = mesh->GenerateTriangles();
+
+        //auto shapeList = MakeRef<std::vector<Ref<IShape>>>();
+
+        //for( auto triangle : *triangles)
+        //    shapeList->push_back(triangle);
+
+        LBVHAccel lbvh(shapeList);
 
         //bvh.BuildBVH();
         
@@ -54,16 +54,16 @@ namespace jpc_tracer
         // EXPECT_EQ(first_Min.z() , mesh_bound.Min.z());
     }
 
-    TEST(accelerators_test, shity_bvh_intersect)
+    TEST(accelerators_test, lbvh_intersect)
     {
         Ref<IMaterial> material_white = MakeRef<BasicMaterial>(
             MakeRef<ColorValueVec3>(ColorValueVec3({1,1,1})),1);
 
-        auto transformation = MakeRef<Transformation>(Vec3(0.2, 0, -8), Vec3(0, 0, 0), Vec3(2, 2, 2));
+        auto transformation = MakeRef<Transformation>(Vec3(0.2, 0, -8), Vec3(0, 0, 0), Vec3(2,2,2));
 
         auto shapeList = MakeRef<std::vector<Ref<IShape>>>();
 
-        std::string path = "E:\\dev\\pathTrace\\JPCPathTracer\\resource\\Susan.obj";
+        std::string path = "C:\\Users\\stade\\Desktop\\Cube.obj";
         auto mesh = LoadMesh(path, material_white, transformation, shapeList);
 
         // auto triangles = mesh->GenerateTriangles();
@@ -73,11 +73,11 @@ namespace jpc_tracer
         // for( auto triangle : *triangles)
         //     shapeList->push_back(triangle);
 
-        BVHAccel bvh(shapeList, 1);
+        LBVHAccel lbvh(shapeList);
 
         Ray ray({0,0,0},{0,0,-1});
 
-        auto out = bvh.Traversal(ray);
+        auto out = lbvh.Traversal(ray);
 
         bool test = out.has_value();
 

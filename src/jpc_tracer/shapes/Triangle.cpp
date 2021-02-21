@@ -156,6 +156,17 @@ namespace jpc_tracer
 
         return SurfaceProperties(interaction,_mesh->Material.get());
     }
+
+
+    Vec3 Triangle::getCenter() const 
+    {
+        Vec3 p1 {(*_mesh->Vertices)[(*_mesh->Indices)[_index]*3], (*_mesh->Vertices)[(*_mesh->Indices)[_index]*3+1], (*_mesh->Vertices)[(*_mesh->Indices)[_index]*3+2]};
+        Vec3 p2 {(*_mesh->Vertices)[(*_mesh->Indices)[_index+3]*3], (*_mesh->Vertices)[(*_mesh->Indices)[_index+3]*3+1], (*_mesh->Vertices)[(*_mesh->Indices)[_index+3]*3+2]};
+        Vec3 p3 {(*_mesh->Vertices)[(*_mesh->Indices)[_index+6]*3], (*_mesh->Vertices)[(*_mesh->Indices)[_index+6]*3+1], (*_mesh->Vertices)[(*_mesh->Indices)[_index+6]*3+2]};
+
+        return (1.0/3.0)*(p1 + p2 + p3);
+    }
+
     
     Bounds3D<Prec> Triangle::WorldBoundary() const
     {

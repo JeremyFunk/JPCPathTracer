@@ -64,6 +64,41 @@ namespace jpc_tracer
         EXPECT_EQ(bounds.Min.z(), 0);
     }
 
+    TEST(shapes_test, center_test)
+    {
+        std::vector<Prec> vertices = {0,0,0, 0,0,0, 0,0,0, 1,1,1, 1,1,1, 1,1,1, 2,2,2,2,2,2,2,2,2,2,2,2};
+        std::vector<Prec> normals = {0,0,0, 1,1,1, 2,2,2};
+        std::vector<Prec> uvs= {0,0,0, 1,1,1, 2,2,2};
+        std::vector<int> indices= {0,0,0, 3,3,3, 6,6,6};
+
+        auto ptr_vertices = MakeRef<std::vector<Prec>>(vertices);
+        auto ptr_normals = MakeRef<std::vector<Prec>>(normals);
+        auto ptr_uvs = MakeRef<std::vector<Prec>>(uvs);
+        auto ptr_indices = MakeRef<std::vector<int>>(indices);
+
+        Ref<TriangleMesh> mesh = MakeRef<TriangleMesh>(ptr_vertices,
+                                                        ptr_normals,
+                                                        ptr_uvs,
+                                                        ptr_indices,
+                                                        nullptr, nullptr );
+
+        auto triangles = *mesh->GenerateTriangles();
+
+        auto center = triangles[0]->getCenter();
+
+        Vec3 p1 {vertices[indices[0]*3], vertices[indices[0]*3+1], vertices[indices[0]*3+2]};
+        Vec3 p2 {vertices[indices[0+3]*3], vertices[indices[0+3]*3+1], vertices[indices[0+3]*3+2]};
+        Vec3 p3 {vertices[indices[0+6]*3], vertices[indices[0+6]*3+1], vertices[indices[0+6]*3+2]};
+
+        auto comp = 1.0/3.0*(p1+p2+p3);
+
+        std::cout << center << '\n';
+
+        EXPECT_EQ(center.x(), comp.x());
+        EXPECT_EQ(center.y(), comp.y());
+        EXPECT_EQ(center.z(), comp.z());
+    }
+
     // TEST(shapes_test, triangle_bounds_test)
     // {
     //     std::vector<float> vertices {1.f,2.f,3.f,4.f,5.f,6.f,7.f,8.f,9.f};

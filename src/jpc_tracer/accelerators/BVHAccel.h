@@ -19,7 +19,7 @@ namespace jpc_tracer
     private:
         void BuildBVH();
 
-        void RecursiveBuildSmall(int start, int end, int& offset);
+        void RecursiveBuild(int start, int end, int& offset);
 
         void split_equal_subsets(const int& dim, const int& start, const int& mid, const int& end);
 

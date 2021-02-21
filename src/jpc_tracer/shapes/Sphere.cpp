@@ -179,6 +179,11 @@ namespace jpc_tracer
         return SurfaceProperties(interaction,_material.get());
     }
     
+    Vec3 Sphere::getCenter() const 
+    {
+        return _pos;
+    }
+    
     Bounds3D<Prec> Sphere::WorldBoundary() const 
     {
         return Bounds3D<Prec>({_pos.x()+_radius, _pos.y()+_radius, _pos.z()+_radius},

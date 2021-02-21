@@ -50,4 +50,16 @@ namespace jpc_tracer
         compare_bounds3d(out, compVecMax, compVecMin);
     }
 
+    TEST(core, bounds3d_union_intern)
+    {
+        Bounds3D<Prec> bound1(6, 5, 4, 3, 2, 1);
+        Bounds3D<Prec> bound2(7, 3, 1, 1, 0, -2);
+
+        bound1.Union(bound2);
+
+        Vec3 compMax{ 7,4,2 };
+        Vec3 compMin{ 3,1,-2 };
+
+        compare_bounds3d(bound1, compMax, compMin);
+    }
 }

@@ -7,6 +7,7 @@
 #include "lights/DirectionalLight.h"
 #include "lights/PointLight.h"
 #include "accelerators/BVHAccel.h"
+#include "accelerators/LBVH.h"
 #include <memory>
 
 namespace jpc_tracer
@@ -25,6 +26,7 @@ namespace jpc_tracer
 
     private:
         Ref<BVHAccel> _bvh_tree;
+        Ref<LBVHAccel> _lbvh_tree;
         Ref<std::vector<Ref<IShape>>> _shapeList;
         Ref<std::vector<Ref<ILight>>> _lightList;
     };

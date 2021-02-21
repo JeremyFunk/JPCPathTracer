@@ -1,14 +1,14 @@
 set(AUTOSRC
-"objLoader.cpp"
-"textureLoader.cpp"
-"ImageIO.cpp"
 "arithmetic.cpp"
+"ImageIO.cpp"
+"objLoader.cpp"
 "printerHelper.cpp"
-"objLoader.h"
+"textureLoader.cpp"
 "arithmetic.h"
-"textureLoader.h"
 "ImageIO.h"
+"objLoader.h"
 "printerHelper.h"
+"textureLoader.h"
 )
 
 

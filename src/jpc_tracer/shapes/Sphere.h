@@ -16,7 +16,8 @@ namespace jpc_tracer
         
         virtual std::optional<IntersectionData> Intersect(const Ray& ray) const final;
         virtual const SurfaceProperties GetSurfaceProperties(const Ray& ray,const IntersectionData& data) const final;
-
+        
+        virtual Vec3 getCenter() const final;
         virtual Bounds3D<Prec> WorldBoundary() const final;
         virtual std::vector<Ref<const IMaterial>> GetMaterials() const final;
     

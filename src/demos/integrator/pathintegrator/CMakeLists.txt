@@ -1,9 +1,9 @@
 set(AUTOSRC
-"TestLightIntegrator.cpp"
 "main.cpp"
 "scene_setup.cpp"
-"TestLightIntegrator.h"
+"TestLightIntegrator.cpp"
 "scene_setup.h"
+"TestLightIntegrator.h"
 )
 
 

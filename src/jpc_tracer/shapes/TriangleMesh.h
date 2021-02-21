@@ -46,6 +46,7 @@ namespace jpc_tracer
         
         virtual const SurfaceProperties GetSurfaceProperties(const Ray& ray,const IntersectionData& data) const final;
 
+        virtual Vec3 getCenter() const final;
         virtual Bounds3D<Prec> WorldBoundary() const final;
 
 

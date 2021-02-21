@@ -22,14 +22,16 @@ namespace jpc_tracer
     BVHScene::BVHScene(const Ref<std::vector<Ref<IShape>>>& shapeList, const Ref<std::vector<Ref<ILight>>>& lightList)
         : _shapeList(shapeList),
           _lightList(lightList),
-          _bvh_tree(MakeRef<BVHAccel>(shapeList, 1))
+        //   _bvh_tree(MakeRef<BVHAccel>(shapeList, 1))// ,
+          _lbvh_tree(MakeRef<LBVHAccel>(shapeList))
     {
     }
 
     std::optional<SurfaceProperties> BVHScene::Intersect(const Ray& ray) const{
 
        
-        std::optional<IntersectionData> closestInteraction = _bvh_tree->Traversal(ray);
+        // std::optional<IntersectionData> closestInteraction = _bvh_tree->Traversal(ray);
+        std::optional<IntersectionData> closestInteraction = _lbvh_tree->Traversal(ray);
 
         if(!closestInteraction)
             return std::nullopt;
@@ -38,7 +40,8 @@ namespace jpc_tracer
     }
     std::optional<Prec> BVHScene::IntersectionDistance(const Ray& ray) const{
         
-        std::optional<IntersectionData> closestInteraction = _bvh_tree->Traversal(ray);
+        // std::optional<IntersectionData> closestInteraction = _bvh_tree->Traversal(ray);
+        std::optional<IntersectionData> closestInteraction = _lbvh_tree->Traversal(ray);
 
         if(!closestInteraction)
             return std::nullopt;

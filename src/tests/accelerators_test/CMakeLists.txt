@@ -1,5 +1,6 @@
 set(AUTOSRC
 "bvh.cpp"
+"lbvh_test.cpp"
 )
 set(INC
 "../")

@@ -16,7 +16,7 @@ namespace jpc_tracer
    
     void BVHAccel::BuildBVH() 
     {
-        //TriangleInfo build
+        //ShapesInfo build
         const int shapes_size = _shapes->size();
 
         //_shapes_info.resize(shapes_size);
@@ -40,13 +40,13 @@ namespace jpc_tracer
         int offset = 0;
 
         //build tree
-        RecursiveBuildSmall(0, shapes_size, offset);
+        RecursiveBuild(0, shapes_size, offset);
 
         // clear unused memory
         _tree.shrink_to_fit();
     }
 
-    void BVHAccel::RecursiveBuildSmall(int start, int end, int& offset)
+    void BVHAccel::RecursiveBuild(int start, int end, int& offset)
     {
         //overall bounding box
         Bounds3D<Prec> total_bound = _shapes_info[start].Bounds;
@@ -100,12 +100,12 @@ namespace jpc_tracer
                 _tree.emplace_back(total_bound, number_shapes, start, 0);
                 
                 //First half
-                RecursiveBuildSmall(start, mid, /*allnodes,*/ offset);
+                RecursiveBuild(start, mid, /*allnodes,*/ offset);
 
                 _tree[current_pos].Idx_Second_Child = offset;
 
                 //second half
-                RecursiveBuildSmall(mid, end, /*allnodes,*/ offset);
+                RecursiveBuild(mid, end, /*allnodes,*/ offset);
             }            
         }
 

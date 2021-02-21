@@ -1,6 +1,6 @@
 set(AUTOSRC
-"PointLight.cpp"
 "DirectionalLight.cpp"
+"PointLight.cpp"
 "DirectionalLight.h"
 "PointLight.h"
 )

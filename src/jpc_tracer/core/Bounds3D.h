@@ -35,6 +35,8 @@ namespace jpc_tracer
         T MaximumExtent() const;
         int MaximumExtentDim() const;
 
+        void Union(const Bounds3D<T>& b2);
+
         bool IsIntersecting(const Ray& ray, std::optional<Prec>& min_distance, const Eigen::Matrix<T, 3, 1>& inverse_direction, const int dir_is_negative[3]) const;
     };
 
@@ -97,6 +99,18 @@ namespace jpc_tracer
             return 1;
         }
         return 2;
+    }
+    
+    template<typename T>
+    void Bounds3D<T>::Union(const Bounds3D<T>& b2) 
+    {
+        Max[0] = std::max(Max[0], b2.Max[0]);
+        Max[1] = std::max(Max[1], b2.Max[1]);
+        Max[2] = std::max(Max[2], b2.Max[2]);
+
+        Min[0] = std::min(Min[0], b2.Min[0]);
+        Min[1] = std::min(Min[1], b2.Min[1]);
+        Min[2] = std::min(Min[2], b2.Min[2]);
     }
     
     template<typename T>

@@ -1,6 +1,6 @@
 set(AUTOSRC
-"triangle_test.cpp"
 "sphere_test.cpp"
+"triangle_test.cpp"
 )
 set(INC
 "../")

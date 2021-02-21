@@ -1,15 +1,15 @@
 set(AUTOSRC
 "BeckmannDistribution.cpp"
 "DielectricFresnel.cpp"
-"SphericalCoordinates.cpp"
 "LambertianBSDF.cpp"
-"SphericalCoordinates.h"
+"SphericalCoordinates.cpp"
+"BeckmannDistribution.h"
 "CookTorranceBSDF.h"
 "DielectricFresnel.h"
 "IFresnel.h"
-"LambertianBSDF.h"
-"BeckmannDistribution.h"
 "IMicrofacetDistribution.h"
+"LambertianBSDF.h"
+"SphericalCoordinates.h"
 )
 
 
