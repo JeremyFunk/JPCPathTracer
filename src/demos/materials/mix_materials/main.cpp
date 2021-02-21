@@ -14,8 +14,8 @@ namespace jpc_tracer {
 std::string ProjectPath()
 {
     //return "E:\\dev\\pathTrace\\JPCPathTracer\\";
-    //return "H:\\dev\\path-tracing\\JPCPathTracer\\";
-    return "/home/chris/Dev/path_tracing/JPCPathTracer/";
+    return "H:\\dev\\path-tracing\\JPCPathTracer\\";
+    //return "/home/chris/Dev/path_tracing/JPCPathTracer/";
 }
 
 std::string PlainPath()
@@ -80,7 +80,7 @@ int main()
     using namespace jpc_tracer;
     DefaultSettings settings;
     settings.SkyColor = {0.4,0.4,0.4};
-    settings.SampleCount = 64*64;
+    settings.SampleCount = 64;
     settings.MaxRayDepth = 5;
     Demo1Api api(settings);
     auto renderer = api.FullRenderEngine();
