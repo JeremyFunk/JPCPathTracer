@@ -9,7 +9,7 @@
 namespace jpc_tracer
 {
     BVHAccel::BVHAccel(Ref<std::vector<Ref<IShape>>> shapes, const int& max_shapes_in_leaf) 
-        : _max_shapes_in_leaf(max_shapes_in_leaf), _shapes(shapes), _shapes_info(), _tree()
+        : _max_shapes_in_leaf(max_shapes_in_leaf), _shapes(shapes), _shapes_info(shapes->size()), _tree()
     {
         BuildBVH();
     }
@@ -19,29 +19,109 @@ namespace jpc_tracer
         //TriangleInfo build
         const int shapes_size = _shapes->size();
 
-        _shapes_info.resize(shapes_size);
+        //_shapes_info.resize(shapes_size);
         for (size_t i = 0; i < shapes_size; i++)
         {
             _shapes_info[i] = {i, (*_shapes)[i]->WorldBoundary()};
         }
 
-        //generate Recursive Tree
-        //max memory = size_of(Node) * 2 * number_triangles - 1
-        Ref<std::vector<BVHNode>> allnodes = MakeRef<std::vector<BVHNode>>(2*shapes_size - 1);
-        //memory offset for all nodes
+        /*
+        *   generate Recursive Tree
+        */
+
+        // max memory = size_of(Node) * 2 * number_shapes - 1
+        int max_size = 2*shapes_size - 1;
+
+        // linear tree
+        // traversal: node, left, right
+        _tree.reserve(max_size);
+        
+        // current pos
         int offset = 0;
 
-        BVHNode* root = RecursiveBuild(0, shapes_size, allnodes, offset);
+        //build tree
+        RecursiveBuildSmall(0, shapes_size, offset);
 
+        // clear unused memory
+        _tree.shrink_to_fit();
+    }
 
-        //flatten Tree
-        Ref<std::vector<SmallBVHNode>> flattend = MakeRef<std::vector<SmallBVHNode>>();
-        int pos = linearise_tree(root, flattend);
-        
-        //return
-        _tree = flattend;
+    void BVHAccel::RecursiveBuildSmall(int start, int end, int& offset)
+    {
+        //overall bounding box
+        Bounds3D<Prec> total_bound = _shapes_info[start].Bounds;
+        for (int i = start + 1; i < end; i++)
+        {
+            total_bound = Union(total_bound, _shapes_info[i].Bounds);
+        }
+
+        int number_shapes = end - start;
+
+        if(number_shapes == 1)
+        {
+            //only 1 shape
+
+            //add leaf
+            _tree.emplace_back(total_bound, number_shapes, start, 0);
+
+            offset++;
+        }
+        else
+        {
+            //calculate children
+            Bounds3D<Prec> center_bounds(_shapes_info[start].Center, _shapes_info[start+1].Center);
+            for(int i = start+2; i < end; i++)
+            {
+                center_bounds = Union(center_bounds, _shapes_info[i].Center);
+            }
+
+            int maximum_extent = center_bounds.MaximumExtent();
+
+            if(maximum_extent == 0)
+            {
+                //all objects have the same center
+
+                //create leaf
+                _tree.emplace_back(total_bound, number_shapes, start, 0);
+
+                offset++;
+            }
+            else
+            {
+                //node creation
+                int mid = (start + end) / 2;
+                int dim = center_bounds.MaximumExtentDim();
+
+                //Partion into equally sized subsets
+                split_equal_subsets(dim, start, mid, end);
+
+                int current_pos = offset;
+                offset++;
+                _tree.emplace_back(total_bound, number_shapes, start, 0);
+                
+                //First half
+                RecursiveBuildSmall(start, mid, /*allnodes,*/ offset);
+
+                _tree[current_pos].Idx_Second_Child = offset;
+
+                //second half
+                RecursiveBuildSmall(mid, end, /*allnodes,*/ offset);
+            }            
+        }
+
+        return;
     }
     
+    void BVHAccel::split_equal_subsets(const int& dim, const int& start, const int& mid, const int& end) 
+    {
+        //reorder _shapes_info in range start to end
+        std::nth_element(&_shapes_info[start], &_shapes_info[mid], &_shapes_info[end-1]+1,
+                            [dim](const ShapeInfo& a, const ShapeInfo& b)
+                            {
+                                return a.Center[dim] < b.Center[dim];
+                            });
+    }
+
     std::optional<IntersectionData> BVHAccel::Traversal(const Ray& ray) const
     {
         //precalculation for faster bounding box intersection
@@ -53,7 +133,7 @@ namespace jpc_tracer
         std::optional<Prec> intersection_distance = std::nullopt;
 
         //follow ray
-        const int tree_size = _tree->size();
+        const int tree_size = _tree.size();
 
         //stack setup
         int to_visit = 0;
@@ -67,14 +147,14 @@ namespace jpc_tracer
                 intersection_distance = std::make_optional<Prec>(closestInteraction->Distance);
 
             //Bounding Box is intersecting
-            if ((*_tree)[current_idx].Bounds.IsIntersecting(ray, intersection_distance ,inv_direction, dir_is_neagative))
+            if (_tree[current_idx].Bounds.IsIntersecting(ray, intersection_distance ,inv_direction, dir_is_neagative))
             {
-                const int triangle_start = (*_tree)[current_idx].Idx_Shape_Start;
+                const int triangle_start = _tree[current_idx].Idx_Shape_Start;
 
                 //Intersection and saved Triangles
                 if (triangle_start >= 0)
                 { 
-                    const int triangle_number = (*_tree)[current_idx].Number_Shapes;
+                    const int triangle_number = _tree[current_idx].Number_Shapes;
 
                     for (int i = triangle_start; i < triangle_start + triangle_number; i++)
                     {
@@ -97,7 +177,7 @@ namespace jpc_tracer
                 } 
                 else //intersection and to many shapes in node
                 {
-                     nodes_to_visit[to_visit++] = (*_tree)[current_idx].Idx_Second_Child;
+                     nodes_to_visit[to_visit++] = _tree[current_idx].Idx_Second_Child;
                      current_idx++;
                 }
                 
@@ -112,100 +192,5 @@ namespace jpc_tracer
         }
 
         return closestInteraction;
-    }
-    
-    BVHNode* BVHAccel::RecursiveBuild(int start, int end, Ref<std::vector<BVHNode>>& allnodes, int& offset)
-    {
-        BVHNode* node = allnodes->data() + offset;
-
-        //overall bounding box
-        Bounds3D<Prec> total_bound = _shapes_info[start].Bounds;
-        for (int i = start + 1; i < end; i++)
-        {
-            total_bound = Union(total_bound, _shapes_info[i].Bounds);
-        }
-
-        int number_triangles = end - start;
-
-        if(number_triangles == 1)
-        {
-            //add leaf
-            offset++;
-            node->InitLeaf(total_bound, number_triangles, start, end);
-        }
-        else
-        {
-            //calculate children
-            Bounds3D<Prec> center_bounds(_shapes_info[start].Center, _shapes_info[start+1].Center);
-            for(int i = start+2; i < end; i++)
-            {
-                center_bounds = Union(center_bounds, _shapes_info[i].Center);
-            }
-
-            int maximum_extent = center_bounds.MaximumExtent();
-
-            if(maximum_extent == 0)
-            {
-                //all objects have the same center
-                //create leaf
-                offset++;
-                node->InitLeaf(total_bound, number_triangles, start, end);
-            }
-            else
-            {
-                //node creation
-                int mid = (start + end) / 2;
-                int dim = center_bounds.MaximumExtentDim();
-
-                //Partion into equally sized subsets
-                split_equal_subsets(dim, start, mid, end);
-
-                offset++;
-
-                node->InitInner(total_bound, number_triangles, 
-                            RecursiveBuild(start, mid, allnodes, offset), 
-                            RecursiveBuild(mid, end, allnodes, offset));
-            }            
-        }
-
-        return node;
-        
-    }
-    
-    void BVHAccel::split_equal_subsets(const int& dim, const int& start, const int& mid, const int& end) 
-    {
-        //reorder _shapes_info in range start to end
-        std::nth_element(&_shapes_info[start], &_shapes_info[mid], &_shapes_info[end-1]+1,
-                            [dim](const ShapeInfo& a, const ShapeInfo& b)
-                            {
-                                return a.Center[dim] < b.Center[dim];
-                            });
-    }
-    
-    int BVHAccel::linearise_tree(BVHNode* node, Ref<std::vector<SmallBVHNode>>& flattend)
-    {   
-        //node, left, right traversal
-
-        if(node == nullptr)
-            return -1;
-
-        flattend->push_back({node->Bounds, node->Number_Shapes, node->Idx_Shape_Start});
-
-        int pos = flattend->size() - 1;
-
-        if(node->Number_Shapes > 1)
-        {
-            if(node->Idx_First_Child != nullptr)
-                int pos_first = linearise_tree(node->Idx_First_Child, flattend);
-
-            if (node->Idx_Second_Child != nullptr)
-            {
-                int pos_second = linearise_tree(node->Idx_Second_Child, flattend);
-
-                (*flattend)[pos].Idx_Second_Child = pos_second;
-            }
-        }
-
-        return pos;
     }
 }

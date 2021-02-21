@@ -20,6 +20,9 @@ namespace jpc_tracer
 
     struct SmallBVHNode
     {
+        SmallBVHNode(Bounds3D<Prec> Bounds, int Number_Shapes, int Idx_Shape_Start, int Idx_Second_Child);
+        SmallBVHNode(Bounds3D<Prec> Bounds, int Number_Shapes, int Idx_Shape_Start);
+
         Bounds3D<Prec> Bounds;
         int Number_Shapes;
         int Idx_Shape_Start;

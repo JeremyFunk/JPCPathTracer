@@ -21,6 +21,15 @@ namespace jpc_tracer
     //     EXPECT_TRUE(out);
     // }
 
+    void compare_bounds3d(const Bounds3D<Prec>& bound1, const Vec3& max, const Vec3& min)
+    {
+        for (int i= 0; i < 3; i++)
+        {
+            EXPECT_EQ(bound1.Max[i], max[i]);
+            EXPECT_EQ(bound1.Min[i], min[i]);
+        }
+    }
+
     TEST(core, bounds3d_union)
     {
         Bounds3D<Prec> bound1(6,5,4,3,2,1);
@@ -31,16 +40,14 @@ namespace jpc_tracer
         Vec3 compMax {7,4,2};
         Vec3 compMin {3,1,-2};
 
-        EXPECT_EQ(out.Max, compMax);
-        EXPECT_EQ(out.Min, compMin);
+        compare_bounds3d(out, compMax, compMin);
 
         out = Union(bound1, compMax);
 
         Vec3 compVecMax {7,4,2};
         Vec3 compVecMin {5,3,1};
 
-        EXPECT_EQ(out.Max, compVecMax);
-        EXPECT_EQ(out.Min, compVecMin);
+        compare_bounds3d(out, compVecMax, compVecMin);
     }
 
 }

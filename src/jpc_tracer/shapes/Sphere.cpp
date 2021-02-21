@@ -67,14 +67,19 @@ namespace jpc_tracer
         
         // intersection point
         // Vec3 intersection_point = ray.Origin + distance * ray.Direction;
+        // Vec3 intersction_pos_point = intersection_point - _pos;
 
-        // Prec u = intersection_point.x() / intersection_point.norm();
-        // Prec v = intersection_point.y() / intersection_point.norm();
+        // Prec u = (std::atan2(-intersction_pos_point.z(), intersction_pos_point.x()) + M_PI) / (2 * M_PI);
+        // Prec v = std::acos(-(intersction_pos_point.y())/_radius) / M_PI;
+
+        // u = 0.5 + std::atan2(intersction_pos_point.x(), intersction_pos_point.z()) / (2*M_PI);
+        // v = 0.5 - std::asin(intersction_pos_point.y()) / M_PI;
 
         //output
         IntersectionData output;
 
-        output.UV = Vec2::Zero();
+        // output.UV = {u,v};
+        output.UV = {0,0};
         output.Distance = distance;
         output.Shape = (IShape*)this;
 

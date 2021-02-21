@@ -41,7 +41,6 @@ Ref<std::vector<Ref<IShape>>> generate_shapes()
     auto color_red = MakeRef<ColorValueVec3>(ColorValueVec3({1,0.2,0.2}));
     auto color_green = MakeRef<ColorValueVec3>(ColorValueVec3({0.2,1,0.2}));
     auto color_white = MakeRef<ColorValueVec3>(ColorValueVec3({1,1,1}));
-    
 
     auto material_blue = MakeRef<BasicMaterial>(color_blue,10);
     auto material_red = MakeRef<BasicMaterial>(color_red,0);
