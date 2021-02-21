@@ -1,10 +1,12 @@
+#include "core/Base.h"
+#include "core/IAccelerator.h"
 #include "core/Linalg.h"
 #include "core/SurfaceProperties.h"
 #include "renderers/BasicRenderer.h"
 #include "samplers/StratifiedSampler.h"
 #include "cameras/ProjectionCamera.h"
-#include "scenes/BVHScene.h"
-#include "scenes/LBVHScene.h"
+#include "scenes/AcceleratorScene.h"
+#include "accelerators/BVHAccel.h"
 #include "integrators/LightIntegrator.h"
 #include "integrators/DebugIntegrator.h"
 #include "filters/GaussianFilter.h"
@@ -59,7 +61,8 @@ int main()
     auto shapeList = generate_shapes();
     auto lightList = generate_lights();
 
-    auto scene = MakeRef<BVHScene>(shapeList, lightList);
+    Ref<IAccelerator> bvh = MakeRef<BVHAccel>(shapeList, 1);
+    auto scene = MakeRef<AcceleratorScene>(bvh, shapeList, lightList);
     auto integrator = MakeRef<LightIntegrator>();
     integrator->Init(scene);
     auto filter = MakeRef<GaussianFilter>(0.5);

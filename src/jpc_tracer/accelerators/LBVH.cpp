@@ -1,4 +1,5 @@
 #include "LBVH.h"
+#include "core/Logger.h"
 #include "core/Bounds3D.h"
 #include <algorithm>
 #include <omp.h>
@@ -13,7 +14,11 @@ namespace jpc_tracer
     LBVHAccel::LBVHAccel(Ref<std::vector<Ref<IShape>>> shapes)
         : _shapes(shapes), _shapes_code_info(shapes->size()), _tree()
     {
+        JPC_LOG_INFO("Building LBVH");
+
         BuildLBVH();
+        
+        JPC_LOG_INFO("LBVH-Build finished");
     }
     
     std::optional<IntersectionData> LBVHAccel::Traversal(const Ray& ray) const

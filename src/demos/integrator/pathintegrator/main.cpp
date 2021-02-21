@@ -7,7 +7,6 @@
 #include "renderers/BasicRenderer.h"
 #include "samplers/StratifiedSampler.h"
 #include "cameras/ProjectionCamera.h"
-#include "scenes/BVHScene.h"
 #include "scenes/BasicScene.h"
 #include "integrators/PathIntegrator.h"
 #include "integrators/DebugBsdfIntegrator.h"
@@ -18,6 +17,9 @@
 #include <memory>
 #include "TestLightIntegrator.h"
 #include "scenes/BasicScene.h"
+#include "accelerators/BVHAccel.h"
+#include "scenes/AcceleratorScene.h"
+
 namespace jpc_tracer {
 
 class IncidentDirIntegrator : public DebugBsdfIntegrator
@@ -70,7 +72,8 @@ int main()
     auto lightList = generate_lights();
     
 
-    auto scene = MakeRef<BVHScene>(shapeList, lightList);
+    Ref<IAccelerator> bvh = MakeRef<BVHAccel>(shapeList, 1);
+    auto scene = MakeRef<AcceleratorScene>(bvh, shapeList, lightList);
     //auto scene = MakeRef<BasicScene>(shapeList, lightList);
     auto integrator = MakeRef<PathIntegrator>(Spectrum::FromRGB({0,0,0}),3);
     //auto integrator = MakeRef<IncidentDirIntegrator>(1);

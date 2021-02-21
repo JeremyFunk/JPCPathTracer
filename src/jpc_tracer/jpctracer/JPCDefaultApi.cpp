@@ -15,7 +15,9 @@
 #include "materials/BasicMaterial.h"
 #include "renderers/BasicRenderer.h"
 #include "samplers/StratifiedSampler.h"
-#include "scenes/BVHScene.h"
+#include "scenes/AcceleratorScene.h"
+#include "accelerators/BVHAccel.h"
+
 namespace jpc_tracer
 {
     JPCDefaultApi::JPCDefaultApi(DefaultSettings& settings) 
@@ -26,7 +28,11 @@ namespace jpc_tracer
     
     Scope<IScene> JPCDefaultApi::GetScene() 
     {
-        return MakeScope<BVHScene>(GetShapes(),GetLights());
+        auto shapeList = GetShapes();
+
+        Ref<IAccelerator> bvh = MakeRef<BVHAccel>(shapeList, 1);
+
+        return MakeScope< AcceleratorScene>(bvh, shapeList, GetLights());
     }
     
     Scope<ICamera> JPCDefaultApi::GetCamera() 

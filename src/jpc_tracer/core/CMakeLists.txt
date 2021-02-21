@@ -14,6 +14,7 @@ set(AUTOSRC
 "BsdfGeneric.h"
 "constants.h"
 "FilmTile.h"
+"IAccelerator.h"
 "ICamera.h"
 "IFilm.h"
 "IFilter.h"

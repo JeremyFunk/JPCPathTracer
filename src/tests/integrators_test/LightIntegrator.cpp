@@ -9,7 +9,8 @@
 #include "core/Spectrum.h"
 #include "core/SpectrumPasses.h"
 #include "integrators/LightIntegrator.h"
-#include "scenes/BVHScene.h"
+#include "scenes/AcceleratorScene.h"
+#include "accelerators/BVHAccel.h"
 #include "shapes/Sphere.h"
 #include "materials/BasicMaterial.h"
 #include "lights/PointLight.h"
@@ -38,7 +39,8 @@ namespace jpc_tracer {
         auto point_light = MakeRef<PointLight>(Vec3{2,0,-2},Spectrum::FromRGB({100,100,100}));
         lights->push_back(point_light);
 
-        auto scene = MakeRef<BVHScene>(shapes,lights);
+        Ref<IAccelerator> bvh = MakeRef<BVHAccel>(shapes, 1);
+        auto scene = MakeRef<AcceleratorScene>(bvh, shapes, lights);
         integrator->Init(scene);
         //BsdfMemoryPtr memory = CreateBsdfMemory;
         BsdfMemoryInfo info = scene->GetBsdfInfo();

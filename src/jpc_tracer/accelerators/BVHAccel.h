@@ -4,17 +4,19 @@
 #include "core/Bounds3D.h"
 #include "core/IShape.h"
 #include "core/Linalg.h"
+#include "core/IAccelerator.h"
 #include <memory>
 #include <vector>
 
 namespace jpc_tracer
 {
-    class BVHAccel
+    class BVHAccel final : public IAccelerator
     {
     public:
         BVHAccel(Ref<std::vector<Ref<IShape>>> shapes, const int& max_shapes_in_leaf);
+        BVHAccel(Ref<std::vector<Ref<IShape>>> shapes);
 
-        std::optional<IntersectionData> Traversal(const Ray& ray) const;
+        virtual std::optional<IntersectionData> Traversal(const Ray& ray) const final;
 
     private:
         void BuildBVH();

@@ -7,8 +7,7 @@
 #include "renderers/BasicRenderer.h"
 #include "samplers/StratifiedSampler.h"
 #include "cameras/ProjectionCamera.h"
-#include "scenes/LBVHScene.h"
-#include "scenes/BVHScene.h"
+#include "scenes/AcceleratorScene.h"
 #include "scenes/BasicScene.h"
 #include "integrators/PathIntegrator.h"
 #include "integrators/DebugBsdfIntegrator.h"
@@ -25,6 +24,8 @@
 #include "materials/BasicMaterial.h"
 #include "materials/GlossyMaterial.h"
 #include "utilities/objLoader.h"
+#include "accelerators/BVHAccel.h"
+#include "accelerators/LBVH.h"
 
 namespace jpc_tracer {
 
@@ -88,9 +89,13 @@ namespace jpc_tracer {
         }
 
         virtual Scope<IScene> GetScene() override
-        {
-            return MakeScope<LBVHScene>(GetShapes(), GetLights());
-            return MakeScope< BVHScene>(GetShapes(), GetLights());
+        {   
+            auto shapeList = GetShapes();
+
+            // Ref<IAccelerator> bvh = MakeRef<BVHAccel>(shapeList, 1);
+            Ref<IAccelerator> bvh = MakeRef<LBVHAccel>(shapeList);
+
+            return MakeScope< AcceleratorScene>(bvh, shapeList, GetLights());
         }
 
     };

@@ -5,6 +5,7 @@
 #include "core/IShape.h"
 #include "core/Linalg.h"
 #include "core/Ray.h"
+#include "core/IAccelerator.h"
 #include <memory>
 #include <vector>
 
@@ -25,7 +26,7 @@ namespace jpc_tracer
         int Split_Idx;
     };
 
-    class LBVHAccel
+    class LBVHAccel final: public IAccelerator
     {
         /*
         * inspired by: https://research.nvidia.com/sites/default/files/pubs/2012-06_Maximizing-Parallelism-in/karras2012hpg_paper.pdf
@@ -34,7 +35,7 @@ namespace jpc_tracer
     public:
         LBVHAccel(Ref<std::vector<Ref<IShape>>> shapes);
 
-        std::optional<IntersectionData> Traversal(const Ray& ray) const;
+        virtual std::optional<IntersectionData> Traversal(const Ray& ray) const final;
 
     private:
         void BuildLBVH();

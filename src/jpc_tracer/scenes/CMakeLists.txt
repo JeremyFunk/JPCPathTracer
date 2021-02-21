@@ -1,10 +1,8 @@
 set(AUTOSRC
+"AcceleratorScene.cpp"
 "BasicScene.cpp"
-"BVHScene.cpp"
-"LBVHScene.cpp"
+"AcceleratorScene.h"
 "BasicScene.h"
-"BVHScene.h"
-"LBVHScene.h"
 )
 
 

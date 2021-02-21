@@ -1,6 +1,7 @@
 #include "BVHAccel.h"
 #include "core/Bounds3D.h"
 #include "core/Linalg.h"
+#include "core/Logger.h"
 #include <optional>
 #include <vector>
 
@@ -11,8 +12,16 @@ namespace jpc_tracer
     BVHAccel::BVHAccel(Ref<std::vector<Ref<IShape>>> shapes, const int& max_shapes_in_leaf) 
         : _max_shapes_in_leaf(max_shapes_in_leaf), _shapes(shapes), _shapes_info(shapes->size()), _tree()
     {
+        JPC_LOG_INFO("Building BVH");
+
         BuildBVH();
+
+        JPC_LOG_INFO("BVH-Build finished");
     }
+
+    BVHAccel::BVHAccel(Ref<std::vector<Ref<IShape>>> shapes) 
+        : BVHAccel(shapes, 1)
+    {}
    
     void BVHAccel::BuildBVH() 
     {
