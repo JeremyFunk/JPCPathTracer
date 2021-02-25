@@ -1,6 +1,7 @@
 #pragma once
+#include "Base.h"
+#include "Scene.h"
 
-#include "raytracing_core/Scene.h"
 namespace jpc_rt_core {
 
     struct ComputationGrid
@@ -30,7 +31,7 @@ namespace jpc_rt_core {
 
     struct Context
     {
-        void SetCompitationGrid(ComputationGrid grid);
+        void SetComputationGrid(ComputationGrid grid);
         void SetMaxStackDepth(int depth = 20);
         void SetRayGenator(void (*ray_generator)(int x, int y, ThreadData* data, const Scene* scene));  
         void SetThreadDataSaver(void (*thread_saver)(GlobalData* data, ThreadData* datas, int count));      

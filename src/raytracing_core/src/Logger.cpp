@@ -1,4 +1,4 @@
-#include "Logger.h"
+#include "raytracing_core/include/Logger.h"
 
 namespace jpc_rt_core
 {
