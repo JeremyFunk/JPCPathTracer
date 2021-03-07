@@ -1,6 +1,5 @@
 add_subdirectory(google-test)
 add_subdirectory(spdlog)
-add_subdirectory(eigen3)
 add_subdirectory(boost)
 add_subdirectory(range-v3)
 add_subdirectory(openimageio)

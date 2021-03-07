@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
-#include "raytracing_core/include/SurfaceInteraction.h"
-#include "raytracing_core/src/intersection/acceleration/TriangleIntersection.h"
+#include "jpc_tracer/raytracing/SurfaceInteraction.h"
+#include "jpc_tracer/raytracing/detail/intersection/acceleration/TriangleIntersection.h"
 
-namespace jpc_rt_core {
+namespace jpctracer::raytracing {
     TEST(triangle_intersection, InSurface)
     {
         Vec3 v1 = {0.75,-0.5,0};

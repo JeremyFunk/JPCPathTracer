@@ -1,10 +1,10 @@
 #include "gtest/gtest.h"
-#include "raytracing_core/include/Base.h"
-#include "raytracing_core/include/Scene.h"
-#include "raytracing_core/src/shade_programs/ShadePrograms.h"
-#include "raytracing_core/src/TracingContext.h"
+#include "jpc_tracer/raytracing/Base.h"
+#include "jpc_tracer/raytracing/Scene.h"
+#include "jpc_tracer/raytracing/detail/shade_programs/ShadePrograms.h"
+#include "jpc_tracer/raytracing/detail/TracingContext.h"
 
-namespace jpc_rt_core {
+namespace jpctracer::raytracing {
     struct Payload
     {
         int closest_hits;
@@ -80,7 +80,7 @@ namespace jpc_rt_core {
         const MaterialSettings* settings = (const MaterialSettings*) material_settings;
         MatParameter2* params = (MatParameter2*) material_parameters;
         params->debug = 2;
-        params->test1 = Vec3{settings->max_depth,settings->max_depth,settings->max_depth};
+        params->test1 = Vec3{(Prec)settings->max_depth,(Prec)settings->max_depth,(Prec)settings->max_depth};
 
     };
 
