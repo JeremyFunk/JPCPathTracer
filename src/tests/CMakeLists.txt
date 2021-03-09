@@ -1,7 +1,12 @@
 set(AUTOSRC
-"math/VecTest.cpp"
-"raytracing_core/ShadingPrograms.cpp"
+"test_utils.h"
+"shaders/mixer.cpp"
+"shaders/shader_concepts.cpp"
 "raytracing_core/TriangleIntersection.cpp"
+"raytracing_core/ShadingPrograms.cpp"
+"samplers/GridSamplers.cpp"
+"math/VecTest.cpp"
+"cameras/ProjectionCamera.cpp"
 )
 set(INC
 "")

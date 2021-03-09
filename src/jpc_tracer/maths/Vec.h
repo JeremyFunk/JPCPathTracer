@@ -1,9 +1,10 @@
 #pragma once
 
-
 #include <array>
 #include <algorithm>
 #include <functional>
+#include <cmath>
+
 namespace jpctracer::math {
   
     template<class T, size_t _Size>
@@ -19,8 +20,8 @@ namespace jpctracer::math {
         template<class T2>
         T operator[](const T2& idx ) const{return Data[idx];}
 
-        bool operator==(const Vec<T,_Size>& v){ return Data==v.Data;}
-        bool operator!=(const Vec<T,_Size>& v){ return Data!=v.Data;}
+        bool operator==(const Vec<T,_Size>& v) const{ return Data==v.Data;}
+        bool operator!=(const Vec<T,_Size>& v) const{ return Data!=v.Data;}
 
         constexpr auto begin(){return Data.begin();}
         constexpr auto end(){return Data.end();} 

@@ -5,15 +5,15 @@
 
 
 ```cpp
-namespace JPCTracer
+namespace jpc_tracer
 {
     struct CameraBuilder;
 
-    namespace Camera
+    namespace camera
     {
-        CameraSettings SetupCamera(CameraBuilder builder);
+        CameraFunction Build(CameraBuilder builder);
 
-        Ray CameraRay(const CameraSettings& settings, UInt2 pixel,Vec2 random_point);
+        Ray CameraFunction(Vec2 pixel,Vec2 random_point);
     }
 }
 ```
@@ -29,10 +29,11 @@ namespace JPCTracer
 
     namespace Sampler
     {
-        SamplerState CreateSamplerState(SamplerSettings settings);
-
-        std::vector<Vec2> CreateSamples(SamplerState& state, Int2 Counts);
-        std::vector<Vec3> CreateSamples(SamplerState& state, Int3 Counts);
+        SamplerFunction Build(SamplerSettings settings);
+        template<class IT>
+        void SamplerFunction(UInt2 Counts, IT result);
+        template<class IT>
+        void SamplerFunction(UInt3 Counts, IT result);
     }
 
 }
@@ -50,9 +51,11 @@ namespace JPCTracer
 
     namespace Shader
     {
-        DistributionSettings SetupShader(ShaderBuilder builder);
+        struct Cache;
 
-        struct LightDistributionSettings
+        Shader Build(ShaderBuilder builder,Cache& cache);
+
+        struct Lights
         {
             template<DistributionSettings D>
             void AddLight(D* shader,Triangle triangle);
@@ -64,19 +67,21 @@ namespace JPCTracer
 
         enum class MaterialType
         {
+            BSDF,
             DIFFUSE,
             GLOSSY,
             Transmission,
-            
+            SUBSURFACE,
+            EMISSION,
         }
 
         template<MaterialType type>
-        Distribution CreateDistribution(DistributionSettings settings, Ray scattering_ray, SurfaceInteraction interaction);
-
-        std::pair<Spectrum,Prec> EvalDistribution(Distribution condition,Vec3 scattering_dir);
-        std::pair<Spectrum,Prec> EvalDistribution(Distribution condition,Vec3& out_incident_dir, Vec2 random_point);
-        std::pair<Spectrum,Prec> EvalDistribution(Distribution condition,Vec3& out_incident_dir, Vec3 random_point);
-        bool IsDeltaDistribution(const Distribution& condition);
+        DistributionFunction CreateDistribution(DistributionSettings settings, Ray scattering_ray, SurfaceInteraction interaction);
+        //returns value and the pdf
+        std::pair<Spectrum,Prec> DistributionFunction(Vec3 incident_dir) const;
+        std::pair<Spectrum,Prec> DistributionFunction(Vec3& out_incident_dir, Vec2 random_point) const;
+        std::pair<Spectrum,Prec> DistributionFunction(Vec3& out_incident_dir, Vec3 random_point) const;
+        bool IsDeltaDistribution(const DistributionFunction& func);
 
     }
 
@@ -103,14 +108,15 @@ namespace JPCTracer
         };
         struct Payload;
 
-        class Tracer{
+        
+        class TraceRay{
             //Forward declaration
             template<RayType type>
-            void TraceRay(ray,Payload)
+            void operator()(ray,Payload);
         }
 
         template<class CameraSettings, class SamplerState>
-        Spectrum IntegratePixel(const IntegratorSettings& settings,Int2 pixel, const CameraSettings& camera, SamplerState& sampler,const Tracer& tracer);
+        Spectrum IntegratePixel(const IntegratorSettings& settings,Int2 pixel, const CameraSettings& camera, SamplerState& sampler,TraceRay& trace);
 
 
 
@@ -131,14 +137,10 @@ namespace JPCTracer
 
         template<RayType type, class Material, class LightsRange>
         AnyHitResult AnyHitProgram(const Scene& scene,const Material& material,
-            Ray ray, Payload* payload, SurfaceInteraction interaction, Tracer tracer)
-        {
-            payload.IsShadow = true;
-            return {false,false};
-        }
+            Ray ray, Payload* payload, SurfaceInteraction interaction, TraceRay& trace);
 
         template<RayType type, class Material>
-        void ClosestHitProgram(const  Scene& scene,const Material& material,Ray ray, Payload* payload, SurfaceInteraction interaction,const Tracer& tracer);
+        void ClosestHitProgram(const  Scene& scene,const Material& material,Ray ray, Payload* payload, SurfaceInteraction interaction,TraceRay& trace);
 
         template<RayType type>
         void Miss(const  Scene& scene,Ray ray, Payload* payload);
@@ -155,8 +157,8 @@ void DirectLight(const B& bsdf_dist, const L& light_dist, Payload* payload )
 {
     Ray light_ray;
 
-    auto[light_val,light_pdf] = EvalDistribution(light_dist,light_ray,payload->Samples2D);
-    auto[val_bsdf,pdf_bsdf] = EvalDistribution(bsdf_dist,light_ray);
+    auto[light_val,light_pdf] = light_dist(light_ray,payload->Samples2D);
+    auto[val_bsdf,pdf_bsdf] = bsdf_dist(light_ray);
     payload->Samples2D++;
 
     
@@ -173,8 +175,8 @@ void GlobalIllumination(const B& bsdf_dist, const L& bsdf_light_dist, Payload* p
     //Bsdf
     Ray incident_ray;
     using MaterialType = type::Material;
-    auto[val,pdf] = EvalDistribution(bsdf_dist,incident_ray,payload->Samples2D);
-    auto[val_em,pdf_em] = EvalDistribution(bsdf_light_dist,incident_ray);
+    auto[val,pdf] = bsdf_dist(incident_ray,payload->Samples2D);
+    auto[val_em,pdf_em] = bsdf_light_dist(incident_ray);
 
     payload->Samples2D++;
 
@@ -188,7 +190,7 @@ void GlobalIllumination(const B& bsdf_dist, const L& bsdf_light_dist, Payload* p
 
 
 template<RayType type, class Bsdf>
-void ClosestHitProgram(const Scene& scene,const Material& material,Ray ray, Payload* payload, SurfaceInteraction interaction, Tracer tracer)
+void ClosestHitProgram(const Scene& scene,const Material& material,Ray ray, Payload* payload, SurfaceInteraction interaction, TraceRay& trace)
 {
     auto bsdf_dist = CreateDistribution<Combined>(material,ray,interaction);
     auto bsdf_light_dist = CreateDistribution<Emission>(material,ray,interaction);
@@ -201,7 +203,7 @@ void ClosestHitProgram(const Scene& scene,const Material& material,Ray ray, Payl
     for(int i;)
     {
         GlobalIllumination(bsdf_dist,bsdf_light_dist,payload);
-        tracer.Trace<Combined>(payload->NextRay,payload);
+        trace<Combined>(payload->NextRay,payload);
     }
 
 }
@@ -274,6 +276,7 @@ namespace JPCTracer
 ```cpp
 namespace JPCTracer
 {
-    Vec
+    Vec<T,_Size>
+    Mat<T,_Rows,_Cols>;
 } 
 ```
