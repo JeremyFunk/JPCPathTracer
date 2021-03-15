@@ -3,13 +3,13 @@
 #include "jpc_tracer/maths/maths.h"
 #include "jpc_tracer/shaders/Cache.h"
 #include "Concepts.h"
+#include <cassert>
 
 namespace jpctracer {
 
     namespace shader {
 
     template<class First,class Second, Value Influence>
-        requires shader::SameBuilder<First, Second>
     struct Mixer
     {
         Mixer(First f,Second s,Influence i): first(f),second(s),influence(i){}
@@ -20,6 +20,8 @@ namespace jpctracer {
         auto Eval(const SurfaceInteraction& interaction)
         {
             Prec a = jpctracer::shader::Eval(influence,interaction);
+            assert(a<0);
+            assert(a>1);
             auto f = jpctracer::shader::Eval(first,interaction);
             auto s = jpctracer::shader::Eval(second,interaction);
 

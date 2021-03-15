@@ -2,8 +2,6 @@
 
 ## Camerainterface
 
-
-
 ```cpp
 namespace jpc_tracer
 {
@@ -18,8 +16,7 @@ namespace jpc_tracer
 }
 ```
 
-
-
+ 
 ## Samplerinterface
 
 ```cpp
@@ -39,6 +36,76 @@ namespace JPCTracer
 }
 ```
 
+
+## Animatiom
+
+```cpp
+
+namespace JPCTracer
+{
+
+    struct Transformation
+    {
+        Mat3x3 ScaleRotationMatrix;
+        Vec3 Translation;
+    }
+
+    Vec3 Apply(Transformation trans,Vec3 v);
+
+    template<class T>
+    class IAnimated
+    {
+        virtual T Get(Prec time) = 0;
+        virtual T GetInverse(Prec time) = 0;
+        virtual T GetMin(Prec min_time, Prec max_time) = 0;
+        virtual T GetMax(Prec min_time, Prec max_time) = 0;
+    };
+
+
+}
+
+```
+
+## Geometry
+
+```cpp
+
+namespace JPCTracer
+{
+
+    namespace Geometry
+    {
+        struct Triangle
+        {
+            ...
+        };
+
+        struct Sphere
+        {
+            ...
+        };
+
+        template<class Shape = Triangle | Sphere>
+        class GeometryRange
+        {
+        public:
+            Shape* begin();
+            Shape* end();
+            template<class T>
+            SetAnimation(std::shared_prt<T> animation);
+        private:
+            std::shared_prt<IAnimated<Transformation>> Animation;
+        }
+    }
+
+    GeometryRange<Triangle> LoadTriangleMesh(string path);
+    GeometryRange<Sphere> LoadSphere(string path);
+
+}
+
+```
+
+
 ## Appearance
 
 ### Shader
@@ -49,20 +116,22 @@ namespace JPCTracer
 {
     struct ShaderBuilder;
 
+
     namespace Shader
     {
+        enum class ObjectType
+        {
+            Triangle;
+            Sphere;
+        }
         struct Cache;
 
         Shader Build(ShaderBuilder builder,Cache& cache);
 
         struct Lights
         {
-            template<DistributionSettings D>
-            void AddLight(D* shader,Triangle triangle);
-            template<DistributionSettings D>
-            void AddLight(D* shader,Point point);
-            template<DistributionSettings D>
-            void AddLight(D* shader,Sphere sphere);
+            template<class MaterialBuilder>
+            void AddLight(int object_id,ObjectType object_type, MaterialBuilder b);
         };
 
         enum class MaterialType
@@ -73,15 +142,18 @@ namespace JPCTracer
             Transmission,
             SUBSURFACE,
             EMISSION,
+            TRANSPARENCY,
         }
 
+        //DistributionSettings = Lights | Shader
         template<MaterialType type>
         DistributionFunction CreateDistribution(DistributionSettings settings, Ray scattering_ray, SurfaceInteraction interaction);
         //returns value and the pdf
+        //if pdf = 0 then the Distirbution is a Delta Distirubtion
         std::pair<Spectrum,Prec> DistributionFunction(Vec3 incident_dir) const;
         std::pair<Spectrum,Prec> DistributionFunction(Vec3& out_incident_dir, Vec2 random_point) const;
         std::pair<Spectrum,Prec> DistributionFunction(Vec3& out_incident_dir, Vec3 random_point) const;
-        bool IsDeltaDistribution(const DistributionFunction& func);
+        bool IsDeltaDistribution(Prec pdf);
 
     }
 
@@ -95,56 +167,44 @@ namespace JPCTracer
 
 namespace JPCTracer
 {
+    
     struct IntegratorSettings;
 
     namespace Integrator
     {
-        enum class RayType
-        {
-            SHADOW,
-            COMBINED,
-            GLOSSY_DIRECT,
-            GLOSSY_INDIRECT
-        };
         struct Payload;
 
-        
         class TraceRay{
             //Forward declaration
-            template<RayType type>
+            template<MaterialType type>
             void operator()(ray,Payload);
+        }
+                
+        struct RayBehavior
+        {
+            //returnes if it was an hit
+            template<class BsdfDistribution>
+            bool AnyHitProgram(const BsdfDistribution& material,Payload* payload);
+
+            template<class BsdfDistribution>
+            void ClosestHitProgram(const LightsDistirbution& lights,const BsdfDistribution& bsdf,const Distribution& material_emission,Payload* payload ,TraceRay& trace);
+
+            template<class BackbroundDistribution>
+            void Miss(const BackbroundDistribution& background, Payload* payload);
         }
 
         template<class CameraSettings, class SamplerState>
-        Spectrum IntegratePixel(const IntegratorSettings& settings,Int2 pixel, const CameraSettings& camera, SamplerState& sampler,TraceRay& trace);
-
-
-
-        struct AnyHitResult
-        {
-            bool IsHit;
-            bool ShouldTerminate;
-        };
-
-        //Lights???
-
-
-        struct Scene
-        {
-            IntegratorSettings IntegratorSettings;
-            LightDistributionSettings Lights;
-        };
-
-        template<RayType type, class Material, class LightsRange>
-        AnyHitResult AnyHitProgram(const Scene& scene,const Material& material,
-            Ray ray, Payload* payload, SurfaceInteraction interaction, TraceRay& trace);
-
-        template<RayType type, class Material>
-        void ClosestHitProgram(const  Scene& scene,const Material& material,Ray ray, Payload* payload, SurfaceInteraction interaction,TraceRay& trace);
-
-        template<RayType type>
-        void Miss(const  Scene& scene,Ray ray, Payload* payload);
+        Spectrum Integrator(Int2 pixel, const CameraSettings& camera, SamplerState& sampler,TraceRay& trace);
+        
+        template<MaterialType type>
+        RayBehavior GetRayBehavior(Integrator i)
     }
+
+    Integrator Build(IntegratorSettings)
+
+    
+
+    
 }
 //Example
 
@@ -184,65 +244,56 @@ void GlobalIllumination(const B& bsdf_dist, const L& bsdf_light_dist, Payload* p
     if(! IsDeltaDistribution(bsdf))
         payload->BsdfIntegral *= val / pdf; 
     else
-        payload->BsdfIntegral += val;
+        payload->BsdfIntegral *= val;
+    
     payload->NextRay = incident_ray;
 }
 
+...
 
-template<RayType type, class Bsdf>
-void ClosestHitProgram(const Scene& scene,const Material& material,Ray ray, Payload* payload, SurfaceInteraction interaction, TraceRay& trace)
-{
-    auto bsdf_dist = CreateDistribution<Combined>(material,ray,interaction);
-    auto bsdf_light_dist = CreateDistribution<Emission>(material,ray,interaction);
-    //Direct Light
-    for(int i = 0; i< scene.IntegratorSettings.LightSamples; i++)
+template<RayType type>
+struct GenerallRays
+{  
+    int MaxDepth;
+    int LightSampleCount;
+    int GlobalIlluminationCount;
+
+    template<class Bsdf>
+    void ClosestHitProgram(const LightsDistirbution& lights,const Bsdf& bsdf,const Distribution& emission,Payload* payload ,TraceRay& trace)
     {
-        auto light_dist = CreateDistribution<Emission>(scene.Lights,ray,interaction);
-        DirectLight(bsdt_dist,light_dist);
-    }
-    for(int i;)
-    {
-        GlobalIllumination(bsdf_dist,bsdf_light_dist,payload);
-        trace<Combined>(payload->NextRay,payload);
-    }
+        if(payload.Depth>=MaxDepth) return;
 
-}
-
-```
-
-## Geometry
-
-```cpp
-
-namespace JPCTracer
-{
-
-    namespace Geometry
-    {
-        struct Triangle
+        //Direct Light
+        for(int i = 0; i< LightSampleCount; i++)
         {
-            ...
-        };
-
-        struct Sphere
+            
+            DirectLight(bsdf,lights);
+        }
+        for(int i = 0; i < GlobalIlluminationCount;i++)
         {
-            ...
-        };
-
-        template<class Shape = Triangle | Sphere>
-        class GeometryRange
-        {
-        public:
-            Shape* begin();
-            Shape* end();
+            GlobalIllumination(bsdf,emission,payload);
+            trace<Combined>(payload->NextRay,payload);
         }
     }
 
-    GeometryRange<Triangle> LoadTriangleMesh(string path);
-    GeometryRange<Sphere> LoadSphere(string path);
+    template<class Material, class LightsRange>
+    bool AnyHitProgram(const MaterialDistribution& material,Payload* payload)
+    {
+        return true;
+    };
+    void Miss(const BackbroundDistribution& background, Payload* payload)
+    {
+        Vec3 incident_ray;
+        auto[val,pdf] = background(incident_ray,Vec2());
+        payload.result += payload->BSDFIntegral* val;
+    }
+
+
 }
 
 ```
+
+
 ## Engine
 
 ```cpp
@@ -263,7 +314,6 @@ namespace JPCTracer
         template<class GeometryRange, class EmmissionBuilder>
         void AddLight(GeometryRange g, EmmissionBuilder e);
 
-        
         
     }
 }

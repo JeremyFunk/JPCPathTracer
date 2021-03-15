@@ -20,6 +20,7 @@ namespace jpctracer {
         Vec3 Direction;
         Vec3 Origin;
         Vec2 LensPosition;
+        Prec ClipEnd;
         float Time = 0;
     };
 
