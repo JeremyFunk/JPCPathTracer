@@ -1,6 +1,6 @@
 #pragma once
 
-#include "jpc_tracer/maths/maths.h"
+#include "jpc_tracer/core/core.h"
 #include "gtest/gtest.h"
 
 namespace jpctracer {

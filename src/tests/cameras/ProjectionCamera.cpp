@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "jpc_tracer/cameras/cameras.h"
+#include "jpc_tracer/plugins/cameras/cameras.h"
 #include "../test_utils.h"
 
 namespace jpctracer {

@@ -124,9 +124,9 @@ namespace JPCTracer
             Triangle;
             Sphere;
         }
-        struct Cache;
+        struct ShaderCache;
 
-        Shader Build(ShaderBuilder builder,Cache& cache);
+        Shader Build(ShaderBuilder builder,ShaderCache& cache);
 
         struct Lights
         {
@@ -150,15 +150,25 @@ namespace JPCTracer
         DistributionFunction CreateDistribution(DistributionSettings settings, Ray scattering_ray, SurfaceInteraction interaction);
         //returns value and the pdf
         //if pdf = 0 then the Distirbution is a Delta Distirubtion
-        std::pair<Spectrum,Prec> DistributionFunction(Vec3 incident_dir) const;
-        std::pair<Spectrum,Prec> DistributionFunction(Vec3& out_incident_dir, Vec2 random_point) const;
-        std::pair<Spectrum,Prec> DistributionFunction(Vec3& out_incident_dir, Vec3 random_point) const;
+        std::pair<Spectrum,Prec> DistributionFunction(const Ray& incident_ray) const;
+        std::pair<Spectrum,Prec> DistributionFunction(Ray& out_incident_ray, Vec2 random_point) const;
+        std::pair<Spectrum,Prec> DistributionFunction(Ray& out_incident_ray, Vec3 random_point) const;
         bool IsDeltaDistribution(Prec pdf);
 
     }
 
 }
 
+```
+### Film
+
+```cpp
+    template<class T>
+    concept PixelSaver = requires(T saver, std::string channel_name,
+                                        uint x, uint y, Vec3 rgb)
+    {
+        saver(channel_name,x,y,rgb);
+    };
 ```
 
 ### Integrator
@@ -174,10 +184,10 @@ namespace JPCTracer
     {
         struct Payload;
 
-        class TraceRay{
+        struct TraceRay{
             //Forward declaration
             template<MaterialType type>
-            void operator()(ray,Payload);
+            void operator()(Ray ray,Payload* payload);
         }
                 
         struct RayBehavior
@@ -187,14 +197,14 @@ namespace JPCTracer
             bool AnyHitProgram(const BsdfDistribution& material,Payload* payload);
 
             template<class BsdfDistribution>
-            void ClosestHitProgram(const LightsDistirbution& lights,const BsdfDistribution& bsdf,const Distribution& material_emission,Payload* payload ,TraceRay& trace);
+            void ClosestHitProgram(const LightsDistribution& lights,const BsdfDistribution& bsdf,const Distribution& material_emission,Payload* payload ,TraceRay& trace);
 
             template<class BackbroundDistribution>
             void Miss(const BackbroundDistribution& background, Payload* payload);
         }
 
-        template<class CameraSettings, class SamplerState>
-        Spectrum Integrator(Int2 pixel, const CameraSettings& camera, SamplerState& sampler,TraceRay& trace);
+        template<class CameraSettings, class Sampler, class PixelSaver>
+        void Integrator(Int2 pixel, const CameraSettings& camera, Sampler& sampler,TraceRay& trace, PixelSaver& saver);
         
         template<MaterialType type>
         RayBehavior GetRayBehavior(Integrator i)

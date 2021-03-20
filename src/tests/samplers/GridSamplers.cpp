@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 #include <iterator>
 #include <vector>
-#include "jpc_tracer/samplers/GridSampler.h"
-#include "jpc_tracer/samplers/samplers.h"
+#include "jpc_tracer/plugins/samplers/GridSampler.h"
+#include "jpc_tracer/plugins/samplers/samplers.h"
 
 namespace jpctracer {
     TEST(samplers,DebugSamplerTest)

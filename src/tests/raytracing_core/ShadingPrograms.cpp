@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
-#include "jpc_tracer/raytracing/Base.h"
-#include "jpc_tracer/raytracing/Scene.h"
-#include "jpc_tracer/raytracing/detail/shade_programs/ShadePrograms.h"
-#include "jpc_tracer/raytracing/detail/TracingContext.h"
+#include "jpc_tracer/engine/raytracing/Base.h"
+#include "jpc_tracer/engine/raytracing/Scene.h"
+#include "jpc_tracer/engine/raytracing/detail/shade_programs/ShadePrograms.h"
+#include "jpc_tracer/engine/raytracing/detail/TracingContext.h"
 
 namespace jpctracer::raytracing {
     struct Payload

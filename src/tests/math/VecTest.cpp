@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "jpc_tracer/maths/maths.h"
+#include "jpc_tracer/core/core.h"
 
 namespace jpctracer::math {
     TEST(math,Vec3Cross)

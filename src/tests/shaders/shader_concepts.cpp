@@ -1,5 +1,4 @@
-#include "jpc_tracer/maths/maths.h"
-#include "jpc_tracer/shaders/Concepts.h"
+#include "jpc_tracer/core/core.h"
 
 namespace jpctracer {
 
@@ -22,5 +21,5 @@ namespace jpctracer {
         }
     };
 
-    static_assert(shader::DistributionFunction<test>);
+    static_assert(plugins::DistributionFunction<test>);
 }
