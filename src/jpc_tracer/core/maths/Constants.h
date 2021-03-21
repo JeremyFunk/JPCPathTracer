@@ -14,16 +14,16 @@ namespace jpctracer {
 
     using Spectrum = double;
 
-    namespace plugins {
-        enum class MaterialType
-        {
-            BSDF,
-            DIFFUSE,
-            GLOSSY,
-            TRANSMISSION,
-            SUBSURFACE,
-            EMISSION,
-            TRANSPARENT
-        };
-    }
+    enum class MaterialType
+    {
+        BSDF,
+        DIFFUSE,
+        GLOSSY,
+        TRANSMISSION,
+        SUBSURFACE,
+        EMISSION,
+        TRANSPARENT
+    };
+
+
 }

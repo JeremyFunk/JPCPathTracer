@@ -4,7 +4,7 @@
 
 namespace jpctracer
 {
-    namespace camera
+    namespace camera::detail
     {
         ProjectionCamera::ProjectionCamera(Prec width, Prec height, Prec nearPlane)
             : _near_plane_width (width / std::max(width, height)),

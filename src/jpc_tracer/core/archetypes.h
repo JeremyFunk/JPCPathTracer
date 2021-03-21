@@ -61,7 +61,7 @@ namespace jpctracer {
 
         struct Shader
         {
-            template<plugins::MaterialType type>
+            template<MaterialType type>
             DistributionFunction CreateDistribution(const Ray& scattering_ray,
                                         const SurfaceInteraction& interaction)
             {return {};}
@@ -87,7 +87,7 @@ namespace jpctracer {
 
         //Forward declaration
         struct TraceRay{
-            template<plugins::MaterialType type>
+            template<MaterialType type>
             void operator()(Ray ray,Payload* payload);
         };
 
@@ -120,7 +120,7 @@ namespace jpctracer {
                     Sampler& sampler,TraceRay& trace, PixelSaver& saver)
             {}
 
-            template<plugins::MaterialType type>
+            template<MaterialType type>
             RayBehavior GetRayBehavior() const {return{};}
 
         };

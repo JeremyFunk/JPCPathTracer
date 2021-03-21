@@ -65,17 +65,17 @@ namespace jpctracer {
         Influence m_influence;
     };
 
-    ColorBuilder auto DefaultColorMixer()
+    inline ColorBuilder auto DefaultColorMixer()
     {
         return MixerBuilder{Spectrum{},Spectrum{},0.5};
     };
 
-    ValueBuilder auto DefaultValueMixer()
+    inline ValueBuilder auto DefaultValueMixer()
     {
         return MixerBuilder{1.0,0.2,0.5};
     };
 
-    NormalBuilder auto DefaultValueNormal()
+    inline NormalBuilder auto DefaultValueNormal()
     {
         return MixerBuilder{Vec3(),Vec3(),0.5};
     };

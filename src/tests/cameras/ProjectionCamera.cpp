@@ -5,7 +5,7 @@
 namespace jpctracer {
     TEST(cameras, ProjectionCameraTest)
     {
-        ProjectionCameraBuilder builder;
+        camera::ProjectionCameraBuilder builder;
         builder.Height = 10;
         builder.Width = 20;
         builder.NearPlane = 1;

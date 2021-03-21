@@ -8,7 +8,7 @@
 namespace jpctracer {
 
     //plugins
-    namespace plugins {
+    namespace cts {
 
         //Samplers
         //**********************************************************************
@@ -56,22 +56,21 @@ namespace jpctracer {
 
         inline bool IsDeltaDistribution(Prec pdf) {return std::abs(pdf)<0.0001;}
 
-        template<class T, MaterialType type>
+        template<MaterialType type,class T>
         auto CreateDistribution(T creator,const Ray& scattering_ray,
                                 const SurfaceInteraction& interaction)
         {
             return creator.template CreateDistribution<type>(scattering_ray,interaction);
         }
 
-        template<class T, MaterialType type>
+        template<class T>
         concept DistributionCreator = requires(T creator,const Ray& scattering_ray,
                                             const SurfaceInteraction& interaction)
         {
-            {CreateDistribution<type>(creator, scattering_ray, interaction)}
+            {CreateDistribution<MaterialType::BSDF>(creator, scattering_ray, interaction)}
                 ->DistributionFunction;
         };
 
-        struct ShaderCache;
         
         //Film
         //**********************************************************************
@@ -113,7 +112,7 @@ namespace jpctracer {
             {behavior.Miss(background,payload)};
         };
 
-        template<plugins::MaterialType type, class T>
+        template<MaterialType type, class T>
         auto GetRayBehavior(const T& integrator)
         {
             return integrator.template GetRayBehavior<type>();
@@ -124,7 +123,7 @@ namespace jpctracer {
                             Sampler& sampler, Film film, Tracer& tracer)
         {
             integrator(camera,sampler,film);
-            {GetRayBehavior<plugins::MaterialType::BSDF>(integrator)}
+            {GetRayBehavior<MaterialType::BSDF>(integrator)}
             -> RayBehavior;
 
         }   
@@ -133,67 +132,41 @@ namespace jpctracer {
         && PixelSaver<Film>
         && TraceRay<Tracer>;
 
+        //Samplers
+        //**********************************************************************
+        
+        template<class T,class ResultIt2D,class ResultIt3D>
+        concept SamplerBuilder = requires(T builder)
+        {
+            {Build(builder)}->SamplerFunction<ResultIt2D,ResultIt3D>;
+        };
 
+        //Cameras
+        //**********************************************************************
+        template<class T>
+        concept CameraBuilder = requires(T builder)
+        {
+            {Build(builder)} -> CameraFunction;
+        };
 
+        //Shaders
+        //**********************************************************************
+
+        template<class T>
+        concept ShaderBuilder = requires(T builder, plugins::ShaderCache& cache)
+        {
+            {Build(builder,cache)} -> DistributionCreator;
+        };
+
+        //Integrator
+        //**********************************************************************
+        template<class T>
+        concept IntegratorBuilder = requires(T builder)
+        {
+            {Build(builder)}->Integrator<archetypes::CameraFunction, 
+                        archetypes::SamplerFunction, archetypes::PixelSaver, 
+                        archetypes::TraceRay>;
+        };
 
     }
-
-    template<class T>
-    auto Build(T t)
-    {
-        return t.Build();
-    }
-
-    template<class T, class Return>
-    concept Builder = requires(T t)
-    {
-        {Build(t)} -> std::convertible_to<Return>;
-    };
-
-    //Samplers
-    //**************************************************************************
-    
-    template<class T,class ResultIt2D,class ResultIt3D>
-    concept SamplerBuilder = requires(T builder)
-    {
-        {Build(builder)}->plugins::SamplerFunction<ResultIt2D,ResultIt3D>;
-    };
-
-    //Cameras
-    //**************************************************************************
-    template<class T>
-    concept CameraBuilder = requires(T builder)
-    {
-        {Build(builder)} -> plugins::CameraFunction;
-    };
-
-    //Shaders
-    //**************************************************************************
-    template<class T>
-    auto Build(T t,plugins::ShaderCache& cache)
-    {
-        return t.Build(cache);
-    }
-    
-    template<class T>
-    concept ShadersBuilder = requires(T builder, plugins::ShaderCache& cache)
-    {
-        {Build(builder,cache)} -> plugins::DistributionCreator<plugins::MaterialType::BSDF>;
-        {Build(builder,cache)} -> plugins::DistributionCreator<plugins::MaterialType::DIFFUSE>;
-        {Build(builder,cache)} -> plugins::DistributionCreator<plugins::MaterialType::EMISSION>;
-        {Build(builder,cache)} -> plugins::DistributionCreator<plugins::MaterialType::GLOSSY>;
-        {Build(builder,cache)} -> plugins::DistributionCreator<plugins::MaterialType::SUBSURFACE>;
-        {Build(builder,cache)} -> plugins::DistributionCreator<plugins::MaterialType::TRANSMISSION>;
-        {Build(builder,cache)} -> plugins::DistributionCreator<plugins::MaterialType::TRANSPARENT>;
-    };
-
-    //Integrator
-    //**************************************************************************
-    template<class T>
-    concept IntegratorBuilder = requires(T builder)
-    {
-        {Build(builder)}->plugins::Integrator<archetypes::CameraFunction, 
-                    archetypes::SamplerFunction, archetypes::PixelSaver, 
-                    archetypes::TraceRay>;
-    };
 }

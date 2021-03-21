@@ -1,10 +1,9 @@
 #pragma once
 #include "jpc_tracer/core/core.h"
-namespace jpctracer
+namespace jpctracer::camera
 {
-
-    namespace camera {
-
+    namespace detail {
+        
         class ProjectionCamera
         {
         public:
@@ -31,7 +30,7 @@ namespace jpctracer
         Prec NearPlane = 1;
 
         auto Build(){
-            return camera::ProjectionCamera(Width,Height,NearPlane);
+            return detail::ProjectionCamera(Width,Height,NearPlane);
         }
     };
 

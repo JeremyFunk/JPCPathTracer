@@ -1,6 +1,7 @@
 set(AUTOSRC
 "test_utils.h"
 "shaders/mixer.cpp"
+"shaders/mirrorbsdf.cpp"
 "shaders/shader_concepts.cpp"
 "raytracing_core/TriangleIntersection.cpp"
 "raytracing_core/ShadingPrograms.cpp"

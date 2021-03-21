@@ -2,8 +2,8 @@
 #include "jpc_tracer/core/core.h"
 #include <random>
 
-namespace jpctracer {
-    namespace sampler {
+namespace jpctracer::sampler {
+    namespace detail {
 
         template<class T>
         concept RandFunc = requires(T func)
@@ -73,14 +73,14 @@ namespace jpctracer {
         auto Build()
         {
             std::random_device rd;
-            return sampler::GridSampler(sampler::RandOp(rd));
+            return detail::GridSampler(detail::RandOp(rd));
         }
     };
     struct DebugSamplerBuilder
     {
         auto Build()
         {
-            return sampler::GridSampler([](){return 0.5;});
+            return detail::GridSampler([](){return 0.5;});
         }
     };
 

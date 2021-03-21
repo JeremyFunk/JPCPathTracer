@@ -21,5 +21,5 @@ namespace jpctracer {
         }
     };
 
-    static_assert(plugins::DistributionFunction<test>);
+    static_assert(cts::DistributionFunction<test>);
 }

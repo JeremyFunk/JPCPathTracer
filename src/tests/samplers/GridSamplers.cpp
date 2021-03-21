@@ -7,7 +7,7 @@
 namespace jpctracer {
     TEST(samplers,DebugSamplerTest)
     {
-        auto sampler = Build(DebugSamplerBuilder());
+        auto sampler = Build(sampler::DebugSamplerBuilder());
         std::vector<Vec2> vec;
         auto insert_it = std::insert_iterator(vec,vec.begin());
         sampler({5,5},insert_it);
