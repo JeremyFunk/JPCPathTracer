@@ -1,7 +1,9 @@
 #pragma once
 #include "Vec.h"
+#include <cstdint>
 
 namespace jpctracer {
+    using uint = std::uint16_t;
     using Prec = float;
     using Vec3 = math::Vec<Prec,3>;
     using Int3 = math::Vec<int,3>;
@@ -20,7 +22,7 @@ namespace jpctracer {
         TRANSMISSION,
         SUBSURFACE,
         EMISSION,
-        TRANSPARENCY
+        TRANSLUCENT
     };
 
 
