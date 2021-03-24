@@ -1,12 +1,14 @@
 set(AUTOSRC
 "test_utils.h"
+"shaders/DiscreteSampler.cpp"
 "shaders/mixer.cpp"
-"shaders/mirrorbsdf.cpp"
+"shaders/mixerbsdf.cpp"
 "shaders/shader_concepts.cpp"
 "raytracing_core/TriangleIntersection.cpp"
 "raytracing_core/ShadingPrograms.cpp"
 "samplers/GridSamplers.cpp"
 "math/VecTest.cpp"
+"math/SpectrumTest.cpp"
 "cameras/ProjectionCamera.cpp"
 )
 set(INC

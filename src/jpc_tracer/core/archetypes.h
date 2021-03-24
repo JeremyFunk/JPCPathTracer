@@ -4,7 +4,7 @@
 #include "jpc_tracer/core/maths/maths.h"
 
 namespace jpctracer {
-    namespace plugins {
+    namespace shader {
         struct ShaderCache;
     }
     namespace archetypes {
@@ -63,16 +63,25 @@ namespace jpctracer {
         {
             template<MaterialType type>
             DistributionFunction CreateDistribution(const Ray& scattering_ray,
-                                        const SurfaceInteraction& interaction)
+                                    const SurfaceInteraction& interaction,
+                                    const shader::ShaderCache& cache)
             {return {};}
         };
 
+        template<MaterialType type,class T>
+        auto CreateDistribution(T creator,const Ray& scattering_ray,
+                                const SurfaceInteraction& interaction)
+        {
+            return creator.template CreateDistribution<type>(scattering_ray,
+            interaction);
+        }
+
         struct ShaderBuilder
         {
-            Shader Build(plugins::ShaderCache& cache) {return {};}
+            Shader Build(shader::ShaderCache& cache) {return {};}
         };
     }
-    namespace plugins {
+    namespace shader {
         struct LightsDistribution;
     }
     namespace archetypes
@@ -105,7 +114,7 @@ namespace jpctracer {
             bool AnyHitProgram(const Distribution& material,Payload* payload);
 
             template<class Distribution>
-            void ClosestHitProgram(const plugins::LightsDistribution& lights,
+            void ClosestHitProgram(const shader::LightsDistribution& lights,
                 const Distribution& bsdf,const Distribution& material_emission,
                 Payload* payload ,TraceRay& trace);
 

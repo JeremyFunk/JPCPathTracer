@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jpctracer::plugins
+namespace jpctracer::shader
 {
     class ShaderCache
     {

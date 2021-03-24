@@ -2,9 +2,9 @@
 
 #include "jpc_tracer/core/core.h"
 
-namespace jpctracer::shader {
+namespace jpctracer::shader::detail {
     
-    struct BsdfSharedMemory
+    struct SharedMemory
     {
         SurfaceInteraction Interaction;
         //in normal space
@@ -19,15 +19,15 @@ namespace jpctracer::shader {
         Vec3 Tangent2;
     };
 
-    Vec3 WorldToNormal(const Vec3& x, const BsdfSharedMemory& mem);
+    Vec3 WorldToNormal(const Vec3& x, const SharedMemory& mem);
 
-    Ray WorldToNormal(const Ray& x, const BsdfSharedMemory& mem);
+    Ray WorldToNormal(const Ray& x, const SharedMemory& mem);
     
-    Vec3 NormalToWorld(const Vec3& x,const BsdfSharedMemory& mem);
+    Vec3 NormalToWorld(const Vec3& x,const SharedMemory& mem);
 
-    Ray NormalToWorld(const Ray& x, const BsdfSharedMemory& mem);
+    Ray NormalToWorld(const Ray& x, const SharedMemory& mem);
 
-    BsdfSharedMemory CreateSharedMemory(const Ray& scattering_ray,
+    SharedMemory CreateSharedMemory(const Ray& scattering_ray,
                                 const SurfaceInteraction& interaction);
 
 }

@@ -12,8 +12,6 @@ namespace jpctracer {
     using UInt2 = math::Vec<unsigned int,2>;
     using Mat3x3 = int;
 
-    using Spectrum = double;
-
     enum class MaterialType
     {
         BSDF,
@@ -22,7 +20,7 @@ namespace jpctracer {
         TRANSMISSION,
         SUBSURFACE,
         EMISSION,
-        TRANSPARENT
+        TRANSPARENCY
     };
 
 

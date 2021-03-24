@@ -5,6 +5,7 @@
 #include "Shapes.h"
 #include "Transformation.h"
 #include "Constants.h"
+#include "Spectrum.h"
 namespace jpctracer {
 
 

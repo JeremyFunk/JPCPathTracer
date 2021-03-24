@@ -56,18 +56,14 @@ namespace jpctracer {
 
         inline bool IsDeltaDistribution(Prec pdf) {return std::abs(pdf)<0.0001;}
 
-        template<MaterialType type,class T>
-        auto CreateDistribution(T creator,const Ray& scattering_ray,
-                                const SurfaceInteraction& interaction)
-        {
-            return creator.template CreateDistribution<type>(scattering_ray,interaction);
-        }
+
 
         template<class T>
         concept DistributionCreator = requires(T creator,const Ray& scattering_ray,
-                                            const SurfaceInteraction& interaction)
+                                        const SurfaceInteraction& interaction)
         {
-            {CreateDistribution<MaterialType::BSDF>(creator, scattering_ray, interaction)}
+            {CreateDistribution<MaterialType::BSDF>(creator, scattering_ray, 
+                            interaction)}
                 ->DistributionFunction;
         };
 
@@ -100,7 +96,7 @@ namespace jpctracer {
 
         template<class T>
         concept RayBehavior = requires(T behavior, 
-                    const plugins::LightsDistribution& lights, 
+                    const shader::LightsDistribution& lights, 
                     const archetypes::DistributionFunction& material,
                     const archetypes::DistributionFunction& material_emission,
                     const archetypes::DistributionFunction& background,
@@ -153,7 +149,7 @@ namespace jpctracer {
         //**********************************************************************
 
         template<class T>
-        concept ShaderBuilder = requires(T builder, plugins::ShaderCache& cache)
+        concept ShaderBuilder = requires(T builder, shader::ShaderCache& cache)
         {
             {Build(builder,cache)} -> DistributionCreator;
         };
