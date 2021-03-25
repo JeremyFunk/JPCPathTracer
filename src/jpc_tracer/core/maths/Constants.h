@@ -22,7 +22,7 @@ namespace jpctracer {
         TRANSMISSION,
         SUBSURFACE,
         EMISSION,
-        TRANSLUCENT
+        TRANSPARENCY
     };
 
 

@@ -90,7 +90,7 @@ namespace jpctracer {
             tracer<MaterialType::GLOSSY>(ray,payload);
             tracer<MaterialType::SUBSURFACE>(ray,payload);
             tracer<MaterialType::TRANSMISSION>(ray,payload);
-            tracer<MaterialType::TRANSLUCENT>(ray,payload);
+            tracer<MaterialType::TRANSPARENCY>(ray,payload);
         };
         
 
