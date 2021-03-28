@@ -7,7 +7,10 @@ namespace jpctracer
     using Spectrum = math::Vec<Prec,4>;
 
     Vec3 ToRGB(const Spectrum& spec);
-    Spectrum FromRGB(const Vec3& rgb);
+    constexpr Spectrum FromRGB(const Vec3& rgb) noexcept
+    {
+        return Spectrum{rgb[0],rgb[1],rgb[2],1.0};
+    }
     Prec& Transparency(Spectrum& spec);
     
 

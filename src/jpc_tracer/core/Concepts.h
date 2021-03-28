@@ -1,6 +1,7 @@
 #pragma once
 #include <concepts>
 #include <iterator>
+#include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "maths/maths.h"
 #include "archetypes.h"
@@ -62,7 +63,7 @@ namespace jpctracer {
         concept DistributionCreator = requires(T creator,const Ray& scattering_ray,
                                         const SurfaceInteraction& interaction)
         {
-            {CreateDistribution<MaterialType::BSDF>(creator, scattering_ray, 
+            {CreateDistribution<MATERIAL_BSDF>(creator, scattering_ray, 
                             interaction)}
                 ->DistributionFunction;
         };
@@ -84,13 +85,13 @@ namespace jpctracer {
         template<class T>
         concept TraceRay = requires(T tracer,Ray ray, Payload* payload)
         {
-            tracer<MaterialType::BSDF>(ray,payload);
-            tracer<MaterialType::DIFFUSE>(ray,payload);
-            tracer<MaterialType::EMISSION>(ray,payload);
-            tracer<MaterialType::GLOSSY>(ray,payload);
-            tracer<MaterialType::SUBSURFACE>(ray,payload);
-            tracer<MaterialType::TRANSMISSION>(ray,payload);
-            tracer<MaterialType::TRANSPARENCY>(ray,payload);
+            tracer<MATERIAL_BSDF>(ray,payload);
+            tracer<MATERIAL_DIFFUSE>(ray,payload);
+            tracer<MATERIAL_EMISSION>(ray,payload);
+            tracer<MATERIAL_GLOSSY>(ray,payload);
+            tracer<MATERIAL_SUBSURFACE>(ray,payload);
+            tracer<MATERIAL_TRANSMISSION>(ray,payload);
+            tracer<MATERIAL_TRANSPARENCY>(ray,payload);
         };
         
 
@@ -119,7 +120,7 @@ namespace jpctracer {
                             Sampler& sampler, Film film, Tracer& tracer)
         {
             integrator(camera,sampler,film);
-            {GetRayBehavior<MaterialType::BSDF>(integrator)}
+            {GetRayBehavior<MATERIAL_BSDF>(integrator)}
             -> RayBehavior;
 
         }   

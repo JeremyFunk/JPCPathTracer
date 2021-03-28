@@ -1,5 +1,6 @@
 #pragma once
 
+#include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/maths.h"
 

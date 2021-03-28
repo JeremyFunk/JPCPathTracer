@@ -2,7 +2,7 @@
 
 namespace jpctracer
 {
-    class ShaderCache
+    class LightsDistribution
     {
     
     };

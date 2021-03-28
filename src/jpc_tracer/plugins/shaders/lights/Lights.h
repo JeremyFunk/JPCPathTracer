@@ -5,8 +5,8 @@ namespace jpctracer {
     class Lights
     {
     public:
-        template<class Iterator ,class MaterialBuilder>
-        void AddLight(std::shared_ptr<IGeometryRange<Iterator>> geometry, MaterialBuilder builder);
+        //template<class Iterator ,class Material>
+        //void AddLight(Light geometry, Material material);
     };
     
 }

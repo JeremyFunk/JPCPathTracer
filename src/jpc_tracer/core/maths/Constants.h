@@ -14,16 +14,8 @@ namespace jpctracer {
     using UInt2 = math::Vec<unsigned int,2>;
     using Mat3x3 = int;
 
-    enum class MaterialType
-    {
-        BSDF,
-        DIFFUSE,
-        GLOSSY,
-        TRANSMISSION,
-        SUBSURFACE,
-        EMISSION,
-        TRANSPARENCY
-    };
+    
+
 
 
 }

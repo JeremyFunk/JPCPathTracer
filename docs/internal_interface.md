@@ -91,10 +91,8 @@ namespace JPCTracer
         public:
             Shape* begin();
             Shape* end();
-            template<class T>
-            SetAnimation(std::shared_prt<T> animation);
-        private:
-            std::shared_prt<IAnimated<Transformation>> Animation;
+            
+            std::shared_prt<const IAnimated<Transformation>> Animation;
         }
     }
 
@@ -124,14 +122,26 @@ namespace JPCTracer
             Triangle;
             Sphere;
         }
-        struct ShaderCache;
 
-        Shader Build(ShaderBuilder builder,ShaderCache& cache);
+        BsdfNode* Shader(ShaderContext context);
+
+        class DistributionFactory
+        {
+            DistributionFactory Clone();
+            template<MaterialType type>
+            RootShader CreateShader(Shader shader, Ray scattering_ray, SurfaceInteraction interaction);
+            
+            template<MaterialType type>
+            LightsDistribution CreateLights(const Lights& lights, Ray scattering_ray, SurfaceInteraction interaction);
+            
+        }
 
         struct Lights
         {
             template<class MaterialBuilder>
-            void AddLight(int object_id,ObjectType object_type, MaterialBuilder b);
+            void AddPointLight(Shader shader,Vec3 pos);
+            void AddSunLight(Shader shader,Vec3 pos, Vec3 dir);
+            
         };
 
         enum class MaterialType
@@ -146,8 +156,8 @@ namespace JPCTracer
         }
 
         //DistributionSettings = Lights | Shader
-        template<MaterialType type>
-        DistributionFunction CreateDistribution(DistributionSettings settings, Ray scattering_ray, SurfaceInteraction interaction);
+        //template<MaterialType type>
+        //DistributionFunction CreateDistribution(ShaderThreadData,DistributionSettings settings, Ray scattering_ray, SurfaceInteraction interaction);
         //returns value and the pdf
         //if pdf = 0 then the Distirbution is a Delta Distirubtion
         std::pair<Spectrum,Prec> DistributionFunction(const Ray& incident_ray) const;
