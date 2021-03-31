@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <utility>
-#include "jpc_tracer/plugins/shaders/ShaderContext.h"
-#include "jpc_tracer/plugins/shaders/ShaderFunction.h"
+#include "jpc_tracer/engine/PluginsApi.h"
 
 namespace jpctracer {
     TEST(shader,ShaderFunc1)

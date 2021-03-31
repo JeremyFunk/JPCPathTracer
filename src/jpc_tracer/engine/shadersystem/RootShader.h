@@ -1,13 +1,13 @@
 #pragma once
-#include "../ShaderContext.h"
+#include "ShaderContext.h"
 #include "IBsdfClosure.h"
 #include "jpc_tracer/core/MaterialType.h"
-#include "jpc_tracer/plugins/shaders/cache/NormalSpace.h"
-#include "../sampling/DiscreteSampler.h"
+#include "jpc_tracer/engine/shadersystem/NormalSpace.h"
+#include "DiscreteSampler.h"
 #include "BsdfStack.h"
-#include "../ShaderFunction.h"
+#include "ShaderFunction.h"
 #include <utility>
-namespace jpctracer
+namespace jpctracer::shadersys
 {
     
     class RootShader
@@ -29,7 +29,7 @@ namespace jpctracer
         ~RootShader();
 
     private:
-        detail::DiscreteSampler m_sampler;
+        DiscreteSampler m_sampler;
         LinearCombBsdfs m_bsdfs;
         const NormalSpace& m_space;      
 

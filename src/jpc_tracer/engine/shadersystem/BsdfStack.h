@@ -9,7 +9,7 @@
 #include <cassert>
 #include <cstddef>
 
-namespace jpctracer
+namespace jpctracer::shadersys
 {
 
     class BsdfStack;

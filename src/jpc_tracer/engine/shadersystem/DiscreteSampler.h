@@ -3,7 +3,7 @@
 #include<array>
 #include "jpc_tracer/core/core.h"
 
-namespace jpctracer::detail 
+namespace jpctracer::shadersys
 {
     struct __DiscreateSamplerResult
     {

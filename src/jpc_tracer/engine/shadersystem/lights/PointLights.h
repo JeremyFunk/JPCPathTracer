@@ -3,12 +3,12 @@
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/maths.h"
-#include "jpc_tracer/plugins/shaders/bsdf/BsdfStack.h"
-#include "jpc_tracer/plugins/shaders/ShaderFunction.h"
-#include "jpc_tracer/plugins/shaders/bsdf/RootShader.h"
-#include "jpc_tracer/plugins/shaders/cache/NormalSpace.h"
+#include "jpc_tracer/engine/shadersystem/BsdfStack.h"
+#include "jpc_tracer/engine/shadersystem/ShaderFunction.h"
+#include "jpc_tracer/engine/shadersystem/RootShader.h"
+#include "jpc_tracer/engine/shadersystem/NormalSpace.h"
 #include <vector>
-namespace jpctracer
+namespace jpctracer::shadersys
 {
     class PointLights
     {

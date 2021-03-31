@@ -1,9 +1,9 @@
 #pragma once
 #include "jpc_tracer/core/core.h"
 #include "jpc_tracer/core/maths/maths.h"
-#include "jpc_tracer/plugins/shaders/lights/PointLights.h"
+#include "lights/PointLights.h"
 
-namespace jpctracer
+namespace jpctracer::shadersys
 {
     class LightsDistribution 
     {

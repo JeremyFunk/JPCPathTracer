@@ -1,12 +1,12 @@
 #pragma once
 #include "jpc_tracer/core/core.h"
-#include "../ShaderFunction.h"
-#include "jpc_tracer/plugins/shaders/bsdf/BsdfStack.h"
-#include "jpc_tracer/plugins/shaders/bsdf/RootShader.h"
-#include "jpc_tracer/plugins/shaders/lights/PointLights.h"
+#include "ShaderFunction.h"
+#include "jpc_tracer/engine/shadersystem/BsdfStack.h"
+#include "jpc_tracer/engine/shadersystem/RootShader.h"
+#include "jpc_tracer/engine/shadersystem/lights/PointLights.h"
 #include <vector>
 
-namespace jpctracer {
+namespace jpctracer::shadersys {
 
     class Lights
     {

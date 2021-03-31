@@ -1,12 +1,12 @@
 #include "RootShader.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
-#include "jpc_tracer/plugins/shaders/bsdf/BsdfStack.h"
-#include "jpc_tracer/plugins/shaders/cache/NormalSpace.h"
+#include "BsdfStack.h"
+#include "NormalSpace.h"
 #include <utility>
 
 
 
-namespace jpctracer
+namespace jpctracer::shadersys
 {
     RootShader::RootShader(LinearCombBsdfs&& bsdfs, const NormalSpace& space) 
         : m_space(space),m_sampler(bsdfs.weights, bsdfs.count),m_bsdfs(std::forward<LinearCombBsdfs>(bsdfs))

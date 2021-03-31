@@ -2,7 +2,7 @@
 
 
 
-namespace jpctracer
+namespace jpctracer::shadersys
 {
 
     DistributionFactory DistributionFactory::Clone() 

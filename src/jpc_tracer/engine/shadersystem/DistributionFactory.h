@@ -1,15 +1,15 @@
 #pragma once
-#include "bsdf/RootShader.h"
+#include "RootShader.h"
 #include "jpc_tracer/core/MaterialType.h"
 #include "ShaderFunction.h"
 #include "jpc_tracer/core/maths/maths.h"
-#include "jpc_tracer/plugins/shaders/ShaderContext.h"
-#include "jpc_tracer/plugins/shaders/bsdf/BsdfStack.h"
-#include "jpc_tracer/plugins/shaders/cache/NormalSpace.h"
-#include "jpc_tracer/plugins/shaders/lights/Lights.h"
-#include "lights/LightsDistribution.h"
+#include "jpc_tracer/engine/shadersystem/ShaderContext.h"
+#include "jpc_tracer/engine/shadersystem/BsdfStack.h"
+#include "jpc_tracer/engine/shadersystem/NormalSpace.h"
+#include "jpc_tracer/engine/shadersystem/Lights.h"
+#include "LightsDistribution.h"
 
-namespace jpctracer
+namespace jpctracer::shadersys
 {
     class DistributionFactory
     {

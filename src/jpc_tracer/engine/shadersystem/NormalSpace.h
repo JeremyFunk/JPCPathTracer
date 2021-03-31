@@ -1,9 +1,8 @@
 #pragma once
 
 #include "jpc_tracer/core/core.h"
-#include "jpc_tracer/plugins/shaders/cache/ShaderCache.h"
 
-namespace jpctracer {
+namespace jpctracer::shadersys {
     
     struct NormalSpace
     {

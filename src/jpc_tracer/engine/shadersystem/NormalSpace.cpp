@@ -1,5 +1,5 @@
 #include "NormalSpace.h"
-namespace jpctracer
+namespace jpctracer::shadersys
 {
     Vec3 WorldToNormal(const Vec3& x, const NormalSpace& mem) 
     {

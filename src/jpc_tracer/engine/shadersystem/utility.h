@@ -1,7 +1,7 @@
 #pragma once
 #include<tuple>
 
-namespace jpctracer::shader::detail {
+namespace jpctracer::shadersys {
     
 
     template<class T>

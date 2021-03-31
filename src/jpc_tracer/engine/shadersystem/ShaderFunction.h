@@ -1,26 +1,26 @@
 #pragma once
 #include "ShaderContext.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
-#include "jpc_tracer/plugins/shaders/bsdf/BsdfStack.h"
+#include "jpc_tracer/engine/shadersystem/BsdfStack.h"
 
-namespace jpctracer
+namespace jpctracer::shadersys
 {
-    namespace detail {
+   
         
         
-        template<class T>
-        concept ShaderMethodContext = requires(ShaderContext context,T func)
-        {
-            {func(context)};
-        };
-        template<class T>
-        concept ShaderMethodFree = requires(T func)
-        {
-            {func()};
-        } && ! ShaderMethodContext<T>;
+    template<class T>
+    concept ShaderMethodContext = requires(ShaderContext context,T func)
+    {
+        {func(context)};
+    };
+    template<class T>
+    concept ShaderMethodFree = requires(T func)
+    {
+        {func()};
+    } && ! ShaderMethodContext<T>;
 
         
-    }
+    
     
     template<class T,class Result>
     concept ShaderFunction = requires(ShaderContext context,T func)
@@ -30,20 +30,20 @@ namespace jpctracer
     
 
     template<class T>
-    concept ShaderMethod = detail::ShaderMethodContext<T>
-                        || detail::ShaderMethodFree<T>
+    concept ShaderMethod = ShaderMethodContext<T>
+                        || ShaderMethodFree<T>
                         || std::same_as<T,Spectrum>
                         || std::convertible_to<T,Prec>
                         || std::same_as<T,Vec3>;
 
-    template<detail::ShaderMethodContext T>
+    template<ShaderMethodContext T>
     auto Eval(const ShaderContext& context,const T& func)
     {
         return func(context);
     }
     
 
-    template<detail::ShaderMethodFree T>
+    template<ShaderMethodFree T>
     auto Eval(const ShaderContext& context,const T& func)
     {
         return func();
@@ -62,23 +62,22 @@ namespace jpctracer
         return x;
     }
 
-    namespace detail {
-        
-        template<class T,class... Args>
-        concept __ShaderBindContext = requires(T f, Args&&... args,const ShaderContext& context)
-        {
-            {f(context, Eval(context,std::forward<Args>(args))...)};
-        };
 
-        template<class T,class... Args>
-        concept __ShaderBindFree = requires(T f, Args&&... args,const ShaderContext& context)
-        {
-            {f(Eval(context,std::forward<Args>(args))...)};
-        } && ! __ShaderBindContext<T,Args...>;
+    template<class T,class... Args>
+    concept __ShaderBindContext = requires(T f, Args&&... args,const ShaderContext& context)
+    {
+        {f(context, Eval(context,std::forward<Args>(args))...)};
+    };
 
-    }
+    template<class T,class... Args>
+    concept __ShaderBindFree = requires(T f, Args&&... args,const ShaderContext& context)
+    {
+        {f(Eval(context,std::forward<Args>(args))...)};
+    } && ! __ShaderBindContext<T,Args...>;
+
+
     template<class func, ShaderMethod... Args >
-        requires detail::__ShaderBindContext<func, Args...>
+        requires __ShaderBindContext<func, Args...>
     inline constexpr auto ShaderBind(const func& f, Args&&... args)
     {
         return [&](const ShaderContext& context)
@@ -88,7 +87,7 @@ namespace jpctracer
     }
 
     template<class func, ShaderMethod... Args >
-        requires detail::__ShaderBindFree<func, Args...>
+        requires __ShaderBindFree<func, Args...>
     inline constexpr auto ShaderBind(const func& f, Args&&... args)
     {
         return [&](const ShaderContext& context)

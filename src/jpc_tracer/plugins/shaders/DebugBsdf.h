@@ -1,9 +1,5 @@
 #pragma once
-#include "IBsdfClosure.h"
-#include "jpc_tracer/core/MaterialType.h"
-#include "jpc_tracer/core/maths/Constants.h"
-#include "jpc_tracer/core/maths/Spectrum.h"
-#include "RootShader.h"
+#include "jpc_tracer/engine/PluginsApi.h"
 
 namespace jpctracer
 {

@@ -5,7 +5,7 @@
 #include <iostream>
 
 
-namespace jpctracer
+namespace jpctracer::shadersys
 {
     BsdfMemoryState::BsdfMemoryState(std::size_t _free_space_size,void* _next_bsdf_space) 
         :free_space_size(_free_space_size),next(_next_bsdf_space)

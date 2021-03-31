@@ -2,9 +2,9 @@
 #include "jpc_tracer/core/core.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
-#include "jpc_tracer/plugins/shaders/cache/NormalSpace.h"
+#include "NormalSpace.h"
 
-namespace jpctracer {
+namespace jpctracer::shadersys {
     class IBsdfClosure
     {
     public:

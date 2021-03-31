@@ -4,7 +4,7 @@
 
 
 
-namespace jpctracer
+namespace jpctracer::shadersys
 {
     LightsDistribution::LightsDistribution(PointLights* point_lights,SurfaceInteraction interaction) 
         : m_point_lights(point_lights),m_interaction(interaction)

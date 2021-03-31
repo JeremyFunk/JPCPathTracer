@@ -1,9 +1,9 @@
 
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
-#include "jpc_tracer/plugins/shaders/ShaderContext.h"
-#include "jpc_tracer/plugins/shaders/bsdf/BsdfStack.h"
-#include "jpc_tracer/plugins/shaders/bsdf/DebugBsdf.h"
+#include "jpc_tracer/engine/shadersystem/ShaderContext.h"
+#include "jpc_tracer/engine/shadersystem/BsdfStack.h"
+#include "jpc_tracer/plugins/shaders/DebugBsdf.h"
 #include <cmath>
 #include <iostream>
 
@@ -27,7 +27,7 @@ namespace jpctracer {
     }
 
 }
-void glossy_mat(float val,jpctracer::BsdfStack* factory)
+void glossy_mat(float val,jpctracer::shadersys::BsdfStack* factory)
 {
     jpctracer::NormalSpace normal_space;
     jpctracer::ShaderContext context = {&normal_space, jpctracer::MATERIAL_GLOSSY, factory};
@@ -35,7 +35,7 @@ void glossy_mat(float val,jpctracer::BsdfStack* factory)
      
 }
 
-void diffuse_mat(float val,jpctracer::BsdfStack* factory)
+void diffuse_mat(float val,jpctracer::shadersys::BsdfStack* factory)
 {
     
     jpctracer::NormalSpace normal_space;
@@ -47,7 +47,7 @@ int main(int argc,char *argv[])
 {
     std::cout<<"test\n";
     int i;
-    jpctracer::BsdfStack factory;
+    jpctracer::shadersys::BsdfStack factory;
     diffuse_mat((float)argc,&factory);
     return 0;
 }

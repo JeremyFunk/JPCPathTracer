@@ -2,7 +2,7 @@
 
 
 
-namespace jpctracer::detail
+namespace jpctracer::shadersys
 {
     __DiscreateSamplerResult DiscreteSampler::Sample(const Prec& random_val) const
     {

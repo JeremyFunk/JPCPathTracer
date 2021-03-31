@@ -4,16 +4,14 @@
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
 #include "jpc_tracer/core/maths/maths.h"
-#include "jpc_tracer/plugins/shaders/bsdf/BsdfStack.h"
-#include "jpc_tracer/plugins/shaders/bsdf/DebugBsdf.h"
-#include "jpc_tracer/plugins/shaders/ShaderContext.h"
-#include "jpc_tracer/plugins/shaders/bsdf/RootShader.h"
-#include "jpc_tracer/plugins/shaders/cache/NormalSpace.h"
-#include "jpc_tracer/plugins/shaders/DistributionFactory.h"
-#include "jpc_tracer/plugins/shaders/shaders.h"
+#include "jpc_tracer/engine/shadersystem/BsdfStack.h"
+#include "jpc_tracer/plugins/shaders/DebugBsdf.h"
+#include "jpc_tracer/engine/shadersystem/ShaderContext.h"
+#include "jpc_tracer/engine/shadersystem/RootShader.h"
+#include "jpc_tracer/engine/shadersystem/DistributionFactory.h"
 #include "../test_utils.h"
 
-namespace jpctracer {
+namespace jpctracer::shadersys {
     
     TEST(shaders,factor_debugbsdf)
     {

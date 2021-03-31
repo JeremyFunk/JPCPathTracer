@@ -3,7 +3,7 @@
 
 
 
-namespace jpctracer
+namespace jpctracer::shadersys
 {
 
     const RootShader* PointLights::Sample(Ray* out_incident_ray,const SurfaceInteraction& interaction, Vec2 random_point) const
