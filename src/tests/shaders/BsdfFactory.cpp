@@ -4,7 +4,7 @@
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
 #include "jpc_tracer/core/maths/maths.h"
-#include "jpc_tracer/plugins/shaders/bsdf/BsdfPool.h"
+#include "jpc_tracer/plugins/shaders/bsdf/BsdfStack.h"
 #include "jpc_tracer/plugins/shaders/bsdf/DebugBsdf.h"
 #include "jpc_tracer/plugins/shaders/ShaderContext.h"
 #include "jpc_tracer/plugins/shaders/bsdf/RootShader.h"
@@ -19,7 +19,7 @@ namespace jpctracer {
     {
         constexpr std::size_t bsdf_count = 20;
         NormalSpace normal_space;
-        BsdfPool* factory = new BsdfPool();
+        BsdfStack* factory = new BsdfStack();
         ShaderContext context{&normal_space,MATERIAL_DIFFUSE,factory};
         for(int i=0; i<13;i++)
         {
@@ -36,7 +36,7 @@ namespace jpctracer {
         constexpr std::size_t bsdf_count = 20;
         NormalSpace normal_space;
         
-        BsdfPool* factory = new BsdfPool();
+        BsdfStack* factory = new BsdfStack();
         ShaderContext context{&normal_space,MATERIAL_DIFFUSE,factory};
         BsdfNode* bsdf = CreateBsdf<MATERIAL_EMISSION, DebugBsdfClosure>(context,Black());
         EXPECT_EQ(bsdf,nullptr);
@@ -63,7 +63,7 @@ namespace jpctracer {
 
     TEST(shaders,dist_factory2)
     {
-        BsdfPool* pool = new BsdfPool();
+        BsdfStack* pool = new BsdfStack();
         BsdfMemoryState state_begin = pool->BsdfsState();
         auto shader_func = [](ShaderContext context)
         {
@@ -89,6 +89,7 @@ namespace jpctracer {
     {
         DistributionFactory* factory = new DistributionFactory();
         auto bsdf1 = ShaderBind(DebugBsdf,FromRGB({0,0,1}));
+        //FromRGB({1,0,0}
         auto bsdf2 = ShaderBind(DebugBsdf,FromRGB({1,0,0}));
         
         auto shader_func = ShaderBind(MixBsdf,bsdf1,bsdf2,0.2);

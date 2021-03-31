@@ -4,7 +4,7 @@
 #include "ShaderFunction.h"
 #include "jpc_tracer/core/maths/maths.h"
 #include "jpc_tracer/plugins/shaders/ShaderContext.h"
-#include "jpc_tracer/plugins/shaders/bsdf/BsdfPool.h"
+#include "jpc_tracer/plugins/shaders/bsdf/BsdfStack.h"
 #include "jpc_tracer/plugins/shaders/cache/NormalSpace.h"
 #include "jpc_tracer/plugins/shaders/lights/Lights.h"
 #include "lights/LightsDistribution.h"
@@ -23,7 +23,7 @@ namespace jpctracer
         LightsDistribution Create(const Lights& lights, const SurfaceInteraction& interaction);
     
     private:
-        BsdfPool m_shader_pool;
+        BsdfStack m_shader_pool;
 
     };
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "ShaderContext.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
-#include "jpc_tracer/plugins/shaders/bsdf/BsdfPool.h"
+#include "jpc_tracer/plugins/shaders/bsdf/BsdfStack.h"
 
 namespace jpctracer
 {

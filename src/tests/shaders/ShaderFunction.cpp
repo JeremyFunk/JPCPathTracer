@@ -62,12 +62,12 @@ namespace jpctracer {
 
     TEST(shader,ShaderFunc2)
     {
-
+        MaterialSettings settings;
         TextureBuilder text_builder1{2};
         auto tex1 = text_builder1.Build();
         TextureBuilder text_builder2{3};
         auto tex2 = text_builder2.Build();
-        
+
 
         auto mixed_color = ShaderBind(mix,tex1,tex2,0.5);
         auto result = ShaderBind(mix,mixed_color,0,1);

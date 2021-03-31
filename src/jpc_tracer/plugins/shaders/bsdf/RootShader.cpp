@@ -1,13 +1,15 @@
 #include "RootShader.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/plugins/shaders/bsdf/BsdfStack.h"
 #include "jpc_tracer/plugins/shaders/cache/NormalSpace.h"
+#include <utility>
 
 
 
 namespace jpctracer
 {
-    RootShader::RootShader(LinearCombBsdfs bsdfs, BsdfFactorySaver saver, const NormalSpace& space) 
-        : m_space(space),m_sampler(bsdfs.weights, bsdfs.count),m_bsdfs(bsdfs),m_factory_saver(saver)
+    RootShader::RootShader(LinearCombBsdfs&& bsdfs, const NormalSpace& space) 
+        : m_space(space),m_sampler(bsdfs.weights, bsdfs.count),m_bsdfs(std::forward<LinearCombBsdfs>(bsdfs))
     {
         
     }
@@ -63,6 +65,7 @@ namespace jpctracer
     
     RootShader::~RootShader() 
     {
-        m_factory_saver.Restore();
+        m_bsdfs.OnDelete();
     }
+
 }

@@ -2,7 +2,6 @@
 #include<memory.h>
 #include <memory>
 #include <utility>
-#include "Logger.h"
 #include"jpc_tracer/core/core.h"
 
 

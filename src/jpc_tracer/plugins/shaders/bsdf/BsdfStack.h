@@ -12,7 +12,7 @@
 namespace jpctracer
 {
 
-    class BsdfPool;
+    class BsdfStack;
 
     struct BsdfNode
     {
@@ -26,7 +26,7 @@ namespace jpctracer
         bool IsChild;
         Prec Weight;
 
-        friend class BsdfPool;
+        friend class BsdfStack;
     };
 
     struct BsdfMemoryState
@@ -37,32 +37,42 @@ namespace jpctracer
         void* next;
     };
 
-    struct LinearCombBsdfs
+    class LinearCombBsdfs
     {
+    public:
+        LinearCombBsdfs(LinearCombBsdfs&&) = default;
+        LinearCombBsdfs(const LinearCombBsdfs&) = delete;
+        
         const IBsdfClosure** closures;
         const Prec* weights;
         size_t count;
+        void OnDelete();
+    private:
+        LinearCombBsdfs(BsdfStack* stack,BsdfMemoryState state, const IBsdfClosure** _closures,const Prec* _weights,size_t _count);
+        BsdfStack* m_stack;
+        BsdfMemoryState m_state;
+        friend BsdfStack;
     };
 
-    struct BsdfFactoryReseter;
-
     //Musst live on a single thread
-    class BsdfPool
+    class BsdfStack
     {
     private:
         static constexpr std::size_t bsdf_max_count = 1000;
         static constexpr std::size_t max_bsdfnodes_count =64 ;  
         static constexpr std::size_t full_bsdf_size = bsdf_max_count*sizeof(Spectrum);
 
+        friend LinearCombBsdfs;
+
     public:
 
-        BsdfPool() :
-            m_bsdf_state(full_bsdf_size,m_bsdf_memory)
+        BsdfStack() :
+            m_bsdf_state(full_bsdf_size,m_bsdf_memory),m_last_bsdf_state(full_bsdf_size,m_bsdf_memory)
         {}
 
         template<std::derived_from<IBsdfClosure> BsdfT, 
         class... Args>
-        BsdfNode* Create(Args&&... args)
+        BsdfNode* emplace(Args&&... args)
         {
             void*  bsdf = aligned_alloc_bsdf<BsdfT>();
             if(bsdf)
@@ -89,23 +99,23 @@ namespace jpctracer
         }
 
         
-        void ClearBsdfNodes();
         
-        LinearCombBsdfs GetBsdfs(BsdfMemoryState start_state);
+        
+        LinearCombBsdfs pop_until(BsdfNode* root_node);
 
 
-        void ApplyWeights(BsdfNode* node);     
-
+        
         BsdfMemoryState BsdfsState();
-
-        void ShrinkBsdfs(BsdfMemoryState state);
 
         BsdfNode* MixNodes(BsdfNode* node_1, BsdfNode* node_2,float value);
 
     private:
+        void ApplyWeights(BsdfNode* node);     
 
         
-        
+
+        void ShrinkBsdfs(BsdfMemoryState state);
+        void ClearBsdfNodes();
 
         template <std::derived_from<IBsdfClosure> T>
         T* aligned_alloc_bsdf(std::size_t alignment = alignof(T))
@@ -132,22 +142,10 @@ namespace jpctracer
         
 
         BsdfMemoryState m_bsdf_state;
+        BsdfMemoryState m_last_bsdf_state;
+        
 
     };
 
 
-    class BsdfFactorySaver
-    {
-    public:
-        BsdfFactorySaver(BsdfPool* factory);
-        void Restore();
-    private:
-        BsdfMemoryState m_bsdf_state;
-        BsdfPool* m_factory;
-    };
-
-    //---------
-    /*
-    
-    */
 }

@@ -54,9 +54,10 @@ namespace jpctracer {
             {func(&incident_ray,random_p3D)}
                                 ->std::convertible_to<std::pair<Spectrum,Prec>>; 
         };
-
+    }
         inline bool IsDeltaDistribution(Prec pdf) {return std::abs(pdf)<0.0001;}
-
+    namespace cts {
+    
 
 
         template<class T>
@@ -80,8 +81,15 @@ namespace jpctracer {
 
         //Integrator
         //**********************************************************************
-        struct Payload;
-
+    }
+    struct Payload;
+    struct AnyHitResult
+    {
+        bool IsHit;
+        bool ShouldTerminate = false;
+    };
+    
+    namespace cts {
         template<class T>
         concept TraceRay = requires(T tracer,Ray ray, Payload* payload)
         {
@@ -94,19 +102,39 @@ namespace jpctracer {
             tracer<MATERIAL_TRANSPARENCY>(ray,payload);
         };
         
+        template<class T>
+        concept HitPoint = requires(T hit_point,Ray ray, Payload* payload)
+        {
+            {hit_point.template Shader<MATERIAL_BSDF>()}         -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_DIFFUSE>()}      -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_EMISSION>()}     -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_GLOSSY>()}       -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_SUBSURFACE>()}   -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_TRANSMISSION>()} -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_TRANSPARENCY>()} -> DistributionFunction;
+
+            {hit_point.ActiveLights()} -> DistributionFunction;
+
+
+        };
 
         template<class T>
         concept RayBehavior = requires(T behavior, 
-                    const shader::LightsDistribution& lights, 
-                    const archetypes::DistributionFunction& material,
-                    const archetypes::DistributionFunction& material_emission,
-                    const archetypes::DistributionFunction& background,
+                    const archetypes::HitPoint& hit_point,
+                    Payload* payload)
+        {
+            {behavior.AnyHitProgram(hit_point,payload)} -> std::convertible_to<AnyHitResult>; 
+        }
+        || requires(T behavior, 
+                    const archetypes::HitPoint& hit_point,
                     Payload* payload, archetypes::TraceRay& tracer)
         {
-            {behavior.AnyHitProgram(material,payload)} -> std::convertible_to<bool>;
-            {behavior.ClosestHitProgram(lights,material,material_emission,
-                        payload,tracer)};
-            {behavior.Miss(background,payload)};
+            {behavior.ClosestHitProgram(hit_point,payload,tracer)};
+        }
+        || requires(T behavior, Payload* payload, 
+                    const archetypes::DistributionFunction& background)
+        {
+            {behavior.MisProgram(background,payload)};
         };
 
         template<MaterialType type, class T>
@@ -144,15 +172,6 @@ namespace jpctracer {
         concept CameraBuilder = requires(T builder)
         {
             {Build(builder)} -> CameraFunction;
-        };
-
-        //Shaders
-        //**********************************************************************
-
-        template<class T>
-        concept ShaderBuilder = requires(T builder, shader::ShaderCache& cache)
-        {
-            {Build(builder,cache)} -> DistributionCreator;
         };
 
         //Integrator

@@ -1,4 +1,6 @@
-#include "BsdfPool.h"
+#include "BsdfStack.h"
+#include <bits/c++config.h>
+#include <cassert>
 #include <memory>
 #include <iostream>
 
@@ -11,18 +13,46 @@ namespace jpctracer
         
     }
     
-    BsdfMemoryState BsdfPool::BsdfsState() 
+    LinearCombBsdfs::LinearCombBsdfs(BsdfStack* stack,BsdfMemoryState state, const IBsdfClosure** _closures,const Prec* _weights,size_t _count) 
+        : m_stack(stack),m_state(state),closures(_closures),weights(_weights),count(_count)
+    {
+        
+    }
+
+    
+    void LinearCombBsdfs::OnDelete() 
+    {
+        //Check if all linearCombs, created later then this linearcomb, where destroyed 
+        //assert(m_state.count+count == m_stack->m_bsdf_state.count);
+        m_stack->ShrinkBsdfs(m_state);
+    }
+    
+    LinearCombBsdfs BsdfStack::pop_until(BsdfNode* root_node) 
+    {
+        ApplyWeights(root_node);
+        ClearBsdfNodes();
+        std::size_t bsdf_start_idx = m_last_bsdf_state.count;
+        const IBsdfClosure** bsdf_start = &m_closures[bsdf_start_idx];
+        const Prec* weights_start = &m_weights[bsdf_start_idx];
+        size_t bsdf_count = m_bsdf_state.count-bsdf_start_idx;
+        BsdfMemoryState state = m_last_bsdf_state;
+        m_last_bsdf_state = m_bsdf_state;
+        return {this,state,bsdf_start,weights_start,bsdf_count};
+    }
+    
+    BsdfMemoryState BsdfStack::BsdfsState() 
     {
         return m_bsdf_state;
     }
 
     
-    void BsdfPool::ShrinkBsdfs(BsdfMemoryState state) 
+    void BsdfStack::ShrinkBsdfs(BsdfMemoryState state) 
     {
-        m_bsdf_state = state;
+        if(state.count<m_bsdf_state.count)
+            m_bsdf_state = state;
     }
     
-    BsdfNode* BsdfPool::MixNodes(BsdfNode* node_1, BsdfNode* node_2,float value) 
+    BsdfNode* BsdfStack::MixNodes(BsdfNode* node_1, BsdfNode* node_2,float value) 
     {
         
         BsdfNode* result = &m_bsdf_nodes[m_bsdfnodes_count];
@@ -39,34 +69,18 @@ namespace jpctracer
         return result;
     }
     
-    BsdfFactorySaver::BsdfFactorySaver(BsdfPool* factory) 
-    :m_bsdf_state(factory->BsdfsState()), m_factory(factory)
-    {
-    }
     
-    void BsdfFactorySaver::Restore() 
-    {
-        m_factory->ShrinkBsdfs(m_bsdf_state);
-    }
     
-    void BsdfPool::ClearBsdfNodes() 
+    void BsdfStack::ClearBsdfNodes() 
     {
         m_bsdfnodes_count = 0;
     }
 
-    
-    LinearCombBsdfs BsdfPool::GetBsdfs(BsdfMemoryState start_state) 
-    {
-        const IBsdfClosure** bsdf_start = &m_closures[start_state.count];
-        const Prec* weights_start = &m_weights[start_state.count];
-        size_t bsdf_count = m_bsdf_state.count-start_state.count;
-        return LinearCombBsdfs{bsdf_start,weights_start,bsdf_count};
-    }
 
 
     
 
-    void BsdfPool::ApplyWeights(BsdfNode* node) 
+    void BsdfStack::ApplyWeights(BsdfNode* node) 
     {
         constexpr size_t max_stack = bsdf_max_count;
 

@@ -1,6 +1,6 @@
-#include "jpc_tracer/engine/raytracing/Logger.h"
+#include "Logger.h"
 
-namespace jpctracer::raytracing
+namespace jpctracer
 {
     std::shared_ptr<spdlog::logger> Logger::_Logger;
     bool Logger::_should_log = false;

@@ -1,5 +1,6 @@
 #pragma once
 #include "IBsdfClosure.h"
+#include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
 #include "RootShader.h"
@@ -7,7 +8,7 @@
 namespace jpctracer
 {
 
-    struct DebugBsdfClosure: public IBsdfClosure
+    struct DebugBsdfClosure final: public IBsdfClosure
     {
 
         DebugBsdfClosure(Spectrum color = Black());
@@ -20,7 +21,7 @@ namespace jpctracer
 
     constexpr BsdfNode* DebugBsdf(ShaderContext context, Spectrum color)
     {
-        return CreateBsdf<MATERIAL_DIFFUSE, DebugBsdfClosure>(context,color);
+        return CreateBsdf<MATERIAL_DIFFUSE |MATERIAL_GLOSSY, DebugBsdfClosure>(context,color);
     }
 
 

@@ -3,3 +3,4 @@
 #include "IGeometryRange.h"
 #include "IAnimated.h"
 #include "MaterialType.h"
+#include "Logger.h"
