@@ -4,11 +4,6 @@
 
 namespace jpctracer {
 
-    struct Transformation
-    {
-        Mat3x3 RotationScale;
-        Vec3 Translation;
-    };
 
     struct Bounds3D
     {

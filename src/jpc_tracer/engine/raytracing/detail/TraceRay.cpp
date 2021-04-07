@@ -1,10 +1,10 @@
 #include "jpc_tracer/engine/raytracing/Base.h"
 #include "jpc_tracer/engine/raytracing/SurfaceInteraction.h"
 #include "jpc_tracer/engine/raytracing/TraceRay.h"
-#include "jpc_tracer/engine/raytracing/detail/intersection/Intersect.h"
-#include "jpc_tracer/engine/raytracing/detail/intersection/acceleration/IntersectionInfo.h"
-#include "jpc_tracer/engine/raytracing/detail/shade_programs/ShadePrograms.h"
-#include "jpc_tracer/engine/raytracing/detail/shade_programs/ShadingData.h"
+#include "Intersect.h"
+#include "acceleration/IntersectionInfo.h"
+#include "ShadePrograms.h"
+#include "Scene.h"
 #include <optional>
 #include "jpc_tracer/engine/raytracing/detail/TracingContext.h"
 
@@ -13,12 +13,13 @@ namespace jpctracer::raytracing {
     
 
 
-    void TraceRay(const Scene* scene,const Ray& ray, Payload* payload, TracingContext* context) 
+    void TraceRay(const Ray& ray, Payload* payload, TracingContext* context) 
     {
-        ShadePrograms& programs = context->Programs;
-        UpdateShadePrograms(scene->m_scene_data->Shading,ray, payload, &programs);
+        ShadePrograms& programs = context->programs;
+        const Scene& scene = *context->scene; 
+        UpdateShadePrograms(scene,ray, payload, programs);
 
-        IntersectionResult intersection = Intersect(scene->m_scene_data,ray,programs);
+        IntersectionResult intersection = Intersect(scene,ray,programs);
         
         if(intersection.ShouldTerminate)
             return;

@@ -1,6 +1,6 @@
-#include "TriangleIntersection.h"
+#include "TriangleMesh.h"
+#include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/engine/raytracing/Base.h"
-#include "jpc_tracer/engine/raytracing/detail/intersection/acceleration/IntersectionInfo.h"
 
 
 
@@ -74,6 +74,81 @@ namespace jpctracer::raytracing
 
         SurfaceInteraction interaction = {point,normal,uv,distance,material_id};
         return interaction;
+    }
+    
+
+    
+    std::optional<SurfaceInteraction> Intersect(const TriangleMesh& mesh, int idx, const Ray& ray, const int* materials_per_slot) 
+    {
+        auto[v1_id,v2_id,v3_id] = mesh.TriangleGeometries[idx];
+
+        Vec3 pos = mesh.Vertices[v1_id];
+        Vec3 sup_1 = mesh.Vertices[v2_id]-pos;
+        Vec3 sup_2 = mesh.Vertices[v2_id]-pos;
+
+        auto intersection = TriangleIntersect(ray, pos, sup_1, sup_2);
+
+        if(intersection)
+        {
+            auto[uv_ids,norm_ids,slot_id] = mesh.TriangleShadings[idx];
+            Vec2 uv_1 = mesh.UVs[uv_ids[0]];
+            Vec2 uv_2 = mesh.UVs[uv_ids[1]];
+            Vec2 uv_3 = mesh.UVs[uv_ids[2]];
+
+            Vec3 norm_1 = mesh.Normals[norm_ids[0]];
+            Vec3 norm_2 = mesh.Normals[norm_ids[1]];
+            Vec3 norm_3 = mesh.Normals[norm_ids[2]];
+
+            int material_id = *(slot_id+materials_per_slot);
+
+            return TriangleGetInteraction(ray, *intersection, material_id, norm_1,norm_2, norm_3, uv_1, uv_2, uv_3);
+        }
+        
+        
+        return std::nullopt;
+    }
+    
+
+    size_t GetSize(const TriangleMesh& mesh) 
+    {
+        return mesh.TriangleShadings.size();
+    }
+    
+    Bounds3D BoundingBox(const TriangleMesh& mesh, int idx) 
+    {
+        auto[v1_id,v2_id,v3_id] = mesh.TriangleGeometries[idx];
+        Vec3 v1 = mesh.Vertices[v1_id];
+        Vec3 v2 = mesh.Vertices[v2_id];
+        Vec3 v3 = mesh.Vertices[v3_id];
+
+        Vec3 max_b = {
+            std::max(v1[0],std::max(v2[0],v3[0])),
+            std::max(v1[1],std::max(v2[1],v3[1])),
+            std::max(v1[2],std::max(v2[2],v3[2]))
+        };
+        
+        Vec3 min_b = {
+            std::min(v1[0],std::min(v2[0],v3[0])),
+            std::min(v1[1],std::min(v2[1],v3[1])),
+            std::min(v1[2],std::min(v2[2],v3[2]))
+        };
+
+        return {min_b,max_b};
+        
+    }
+    
+    Vec3 GetCenter(const TriangleMesh& mesh, int idx) 
+    {
+        auto[v1_id,v2_id,v3_id] = mesh.TriangleGeometries[idx];
+        Vec3 v1 = mesh.Vertices[v1_id];
+        Vec3 v2 = mesh.Vertices[v2_id];
+        Vec3 v3 = mesh.Vertices[v3_id];
+
+        return {
+            (v1[0]+v2[0]+v3[0])/3.f,
+            (v1[1]+v2[1]+v3[1])/3.f,
+            (v1[2]+v2[2]+v3[2])/3.f
+        };
     }
 
 

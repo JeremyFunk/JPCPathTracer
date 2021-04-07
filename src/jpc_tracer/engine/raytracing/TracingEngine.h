@@ -1,6 +1,7 @@
 #pragma once
 #include "Base.h"
-#include "Scene.h"
+#include "SceneBuilder.h"
+
 
 namespace jpctracer::raytracing {
 
@@ -22,8 +23,8 @@ namespace jpctracer::raytracing {
 
 
 
-    ThreadData* Create(const GlobalData* data,ComputationCell cell);
-    void Free(ThreadData* data);
+    UserThreadData* Clone(UserThreadData* data,ComputationCell cell);
+    void Free(UserThreadData* data);
 
 
 
@@ -32,9 +33,9 @@ namespace jpctracer::raytracing {
     struct Context
     {
         void SetComputationGrid(ComputationGrid grid);
-        void SetMaxStackDepth(int depth = 20);
-        void SetRayGenator(void (*ray_generator)(int x, int y, ThreadData* data, const Scene* scene));  
-        void SetThreadDataSaver(void (*thread_saver)(GlobalData* data, ThreadData* datas, int count));      
+        void SetRayGenator(void (*ray_generator)(int x, int y, UserThreadData* data, const Scene* scene));  
+        void SetThreadDataSaver(void (*thread_saver)(UserThreadData* datas, int count));      
+        void SetScene();
         PrivateContext* data;
     };
     

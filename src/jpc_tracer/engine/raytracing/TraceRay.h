@@ -1,8 +1,8 @@
 
 #pragma once
-#include "Scene.h"
+#include "SceneBuilder.h"
 
 namespace jpctracer::raytracing {
 
-    void TraceRay(const Scene* scene,const Ray& ray, Payload* payload, TracingContext* context);
+    void TraceRay(const Ray& ray, Payload* payload, TracingContext* context);
 }

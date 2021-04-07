@@ -82,9 +82,9 @@ namespace jpctracer {
             void operator()(Ray ray,Payload* payload);
         };
 
-        struct PixelSaver
+        struct Film
         {
-            void operator()(std::string channel_name, uint x, uint y, Vec3 rgb)
+            void SavePixel(std::string channel_name, uint x, uint y, Vec3 rgb)
             {}
         };
 

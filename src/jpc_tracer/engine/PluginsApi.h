@@ -1,5 +1,6 @@
 #pragma once
 #include"shadersystem/shadersystem.h"
+#include "raytracing/Geometry.h"
 #include <utility>
 
 namespace jpctracer
@@ -29,4 +30,10 @@ namespace jpctracer
     {
         return context.bsdf_stack->MixNodes(first, second, mix_factor);
     }
+
+    using TriangleGeometry = raytracing::TriangleGeometry;
+    using TriangleShading = raytracing::TriangleShading;
+    using TriangleMesh = raytracing::TriangleMesh;
+    using SphereMesh = raytracing::SphereMesh;
+    
 }

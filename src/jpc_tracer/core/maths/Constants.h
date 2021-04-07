@@ -13,8 +13,9 @@ namespace jpctracer {
     using Int2 = math::Vec<int,2>;
     using UInt2 = math::Vec<unsigned int,2>;
     using Mat3x3 = int;
+    using Mat4x4 = int;
 
-    
+    using Transformation = Mat4x4;
 
 
 

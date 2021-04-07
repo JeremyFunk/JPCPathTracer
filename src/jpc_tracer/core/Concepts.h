@@ -3,6 +3,7 @@
 #include <iterator>
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Constants.h"
+#include "jpc_tracer/core/maths/Spectrum.h"
 #include "maths/maths.h"
 #include "archetypes.h"
 
@@ -73,10 +74,10 @@ namespace jpctracer {
         //Film
         //**********************************************************************
         template<class T>
-        concept PixelSaver = requires(T saver, std::string channel_name,
-                                            uint x, uint y, Vec3 rgb)
+        concept Film = requires(T film, std::string channel_name,
+                                            uint x, uint y, Spectrum spec)
         {
-            saver(channel_name,x,y,rgb);
+            film.SavePixel(channel_name,x,y,spec);
         };
 
         //Integrator
@@ -143,9 +144,9 @@ namespace jpctracer {
             return integrator.template GetRayBehavior<type>();
         }
 
-        template<class T, class Camera,class Sampler, class Film, class Tracer>            
+        template<class T, class Camera,class Sampler, class FilmT, class Tracer>            
         concept Integrator = requires(T integrator,const Camera& camera,
-                            Sampler& sampler, Film film, Tracer& tracer)
+                            Sampler& sampler, FilmT film, Tracer& tracer)
         {
             integrator(camera,sampler,film);
             {GetRayBehavior<MATERIAL_BSDF>(integrator)}
@@ -154,7 +155,7 @@ namespace jpctracer {
         }   
         && CameraFunction<Camera>
         && SamplerFunction<Sampler,Vec2*,Vec3*>
-        && PixelSaver<Film>
+        && Film<FilmT>
         && TraceRay<Tracer>;
 
         //Samplers
@@ -180,7 +181,7 @@ namespace jpctracer {
         concept IntegratorBuilder = requires(T builder)
         {
             {Build(builder)}->Integrator<archetypes::CameraFunction, 
-                        archetypes::SamplerFunction, archetypes::PixelSaver, 
+                        archetypes::SamplerFunction, archetypes::Film, 
                         archetypes::TraceRay>;
         };
 

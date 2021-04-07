@@ -24,7 +24,7 @@ namespace jpctracer
             const cts::CameraFunction auto& camera,
             cts::SamplerFunction<Vec2*,Vec3*> auto& sampler,
             cts::TraceRay auto& tracer, 
-            cts::PixelSaver auto& pixel_saver);
+            cts::Film auto& film);
         
     private:
         uint m_sub_pixels_x;
@@ -39,7 +39,7 @@ namespace jpctracer
             const cts::CameraFunction auto& camera,
             cts::SamplerFunction<Vec2*,Vec3*> auto& sampler,
             cts::TraceRay auto& tracer, 
-            cts::PixelSaver auto& pixel_saver)
+            cts::Film auto& film)
     {
         
         std::vector<Vec2> subpixel_samples(m_sub_pixels_x*m_sub_pixels_y);
@@ -68,7 +68,7 @@ namespace jpctracer
 
         }
 
-        pixel_saver("Combined",pixel,ToRGB(result/subpixel_samples.size()));
+        film.SavePixel("Combined",pixel,result/subpixel_samples.size());
     }
 
 
