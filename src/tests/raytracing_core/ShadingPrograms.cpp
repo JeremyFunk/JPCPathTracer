@@ -1,10 +1,12 @@
 #include "gtest/gtest.h"
 #include "jpc_tracer/engine/raytracing/Base.h"
-#include "jpc_tracer/engine/raytracing/Scene.h"
-#include "jpc_tracer/engine/raytracing/detail/shade_programs/ShadePrograms.h"
+#include "jpc_tracer/engine/raytracing/SceneBuilder.h"
+#include "jpc_tracer/engine/raytracing/detail/ShadePrograms.h"
 #include "jpc_tracer/engine/raytracing/detail/TracingContext.h"
+#include "jpc_tracer/engine/raytracing/detail/Scene.h"
 
 namespace jpctracer::raytracing {
+    /*
     struct Payload
     {
         int closest_hits;
@@ -35,7 +37,7 @@ namespace jpctracer::raytracing {
     {
         const Scene* scene = nullptr; 
 
-        TracingContext* context = new TracingContext {ShadePrograms (scene,max_stack_size,std::max(sizeof(MatParameter1),sizeof(MatParameter2)))};
+        TracingContext* context = new TracingContext {ShadePrograms ())};
         context->Programs.SetContext(context);
         return context;
     };
@@ -122,6 +124,6 @@ namespace jpctracer::raytracing {
         EXPECT_EQ(payload.closest_hits,max_depth*max_depth*3);
         
         
-    }
+    }*/
 }
 

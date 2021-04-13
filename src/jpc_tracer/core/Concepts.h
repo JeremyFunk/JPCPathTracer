@@ -1,7 +1,9 @@
 #pragma once
 #include <concepts>
 #include <iterator>
+#include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Constants.h"
+#include "jpc_tracer/core/maths/Spectrum.h"
 #include "maths/maths.h"
 #include "archetypes.h"
 
@@ -53,16 +55,17 @@ namespace jpctracer {
             {func(&incident_ray,random_p3D)}
                                 ->std::convertible_to<std::pair<Spectrum,Prec>>; 
         };
-
+    }
         inline bool IsDeltaDistribution(Prec pdf) {return std::abs(pdf)<0.0001;}
-
+    namespace cts {
+    
 
 
         template<class T>
         concept DistributionCreator = requires(T creator,const Ray& scattering_ray,
                                         const SurfaceInteraction& interaction)
         {
-            {CreateDistribution<MaterialType::BSDF>(creator, scattering_ray, 
+            {CreateDistribution<MATERIAL_BSDF>(creator, scattering_ray, 
                             interaction)}
                 ->DistributionFunction;
         };
@@ -71,41 +74,68 @@ namespace jpctracer {
         //Film
         //**********************************************************************
         template<class T>
-        concept PixelSaver = requires(T saver, std::string channel_name,
-                                            uint x, uint y, Vec3 rgb)
+        concept Film = requires(T film, std::string channel_name,
+                                            uint x, uint y, Spectrum spec)
         {
-            saver(channel_name,x,y,rgb);
+            film.SavePixel(channel_name,x,y,spec);
         };
 
         //Integrator
         //**********************************************************************
-        struct Payload;
-
+    }
+    struct Payload;
+    struct AnyHitResult
+    {
+        bool IsHit;
+        bool ShouldTerminate = false;
+    };
+    
+    namespace cts {
         template<class T>
         concept TraceRay = requires(T tracer,Ray ray, Payload* payload)
         {
-            tracer<MaterialType::BSDF>(ray,payload);
-            tracer<MaterialType::DIFFUSE>(ray,payload);
-            tracer<MaterialType::EMISSION>(ray,payload);
-            tracer<MaterialType::GLOSSY>(ray,payload);
-            tracer<MaterialType::SUBSURFACE>(ray,payload);
-            tracer<MaterialType::TRANSMISSION>(ray,payload);
-            tracer<MaterialType::TRANSPARENCY>(ray,payload);
+            tracer<MATERIAL_BSDF>(ray,payload);
+            tracer<MATERIAL_DIFFUSE>(ray,payload);
+            tracer<MATERIAL_EMISSION>(ray,payload);
+            tracer<MATERIAL_GLOSSY>(ray,payload);
+            tracer<MATERIAL_SUBSURFACE>(ray,payload);
+            tracer<MATERIAL_TRANSMISSION>(ray,payload);
+            tracer<MATERIAL_TRANSPARENCY>(ray,payload);
         };
         
+        template<class T>
+        concept HitPoint = requires(T hit_point,Ray ray, Payload* payload)
+        {
+            {hit_point.template Shader<MATERIAL_BSDF>()}         -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_DIFFUSE>()}      -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_EMISSION>()}     -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_GLOSSY>()}       -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_SUBSURFACE>()}   -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_TRANSMISSION>()} -> DistributionFunction;
+            {hit_point.template Shader<MATERIAL_TRANSPARENCY>()} -> DistributionFunction;
+
+            {hit_point.ActiveLights()} -> DistributionFunction;
+
+
+        };
 
         template<class T>
         concept RayBehavior = requires(T behavior, 
-                    const shader::LightsDistribution& lights, 
-                    const archetypes::DistributionFunction& material,
-                    const archetypes::DistributionFunction& material_emission,
-                    const archetypes::DistributionFunction& background,
+                    const archetypes::HitPoint& hit_point,
+                    Payload* payload)
+        {
+            {behavior.AnyHitProgram(hit_point,payload)} -> std::convertible_to<AnyHitResult>; 
+        }
+        || requires(T behavior, 
+                    const archetypes::HitPoint& hit_point,
                     Payload* payload, archetypes::TraceRay& tracer)
         {
-            {behavior.AnyHitProgram(material,payload)} -> std::convertible_to<bool>;
-            {behavior.ClosestHitProgram(lights,material,material_emission,
-                        payload,tracer)};
-            {behavior.Miss(background,payload)};
+            {behavior.ClosestHitProgram(hit_point,payload,tracer)};
+        }
+        || requires(T behavior, Payload* payload, 
+                    const archetypes::DistributionFunction& background)
+        {
+            {behavior.MisProgram(background,payload)};
         };
 
         template<MaterialType type, class T>
@@ -114,18 +144,18 @@ namespace jpctracer {
             return integrator.template GetRayBehavior<type>();
         }
 
-        template<class T, class Camera,class Sampler, class Film, class Tracer>            
+        template<class T, class Camera,class Sampler, class FilmT, class Tracer>            
         concept Integrator = requires(T integrator,const Camera& camera,
-                            Sampler& sampler, Film film, Tracer& tracer)
+                            Sampler& sampler, FilmT film, Tracer& tracer)
         {
             integrator(camera,sampler,film);
-            {GetRayBehavior<MaterialType::BSDF>(integrator)}
+            {GetRayBehavior<MATERIAL_BSDF>(integrator)}
             -> RayBehavior;
 
         }   
         && CameraFunction<Camera>
         && SamplerFunction<Sampler,Vec2*,Vec3*>
-        && PixelSaver<Film>
+        && Film<FilmT>
         && TraceRay<Tracer>;
 
         //Samplers
@@ -145,22 +175,13 @@ namespace jpctracer {
             {Build(builder)} -> CameraFunction;
         };
 
-        //Shaders
-        //**********************************************************************
-
-        template<class T>
-        concept ShaderBuilder = requires(T builder, shader::ShaderCache& cache)
-        {
-            {Build(builder,cache)} -> DistributionCreator;
-        };
-
         //Integrator
         //**********************************************************************
         template<class T>
         concept IntegratorBuilder = requires(T builder)
         {
             {Build(builder)}->Integrator<archetypes::CameraFunction, 
-                        archetypes::SamplerFunction, archetypes::PixelSaver, 
+                        archetypes::SamplerFunction, archetypes::Film, 
                         archetypes::TraceRay>;
         };
 

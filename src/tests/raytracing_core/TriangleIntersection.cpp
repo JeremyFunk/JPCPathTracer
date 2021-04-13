@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "jpc_tracer/engine/raytracing/SurfaceInteraction.h"
-#include "jpc_tracer/engine/raytracing/detail/intersection/acceleration/TriangleIntersection.h"
+#include "jpc_tracer/engine/raytracing/detail/acceleration/TriangleMesh.h"
 
 namespace jpctracer::raytracing {
     TEST(triangle_intersection, InSurface)

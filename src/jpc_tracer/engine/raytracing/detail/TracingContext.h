@@ -1,11 +1,12 @@
 #pragma once
-#include "jpc_tracer/engine/raytracing/Scene.h"
-#include "jpc_tracer/engine/raytracing/detail/shade_programs/ShadePrograms.h"
+#include "Scene.h"
+#include "ShadePrograms.h"
 
 namespace jpctracer::raytracing
 {
     struct TracingContext
     {
-        ShadePrograms Programs;
+        ShadePrograms programs;
+        const Scene* scene;
     };
 }

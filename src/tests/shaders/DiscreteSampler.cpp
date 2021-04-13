@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "jpc_tracer/plugins/shaders/sampling/DiscreteSampler.h"
+#include "jpc_tracer/engine/shadersystem/DiscreteSampler.h"
 
 namespace jpctracer::sampler::detail {
 

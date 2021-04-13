@@ -2,12 +2,9 @@
 #include "Base.h"
 #include "jpc_tracer/core/core.h"
 #include <memory>
+#include <vector>
 
 namespace jpctracer::raytracing {
-    enum class InstanceBVHType
-    {
-        NAIVE
-    };
 
     enum class DynamicBVHType
     {
@@ -19,37 +16,63 @@ namespace jpctracer::raytracing {
         NAIVE
     };
 
-    
-    struct PrivateGeometry;
-
-    struct Geometry
+    struct EntityId
     {
-        //int = Triangle id
-        int AddTriangle(Triangle triangle, int material_id);
-        //int = Sphere id
-        int AddSphere(Sphere sphere, int material_id);
-        PrivateGeometry* data;
+        const int Id;
+    };
 
+    enum class MeshTypes
+    {
+        TRIANGLE,
+        SPHERE
+    };
+
+    struct MeshId 
+    {
+        const MeshTypes type;
+        const size_t id;
     };
 
 
-    
-    struct PrivateRootGeometry;
-
-    struct RootGeometry
+    struct TriangleGeometry
     {
-        Geometry* CreateGeometryInstance(Transformation transformation);
-
-        Geometry* CreateAnimatedGeometryInstance(std::shared_ptr<IAnimated<Transformation>>);
-        ~RootGeometry();
-
-        PrivateRootGeometry* data;
-        //Gets the Triangle in world Space
-        Triangle GetTriangle(int id);
-        Sphere GetSphere(int id);
+        uint Vertex1Id;
+        uint Vertex2Id;
+        uint Vertex3Id;
     };
 
+    struct TriangleShading
+    {
+        UInt3 NormalIds;
+        UInt3 UVIds;
+        uint MaterialSlot;
+        
+    };
+    
+    struct TriangleMesh
+    {
+        std::vector<Vec3> Vertices;
+        std::vector<Vec3> Normals;
+        std::vector<Vec2> UVs;
+        
+        std::vector<TriangleGeometry> TriangleGeometries;   
+        std::vector<TriangleShading> TriangleShadings;     
 
+    };
 
+    struct Sphere
+    {
+        Vec3 Position;
+        Prec Radius;
+    };
+
+    struct SphereMesh{
+        std::vector<Sphere> Spheres;
+        std::vector<int> MaterialSlots;    
+    };
+
+    
+
+    
     
 }

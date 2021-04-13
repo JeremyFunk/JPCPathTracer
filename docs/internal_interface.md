@@ -91,10 +91,8 @@ namespace JPCTracer
         public:
             Shape* begin();
             Shape* end();
-            template<class T>
-            SetAnimation(std::shared_prt<T> animation);
-        private:
-            std::shared_prt<IAnimated<Transformation>> Animation;
+            
+            std::shared_prt<const IAnimated<Transformation>> Animation;
         }
     }
 
@@ -124,14 +122,26 @@ namespace JPCTracer
             Triangle;
             Sphere;
         }
-        struct ShaderCache;
 
-        Shader Build(ShaderBuilder builder,ShaderCache& cache);
+        BsdfNode* Shader(ShaderContext context);
+
+        class DistributionFactory
+        {
+            DistributionFactory Clone();
+            template<MaterialType type>
+            RootShader CreateShader(Shader shader, Ray scattering_ray, SurfaceInteraction interaction);
+            
+            template<MaterialType type>
+            LightsDistribution CreateLights(const Lights& lights, Ray scattering_ray, SurfaceInteraction interaction);
+            
+        }
 
         struct Lights
         {
             template<class MaterialBuilder>
-            void AddLight(int object_id,ObjectType object_type, MaterialBuilder b);
+            void AddPointLight(Shader shader,Vec3 pos);
+            void AddSunLight(Shader shader,Vec3 pos, Vec3 dir);
+            
         };
 
         enum class MaterialType
@@ -146,8 +156,8 @@ namespace JPCTracer
         }
 
         //DistributionSettings = Lights | Shader
-        template<MaterialType type>
-        DistributionFunction CreateDistribution(DistributionSettings settings, Ray scattering_ray, SurfaceInteraction interaction);
+        //template<MaterialType type>
+        //DistributionFunction CreateDistribution(ShaderThreadData,DistributionSettings settings, Ray scattering_ray, SurfaceInteraction interaction);
         //returns value and the pdf
         //if pdf = 0 then the Distirbution is a Delta Distirubtion
         std::pair<Spectrum,Prec> DistributionFunction(const Ray& incident_ray) const;
@@ -165,9 +175,9 @@ namespace JPCTracer
 ```cpp
     template<class T>
     concept PixelSaver = requires(T saver, std::string channel_name,
-                                        uint x, uint y, Vec3 rgb)
+                                        UInt2 pixel, Vec3 rgb)
     {
-        saver(channel_name,x,y,rgb);
+        saver(channel_name,pixel,rgb);
     };
 ```
 
@@ -184,20 +194,30 @@ namespace JPCTracer
     {
         struct Payload;
 
+        
+        //Forward declaration
         struct TraceRay{
-            //Forward declaration
             template<MaterialType type>
             void operator()(Ray ray,Payload* payload);
-        }
+        };
+
+        struct HitPoint
+        {
+            template<MaterialType type>
+            DistributionFunction Shader();
+            DistributionFunction ActiveLights();
+        };
+
+        //End Forward Declaration
                 
         struct RayBehavior
         {
             //returnes if it was an hit
-            template<class BsdfDistribution>
-            bool AnyHitProgram(const BsdfDistribution& material,Payload* payload);
+            template<class HitPoint>
+            bool AnyHitProgram(const HitPoint& hit_point,Payload* payload);
 
-            template<class BsdfDistribution>
-            void ClosestHitProgram(const LightsDistribution& lights,const BsdfDistribution& bsdf,const Distribution& material_emission,Payload* payload ,TraceRay& trace);
+            template<class HitPoint>
+            void ClosestHitProgram(const HitPoint& hit_point,Payload* payload ,TraceRay& trace);
 
             template<class BackbroundDistribution>
             void Miss(const BackbroundDistribution& background, Payload* payload);
@@ -228,6 +248,9 @@ void DirectLight(const B& bsdf_dist, const L& light_dist, Payload* payload )
     Ray light_ray;
 
     auto[light_val,light_pdf] = light_dist(light_ray,payload->Samples2D);
+    r = payload()
+    trace<MATERIAL_TRANSPARENT>(light_ray,r);
+    r.Color[4];
     auto[val_bsdf,pdf_bsdf] = bsdf_dist(light_ray);
     payload->Samples2D++;
 
@@ -261,7 +284,7 @@ void GlobalIllumination(const B& bsdf_dist, const L& bsdf_light_dist, Payload* p
 
 ...
 
-template<RayType type>
+template<Material type>
 struct GenerallRays
 {  
     int MaxDepth;
@@ -269,9 +292,13 @@ struct GenerallRays
     int GlobalIlluminationCount;
 
     template<class Bsdf>
-    void ClosestHitProgram(const LightsDistirbution& lights,const Bsdf& bsdf,const Distribution& emission,Payload* payload ,TraceRay& trace)
+    void ClosestHitProgram(const HitPoint& hit_point,Payload* payload ,TraceRay& trace)
     {
         if(payload.Depth>=MaxDepth) return;
+
+        auto bsdf = hit_point.Shader<type>();
+        auto lights = hit_point.ActiveLights();
+        auto emission = hit_point.Shader<MATERIAL_EMMISION>();
 
         //Direct Light
         for(int i = 0; i< LightSampleCount; i++)
@@ -286,8 +313,8 @@ struct GenerallRays
         }
     }
 
-    template<class Material, class LightsRange>
-    bool AnyHitProgram(const MaterialDistribution& material,Payload* payload)
+    template<class HitPoint>
+    bool AnyHitProgram(onst HitPoint& hit_point,Payload* payload)
     {
         return true;
     };
@@ -326,6 +353,8 @@ namespace JPCTracer
 
         
     }
+
+    
 }
 
 

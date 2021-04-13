@@ -26,4 +26,5 @@ namespace jpctracer {
         Prec Distance;
         int MaterialId;
     };
+
 }

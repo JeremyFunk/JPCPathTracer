@@ -11,11 +11,7 @@ namespace jpctracer
         return Vec3{spec[0],spec[1],spec[2]};
     }
     
-    Spectrum FromRGB(const Vec3& rgb) 
-    {
-        return Spectrum{rgb[0],rgb[1],rgb[2],1.0};
-    }
-    
+
     Prec& Transparency(Spectrum& spec) 
     {
         return spec[4];

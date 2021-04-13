@@ -1,5 +1,6 @@
 #pragma once
 
+#include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/maths.h"
 
@@ -47,42 +48,23 @@ namespace jpctracer {
 
         struct DistributionFunction
         {
+            DistributionFunction() = default;
+            DistributionFunction(const DistributionFunction& o) = delete;
+            DistributionFunction(DistributionFunction&& o) = delete;
+
             std::pair<Spectrum,Prec> operator()(const Ray& incident_ray) const
             {return {};}
 
-            std::pair<Spectrum,Prec> operator()(Ray& out_incident_ray, 
+            std::pair<Spectrum,Prec> operator()(Ray* out_incident_ray, 
                                                 Vec2 random_point) const
             {return {};}
 
-            std::pair<Spectrum,Prec> operator()(Ray& out_incident_ray, 
+            std::pair<Spectrum,Prec> operator()(Ray* out_incident_ray, 
                                                 Vec3 random_point) const
             {return {};}
         };
 
-        struct Shader
-        {
-            template<MaterialType type>
-            DistributionFunction CreateDistribution(const Ray& scattering_ray,
-                                    const SurfaceInteraction& interaction,
-                                    const shader::ShaderCache& cache)
-            {return {};}
-        };
-
-        template<MaterialType type,class T>
-        auto CreateDistribution(T creator,const Ray& scattering_ray,
-                                const SurfaceInteraction& interaction)
-        {
-            return creator.template CreateDistribution<type>(scattering_ray,
-            interaction);
-        }
-
-        struct ShaderBuilder
-        {
-            Shader Build(shader::ShaderCache& cache) {return {};}
-        };
-    }
-    namespace shader {
-        struct LightsDistribution;
+        
     }
     namespace archetypes
     {
@@ -100,23 +82,38 @@ namespace jpctracer {
             void operator()(Ray ray,Payload* payload);
         };
 
-        struct PixelSaver
+        struct Film
         {
-            void operator()(std::string channel_name, uint x, uint y, Vec3 rgb)
+            void SavePixel(std::string channel_name, uint x, uint y, Vec3 rgb)
             {}
         };
+
+        struct HitPoint
+        {
+            template<MaterialType type>
+            DistributionFunction Shader() const
+            {
+                return {};
+            }
+
+            const DistributionFunction& ActiveLights() const
+            {
+                return m_lights;
+            }
+        private:
+            DistributionFunction m_lights;
+        };
+
         //End forward declaration
 
         struct RayBehavior
         {
             //returnes if it was an hit
-            template<class Distribution>
-            bool AnyHitProgram(const Distribution& material,Payload* payload);
+            template<class _HitPoint>
+            bool AnyHitProgram(const _HitPoint& hit_point,Payload* payload);
 
-            template<class Distribution>
-            void ClosestHitProgram(const shader::LightsDistribution& lights,
-                const Distribution& bsdf,const Distribution& material_emission,
-                Payload* payload ,TraceRay& trace);
+            template<class _HitPoint>
+            void ClosestHitProgram(const _HitPoint& hit_point, Payload* payload ,TraceRay& trace);
 
             template<class BackbroundDistribution>
             void Miss(const BackbroundDistribution& background, Payload* payload);

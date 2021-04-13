@@ -1,9 +1,8 @@
 set(AUTOSRC
 "test_utils.h"
 "shaders/DiscreteSampler.cpp"
-"shaders/mixer.cpp"
-"shaders/mixerbsdf.cpp"
-"shaders/shader_concepts.cpp"
+"shaders/BsdfFactory.cpp"
+"shaders/ShaderFunction.cpp"
 "raytracing_core/TriangleIntersection.cpp"
 "raytracing_core/ShadingPrograms.cpp"
 "samplers/GridSamplers.cpp"
