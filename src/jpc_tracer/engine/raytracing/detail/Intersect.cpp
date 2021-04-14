@@ -4,11 +4,12 @@
 #include <optional>
 
 namespace jpctracer::raytracing {
-    IntersectionResult Intersect(const Scene& scene,const Ray& ray,ShadePrograms& programs) 
+    IntersectionResult Intersect(const Scene& scene,const Ray& ray,
+        AnyHitCallBack any_hit_program) 
     {
         if(scene.static_bvh_type==StaticBVHType::NAIVE)
         {
-            return NaiveInstancesIntersect(programs, scene,ray);
+            return NaiveInstancesIntersect(any_hit_program, scene,ray);
         }
         return {std::nullopt,false};
     }

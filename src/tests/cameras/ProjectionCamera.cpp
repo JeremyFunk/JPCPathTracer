@@ -5,14 +5,14 @@
 namespace jpctracer {
     TEST(cameras, ProjectionCameraTest)
     {
-        camera::ProjectionCameraBuilder builder;
-        builder.Height = 10;
-        builder.Width = 20;
-        builder.NearPlane = 1;
+        uint Height = 10;
+        uint Width = 20;
+        uint NearPlane = 1;
 
-        auto camera = Build(builder);
+        auto camera = camera::ProjectionCamera(NearPlane);
+        camera.SetWidthHeight(Width, Height);
         
-        Ray ray = camera({0,0},{0,0});
+        Ray ray = camera.Generate({0,0},{0,0});
         Vec3 origin = {0,0,0};
         Vec3 dir = Vec3{-1,0.5,-1}.normalized();
 

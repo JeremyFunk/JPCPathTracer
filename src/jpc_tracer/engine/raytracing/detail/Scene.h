@@ -19,13 +19,5 @@ namespace jpctracer::raytracing
         std::vector<std::pair<Instance,Transformation>> static_instances;
         std::vector<TriangleMesh> triangle_meshs;
         std::vector<SphereMesh> sphere_meshs;
-
-        std::vector<MissFuncPtr> mis_programs;
-        std::vector<AnyHitFuncPtr> any_hit_programs;
-        std::vector<ClosestHitFuncPtr> closest_hit_programs;
-        std::vector<const void*> materials;
-        
-        int material_count;
-        int ray_types_count;
     };
 }

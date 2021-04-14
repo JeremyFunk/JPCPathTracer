@@ -5,18 +5,46 @@
 #include "NormalSpace.h"
 
 namespace jpctracer::shadersys {
-    class IBsdfClosure
+
+    struct ShaderResult
     {
-    public:
-        virtual std::pair<Spectrum,Prec> operator()(const NormalSpace& context, 
-                                Ray incident_ray) const = 0;
-        virtual std::pair<Spectrum,Prec> operator()(const NormalSpace& context, 
-                                Ray* out_incident_ray,Vec2 rand_p) const
+        Spectrum luminance = FromValue(0);
+        Prec pdf = 0;
+    };
+
+    inline ShaderResult operator+(const ShaderResult& a,const ShaderResult& b)
+    {
+        return {a.luminance+b.luminance,a.pdf+b.pdf};
+    }
+
+    inline void operator+=(ShaderResult& a,const ShaderResult& b)
+    {
+        a.luminance+=b.luminance;
+        a.pdf+=b.pdf;
+    }
+
+    inline ShaderResult operator*(const ShaderResult& a,const Prec& v)
+    {
+        return {a.luminance*v,a.pdf*v};
+    }
+
+
+    inline void operator*=(ShaderResult& a,const Prec& v)
+    {
+        a.luminance*=v;
+        a.pdf*=v;
+    }
+
+    
+
+    struct IBsdfClosure
+    {
+        virtual ShaderResult Eval( Ray incident_ray) const = 0;
+        virtual ShaderResult Sample2D( Ray* out_incident_ray,Vec2 rand_p) const
         {
             return {Black(),0};
         }
-        virtual std::pair<Spectrum,Prec> operator()(const NormalSpace& context, 
-                                Ray* out_incident_ray,Vec3 rand_p) const
+        virtual ShaderResult Sample3D( Ray* out_incident_ray,Vec3 rand_p) const
         {
             return {Black(),0};
         }

@@ -1,7 +1,6 @@
 #include "gtest/gtest.h"
 #include "jpc_tracer/engine/raytracing/Base.h"
 #include "jpc_tracer/engine/raytracing/SceneBuilder.h"
-#include "jpc_tracer/engine/raytracing/detail/ShadePrograms.h"
 #include "jpc_tracer/engine/raytracing/detail/TracingContext.h"
 #include "jpc_tracer/engine/raytracing/detail/Scene.h"
 

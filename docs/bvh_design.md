@@ -89,7 +89,7 @@
                 }
                 else
                 {
-                    for(const auto& child : *stack_iter->childs) *(stack_iter++) = child;
+                    for(const auto& child : *reverse(stack_iter->childs)) *(stack_iter++) = child;
                 }
             }
 

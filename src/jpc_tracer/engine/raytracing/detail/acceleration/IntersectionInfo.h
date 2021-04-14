@@ -1,6 +1,5 @@
 #pragma once
 #include "jpc_tracer/engine/raytracing/Base.h"
-#include "jpc_tracer/engine/raytracing/SurfaceInteraction.h"
 #include <optional>
 
 namespace jpctracer::raytracing

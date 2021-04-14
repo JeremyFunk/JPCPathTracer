@@ -22,8 +22,11 @@ namespace jpctracer
         
     }
     
-    void FilmChannel::SavePixel(uint x, uint y, Spectrum spec) 
+    void FilmChannel::SavePixel(UInt2 pixel, Spectrum spec) 
     {
+        uint x = pixel[0];
+        uint y = pixel[1];
+        
         Vec3 rgb = ToRGB(spec);
         rgb[0] = std::clamp<Prec>(rgb[0],0,1);
         rgb[0] = std::clamp<Prec>(rgb[0],0,1);

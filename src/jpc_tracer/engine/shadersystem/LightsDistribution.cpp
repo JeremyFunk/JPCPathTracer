@@ -1,13 +1,14 @@
 #include "LightsDistribution.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/engine/shadersystem/Lights.h"
 #include <cstdlib>
 
 
 
 namespace jpctracer::shadersys
 {
-    LightsDistribution::LightsDistribution(PointLights* point_lights,SurfaceInteraction interaction) 
-        : m_point_lights(point_lights),m_interaction(interaction)
+    LightsDistribution::LightsDistribution(const Lights* lights,SurfaceInteraction interaction) 
+        : m_point_lights(&lights->point_lights),m_interaction(interaction)
     {
         
     }
@@ -20,7 +21,6 @@ namespace jpctracer::shadersys
     std::pair<Spectrum,Prec> LightsDistribution::operator()(Ray* out_incident_ray, 
                                                 Vec2 random_point) const
     {
-        const RootShader* shader = m_point_lights->Sample(out_incident_ray,m_interaction,random_point);
-        return shader->operator()(*out_incident_ray);
+        return {Black(),0};
     }
 }

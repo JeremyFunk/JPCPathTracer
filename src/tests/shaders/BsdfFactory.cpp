@@ -3,44 +3,41 @@
 #include <bits/c++config.h>
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
-#include "jpc_tracer/core/maths/maths.h"
-#include "jpc_tracer/engine/shadersystem/BsdfStack.h"
+#include "jpc_tracer/engine/PluginsApi.h"
 #include "jpc_tracer/plugins/shaders/DebugBsdf.h"
-#include "jpc_tracer/engine/shadersystem/ShaderContext.h"
-#include "jpc_tracer/engine/shadersystem/RootShader.h"
-#include "jpc_tracer/engine/shadersystem/DistributionFactory.h"
 #include "../test_utils.h"
 
-namespace jpctracer::shadersys {
+namespace jpctracer {
     
     TEST(shaders,factor_debugbsdf)
     {
-        constexpr std::size_t bsdf_count = 20;
-        NormalSpace normal_space;
-        BsdfStack* factory = new BsdfStack();
-        ShaderContext context{&normal_space,MATERIAL_DIFFUSE,factory};
-        for(int i=0; i<13;i++)
+        auto f = [&](ShaderContext* ctx)
         {
-            BsdfNode* bsdf = CreateBsdf<MATERIAL_DIFFUSE, DebugBsdfClosure>(context,Black());
-            
-            EXPECT_TRUE(bsdf!=nullptr);
+            BsdfNode node1 = DebugBsdf(ctx, FromRGB({0,0,1}));
+            BsdfNode node2 = DebugBsdf(ctx, FromRGB({1,0,0}));
+            return MixBsdf(ctx, node1, node2, 0.5);
+        };
+        Ray rays[2] = {Ray{{0,0,0},{0,0,0}},Ray{{0,0,0},{0,0,0}}};
+        ShaderResults results = shadersys::EvalShader<MATERIAL_DIFFUSE>(f, {0,1,1},{rays,2});
+        TestSpectrum(results.eval_results[0].luminance,FromRGB({0.5,0,0.5}));
 
-        }
-        free(factory);
     }
-
+    
     TEST(shaders,factor_debugbsdf2)
     {
-        constexpr std::size_t bsdf_count = 20;
-        NormalSpace normal_space;
-        
-        BsdfStack* factory = new BsdfStack();
-        ShaderContext context{&normal_space,MATERIAL_DIFFUSE,factory};
-        BsdfNode* bsdf = CreateBsdf<MATERIAL_EMISSION, DebugBsdfClosure>(context,Black());
-        EXPECT_EQ(bsdf,nullptr);
-        free(factory);
+        auto f = [&](ShaderContext* ctx)
+        {
+            BsdfNode node1 = DebugBsdf(ctx, FromRGB({0,0,1}));
+            BsdfNode node2 = DebugBsdf(ctx, FromRGB({1,0,0}));
+            BsdfNode node3 = DebugBsdf(ctx, FromRGB({0,1,0}));
+            BsdfNode mix1 = MixBsdf(ctx, node1, node2, 0.5);
+            return MixBsdf(ctx,node3,mix1,0.5);
+        };
+        Ray rays[2] = {Ray{{0,0,0},{0,0,0}},Ray{{0,0,0},{0,0,0}}};
+        ShaderResults results = shadersys::EvalShader<MATERIAL_DIFFUSE>(f, {0,1,1} ,{rays,2});
+        TestSpectrum(results.eval_results[0].luminance,FromRGB({0.25,0.5,0.25}));
     }
-
+    /*
     TEST(shaders,dist_factory)
     {
         DistributionFactory* factory = new DistributionFactory();
@@ -98,6 +95,6 @@ namespace jpctracer::shadersys {
         }
         
 
-    }
+    }*/
 
 }

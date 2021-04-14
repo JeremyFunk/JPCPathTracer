@@ -8,11 +8,11 @@
 #include "FilmChannel.h"
 namespace jpctracer::film
 {
-    class BasicFilm
+    class Film
     {
     public:
-        BasicFilm(uint width, uint height);
-        void SavePixel(std::string channel,uint x, uint y, Spectrum val);
+        Film(uint width, uint height);
+        void SavePixel(std::string channel,UInt2 pixel, Spectrum val);
         void WriteChannels(std::string directory);
     private:
         std::mutex m_channel_mutex;
@@ -23,5 +23,4 @@ namespace jpctracer::film
     };
 
 
-    static_assert(cts::Film<BasicFilm>);
 }

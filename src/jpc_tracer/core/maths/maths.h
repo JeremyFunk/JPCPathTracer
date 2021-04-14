@@ -13,8 +13,8 @@ namespace jpctracer {
     {
         Vec3 Direction;
         Vec3 Origin;
-        Vec2 LensPosition;
-        Prec ClipEnd;
+        Vec2 LensPosition = {0,0};
+        Prec ClipEnd = 0;
         float Time = 0;
     };
 

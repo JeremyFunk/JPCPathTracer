@@ -3,6 +3,7 @@
 #include "jpc_tracer/engine/PluginsApi.h"
 
 namespace jpctracer {
+    /*
     TEST(shader,ShaderFunc1)
     {
         auto f = [&](jpctracer::ShaderContext context)
@@ -73,5 +74,5 @@ namespace jpctracer {
         
         ShaderContext context{};
         EXPECT_NEAR(result(context),2.5,0.001);
-    }
+    }*/
 }

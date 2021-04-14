@@ -1,5 +1,6 @@
 #pragma once
 #include "jpc_tracer/core/core.h"
+#include "jpc_tracer/engine/PluginsApi.h"
 #include <random>
 
 namespace jpctracer::sampler {
@@ -12,14 +13,14 @@ namespace jpctracer::sampler {
         };
 
         template<RandFunc R>
-        class GridSampler
+        class GridSampler final: public ISampler
         {
         private:
             R m_rand;
         public:
             GridSampler(R rand) : m_rand{rand} {}
 
-            void operator()(UInt2 count,std::output_iterator<Vec2> auto result_it)
+            inline void Sample(UInt2 count,Vec2* result_it)
             {
                 Prec inv_width = 1/ (Prec) count[0];
                 Prec inv_height = 1/ (Prec) count[1];
@@ -35,7 +36,7 @@ namespace jpctracer::sampler {
                 }
             }
 
-            void operator()(UInt3 count,std::output_iterator<Vec3> auto result_it)
+            inline void Sample(UInt3 count,Vec3* result_it)
             {
                 Prec inv_width = 1.f/ (Prec) count[0];
                 Prec inv_height = 1.f/ (Prec) count[1];
@@ -51,6 +52,10 @@ namespace jpctracer::sampler {
                             *result_it = {sample_x,sample_y,sample_z};
                             result_it++;
                         }
+            }
+            ISampler* Clone() const
+            {
+                return new GridSampler(m_rand);
             }
 
         };
@@ -68,20 +73,15 @@ namespace jpctracer::sampler {
 
     }
 
-    struct StratifiedSamplerBuilder
+    inline auto StratifiedSampler()
     {
-        auto Build()
-        {
-            std::random_device rd;
-            return detail::GridSampler(detail::RandOp(rd));
-        }
+        std::random_device rd;
+        return detail::GridSampler(detail::RandOp(rd));
+    
     };
-    struct DebugSamplerBuilder
+    inline auto DebugSampler()
     {
-        auto Build()
-        {
-            return detail::GridSampler([](){return 0.5;});
-        }
+        return detail::GridSampler([](){return 0.5;});
     };
 
 

@@ -7,6 +7,7 @@
 #include "Payload.h"
 #include <vector>
 #include "ShadowBehavior.h"
+#include "jpc_tracer/engine/PluginsApi.h"
 
 namespace jpctracer
 {
@@ -16,72 +17,20 @@ namespace jpctracer
         uint SubPixels;
     };
 
-
-    class DirectLightIntegrator
+    inline Spectrum ComputeDirectLight(const  ShaderResult& bsdf,
+                            const ShaderResult& light,
+                            const Ray& ray,
+                            Tracer& tracer,
+                            const ShadowBehavior& shadow_behavior )
     {
-    public:
-        void operator()(UInt2 pixel,
-            const cts::CameraFunction auto& camera,
-            cts::SamplerFunction<Vec2*,Vec3*> auto& sampler,
-            cts::TraceRay auto& tracer, 
-            cts::Film auto& film);
+
         
-    private:
-        uint m_sub_pixels_x;
-        uint m_sub_pixels_y;
-        uint m_light_samples_x;
-        uint m_light_samples_y;
-        
-        
-
-    };
-    void DirectLightIntegrator::operator()(UInt2 pixel,
-            const cts::CameraFunction auto& camera,
-            cts::SamplerFunction<Vec2*,Vec3*> auto& sampler,
-            cts::TraceRay auto& tracer, 
-            cts::Film auto& film)
-    {
-        
-        std::vector<Vec2> subpixel_samples(m_sub_pixels_x*m_sub_pixels_y);
-        sampler(UInt2{m_sub_pixels_x,m_sub_pixels_y},&subpixel_samples[0]);
-
-        std::vector<Vec2> emission_samples(m_sub_pixels_x*m_sub_pixels_y);
-        
-        Vec2* emssion_samples_it = &emission_samples[0];
-
-        Spectrum result = FromValue(0);
-
-        int total_light_samples = m_light_samples_x*m_light_samples_y;
-
-        for(const auto& sample : subpixel_samples)
-        {
-            std::vector<Vec2> integrator_samples(total_light_samples+1);
-            Vec2* samples_it = &integrator_samples[0];
-            sampler(UInt2{m_light_samples_x,m_light_samples_y},samples_it);
-            integrator_samples[total_light_samples] = *emssion_samples_it;
-            Payload payload = {samples_it,FromValue(1)};
-            Ray ray = camera(pixel,sample);
-            tracer<MATERIAL_BSDF>(ray,&payload);
-            result +=payload.result;
-
-            emssion_samples_it++;
-
-        }
-
-        film.SavePixel("Combined",pixel,result/subpixel_samples.size());
-    }
-
-
-    Spectrum ComputeDirectLight(const cts::DistributionFunction auto& bsdf,
-                            const cts::DistributionFunction auto& lights,
-                            const Vec2& sample,cts::TraceRay auto& tracer)
-    {
-        Ray light_ray;
-        auto[light_val,light_pdf] = lights(&light_ray,sample);
         Payload shadow_test;
-        tracer<MATERIAL_TRANSPARENCY>(light_ray,shadow_test);
+        tracer(shadow_behavior,ray,&shadow_test);
         if(shadow_test.IsShadow) return Black();
-        auto[bsdf_val,bsdf_pdf] = bsdf(light_ray);
+
+        auto[light_val,light_pdf] = light;
+        auto[bsdf_val,bsdf_pdf] = bsdf;
         
         if(!IsDeltaDistribution(light_pdf))
             return bsdf_val*light_val/light_pdf;
@@ -89,22 +38,45 @@ namespace jpctracer
     };
 
 
-    struct DirectLightBehavior
+    struct DirectLightBehavior final : public IRayBehavior
     {
-        void ClosestHitProgram(const cts::HitPoint auto& hit_point,Payload* payload, 
-                                cts::TraceRay auto& tracer)
+        inline void ClosestHitProgram(const HitPoint& hit_point, Payload* payload ,Tracer& tracer) const
         {
-            auto bsdf = hit_point.template Shader<MATERIAL_BSDF>();
-            auto lights = hit_point.template ActiveLights();
-            auto emission = hit_point.template Shader<MATERIAL_EMISSION>();
+            
+            ShaderResults lights = hit_point.ActiveLights({payload->samples,m_light_samples});
+            payload->samples+=m_light_samples;
+            
+            ShaderResults bsdfs = hit_point.Shader<MATERIAL_BSDF>(lights.sampled_rays,{payload->samples,1});
+            payload->samples+=1;
+
+            Spectrum emission = hit_point.Emission();
             for(int i=0;i<m_light_samples;i++)
             {
-                payload->result+= ComputeDirectLight(bsdf, lights, payload->samples[i], tracer);
+                payload->result+= ComputeDirectLight(bsdfs.eval_results[i], lights.sampled_results[i], lights.sampled_rays[i], tracer, m_shadow_behavior);
             }
             payload->result/=m_light_samples;
-            payload->result+=emission();
+            payload->result+=emission;
         }
     private:
-        uint m_light_samples;        
+        uint m_light_samples; 
+        ShadowBehavior m_shadow_behavior;       
     };
+
+    class DirectLightIntegrator final: public IIntegrator
+    {
+    public:
+        void Integrate(UInt2 pixel, const ICamera* camera, ISampler* sampler,
+            Tracer& tracer, film::Film& film) const;
+        
+    private:
+        uint m_sub_pixels_x;
+        uint m_sub_pixels_y;
+        uint m_light_samples_x;
+        uint m_light_samples_y;
+        DirectLightBehavior direct_light_behavior;
+        
+        
+
+    };
+    
 }

@@ -73,12 +73,14 @@ namespace jpctracer {
         
         //Film
         //**********************************************************************
+        /*
         template<class T>
         concept Film = requires(T film, std::string channel_name,
                                             uint x, uint y, Spectrum spec)
         {
             film.SavePixel(channel_name,x,y,spec);
         };
+        */
 
         //Integrator
         //**********************************************************************
@@ -91,34 +93,7 @@ namespace jpctracer {
     };
     
     namespace cts {
-        template<class T>
-        concept TraceRay = requires(T tracer,Ray ray, Payload* payload)
-        {
-            tracer<MATERIAL_BSDF>(ray,payload);
-            tracer<MATERIAL_DIFFUSE>(ray,payload);
-            tracer<MATERIAL_EMISSION>(ray,payload);
-            tracer<MATERIAL_GLOSSY>(ray,payload);
-            tracer<MATERIAL_SUBSURFACE>(ray,payload);
-            tracer<MATERIAL_TRANSMISSION>(ray,payload);
-            tracer<MATERIAL_TRANSPARENCY>(ray,payload);
-        };
-        
-        template<class T>
-        concept HitPoint = requires(T hit_point,Ray ray, Payload* payload)
-        {
-            {hit_point.template Shader<MATERIAL_BSDF>()}         -> DistributionFunction;
-            {hit_point.template Shader<MATERIAL_DIFFUSE>()}      -> DistributionFunction;
-            {hit_point.template Shader<MATERIAL_EMISSION>()}     -> DistributionFunction;
-            {hit_point.template Shader<MATERIAL_GLOSSY>()}       -> DistributionFunction;
-            {hit_point.template Shader<MATERIAL_SUBSURFACE>()}   -> DistributionFunction;
-            {hit_point.template Shader<MATERIAL_TRANSMISSION>()} -> DistributionFunction;
-            {hit_point.template Shader<MATERIAL_TRANSPARENCY>()} -> DistributionFunction;
-
-            {hit_point.ActiveLights()} -> DistributionFunction;
-
-
-        };
-
+        /*
         template<class T>
         concept RayBehavior = requires(T behavior, 
                     const archetypes::HitPoint& hit_point,
@@ -137,6 +112,22 @@ namespace jpctracer {
         {
             {behavior.MisProgram(background,payload)};
         };
+
+        template<class T>
+        concept TraceRay = requires(T tracer,Ray ray, Payload* payload)
+        {
+            tracer<MATERIAL_BSDF>(ray,payload);
+            tracer<MATERIAL_DIFFUSE>(ray,payload);
+            tracer<MATERIAL_EMISSION>(ray,payload);
+            tracer<MATERIAL_GLOSSY>(ray,payload);
+            tracer<MATERIAL_SUBSURFACE>(ray,payload);
+            tracer<MATERIAL_TRANSMISSION>(ray,payload);
+            tracer<MATERIAL_TRANSPARENCY>(ray,payload);
+        };
+        
+        
+
+        
 
         template<MaterialType type, class T>
         auto GetRayBehavior(const T& integrator)
@@ -157,7 +148,7 @@ namespace jpctracer {
         && SamplerFunction<Sampler,Vec2*,Vec3*>
         && Film<FilmT>
         && TraceRay<Tracer>;
-
+        */
         //Samplers
         //**********************************************************************
         
@@ -174,7 +165,7 @@ namespace jpctracer {
         {
             {Build(builder)} -> CameraFunction;
         };
-
+        /*
         //Integrator
         //**********************************************************************
         template<class T>
@@ -183,7 +174,7 @@ namespace jpctracer {
             {Build(builder)}->Integrator<archetypes::CameraFunction, 
                         archetypes::SamplerFunction, archetypes::Film, 
                         archetypes::TraceRay>;
-        };
+        };*/
 
     }
 }

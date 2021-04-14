@@ -1,7 +1,6 @@
 #pragma once
 #include "IntersectionInfo.h"
 #include "jpc_tracer/core/maths/Transformation.h"
-#include "jpc_tracer/engine/raytracing/SurfaceInteraction.h"
 #include <optional>
 #include "jpc_tracer/engine/raytracing/Geometry.h"
 

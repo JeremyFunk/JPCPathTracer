@@ -1,21 +1,19 @@
 #pragma once
-#include "jpc_tracer/core/Concepts.h"
-#include "jpc_tracer/core/archetypes.h"
-#include"jpc_tracer/core/core.h"
+#include "jpc_tracer/engine/PluginsApi.h"
+
 #include "Payload.h"
+
 namespace jpctracer
 {
-    class ShadowBehavior
+    class ShadowBehavior final: public IRayBehavior
     {
     public:
-        AnyHitResult AnyHitProgram(const cts::HitPoint auto& hit_point, Payload* payload)
+        AnyHitResult AnyHitProgram(const HitPoint& hit_point,Payload* payload) const
         {
             payload->IsShadow = true;
             return {true,true};
         }    
     };
-    static_assert(cts::HitPoint<archetypes::HitPoint>);
-    static_assert(cts::RayBehavior<ShadowBehavior>);
 
 
 }
