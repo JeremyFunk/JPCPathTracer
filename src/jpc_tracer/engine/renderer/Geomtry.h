@@ -11,6 +11,9 @@ namespace jpctracer::renderer
     class Geometry
     {
     public:
+        Geometry(raytracing::TriangleMesh _mesh) : mesh(_mesh) {}
+        Geometry(raytracing::SphereMesh _mesh) : mesh(_mesh) {}
+        
         std::variant<raytracing::TriangleMesh,raytracing::SphereMesh,raytracing::MeshId> mesh;
         std::shared_ptr<IAnimated<Transformation>> transformation = nullptr;
 

@@ -1,4 +1,5 @@
 #include "PointLights.h"
+#include "jpc_tracer/core/maths/Spectrum.h"
 #include "jpc_tracer/core/maths/maths.h"
 
 
@@ -8,6 +9,11 @@ namespace jpctracer::shadersys
     
     const void PointLights::Sample(View<ShaderResult> out_values, View<Ray> out_incident_rays, View<Vec2> samples,const SurfaceInteraction& interaction) const
     {
+        if(m_positions.size()==0)
+        {
+            for(auto& val:out_values) val = {Black(),0};
+            for(auto& ray:out_incident_rays) ray = Ray{{0,0,0},{0,0,0}};
+        }
         for(int i = 0;i<samples.size;i++)
         {
             const Vec2& random_point = samples[i];

@@ -5,6 +5,7 @@
 
 namespace jpctracer::raytracing {
     SceneBuilder::SceneBuilder() 
+        : m_scene_data(std::make_unique<Scene>())
     {
         
     }
@@ -15,13 +16,13 @@ namespace jpctracer::raytracing {
     
     MeshId SceneBuilder::AddMesh(TriangleMesh&& mesh) 
     {
-        m_scene_data->triangle_meshs.push_back(std::move(mesh));
+        m_scene_data->triangle_meshs.emplace_back(mesh);
         return {MeshTypes::TRIANGLE,m_scene_data->triangle_meshs.size()-1};
     }
     
     MeshId SceneBuilder::AddMesh(SphereMesh&& mesh) 
     {
-        m_scene_data->sphere_meshs.push_back(std::move(mesh));
+        m_scene_data->sphere_meshs.emplace_back(mesh);
         return {MeshTypes::SPHERE,m_scene_data->sphere_meshs.size()-1};
     }
     
@@ -38,10 +39,15 @@ namespace jpctracer::raytracing {
         mat_slots[material_slot] = material_id;
     }
     
-    std::unique_ptr<Scene> SceneBuilder::Build() 
+    std::unique_ptr<Scene> SceneBuilder::Build(AccelerationSettings acceleration) 
     {
         
-        return std::make_unique<Scene>();
+        
+        m_scene_data->static_bvh_type = acceleration.StaticBVH;
+        m_scene_data->dynamic_bvh_type = acceleration.DynamicBVH;
+        auto scene = std::make_unique<Scene>();
+        std::swap(scene,m_scene_data);
+        return scene;
     }
 
 

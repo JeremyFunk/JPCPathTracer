@@ -1,13 +1,16 @@
-#include "objLoader.h"
+#include "MeshIO.h"
+#include "jpc_tracer/engine/JPCTracerApi.h"
+#include "jpc_tracer/engine/renderer/Geomtry.h"
 #include "stringhelper.h"
+#include <memory>
 #include <vector>
 #include <iostream>
 
-namespace jpctracer::utility
+namespace jpctracer
 {
    
 
-    raytracing::TriangleMesh LoadMesh(std::string path)
+    std::shared_ptr<renderer::Geometry> LoadMesh(std::string path)
     {
         //auto m = LinAlg::GetRotationMatrix(Vec3(0, 0, 90));
 
@@ -21,7 +24,7 @@ namespace jpctracer::utility
         file.open(path);
         if(file.is_open()){
             while(std::getline(file, line)){
-                auto splitted = split(line, " ");
+                auto splitted = utility::split(line, " ");
 
                 if(line.rfind("v ",0)==0){
                     Prec v1 = std::stof(splitted[1]);
@@ -46,9 +49,9 @@ namespace jpctracer::utility
                 }
 
                 if(line.rfind("f ",0)==0){
-                    auto face1 = split(splitted[1], "/");
-                    auto face2 = split(splitted[2], "/");
-                    auto face3 = split(splitted[3], "/");
+                    auto face1 = utility::split(splitted[1], "/");
+                    auto face2 = utility::split(splitted[2], "/");
+                    auto face3 = utility::split(splitted[3], "/");
 
                     uint v1 = std::stoi(face1[0]) - 1;
                     uint u1 = std::stoi(face1[1]) - 1;
@@ -74,8 +77,26 @@ namespace jpctracer::utility
             std::cout << "Could not open the path: " << path << std::endl;
         }
 
-
-        return mesh;
+        return std::make_shared<Geometry>(std::move(mesh));
+    }
+    
+    std::shared_ptr<renderer::Geometry> CreateTriangle(Vec3 vertex1,Vec3 vertex2, Vec3 vertex3) 
+    {
+        raytracing::TriangleMesh mesh;
+        mesh.Vertices.push_back(vertex1);
+        mesh.Vertices.push_back(vertex2);
+        mesh.Vertices.push_back(vertex3);
+        mesh.UVs.push_back({0,0});
+        mesh.UVs.push_back({1,0});
+        mesh.UVs.push_back({1,1});
+        Vec3 sup1 = vertex2-vertex1;
+        Vec3 sup2 = vertex3-vertex1;
+        Vec3 normal = sup1.cross(sup2);
+        mesh.Normals.push_back(normal.normalized());
+        mesh.TriangleGeometries.push_back({0,1,2});
+        mesh.TriangleShadings.push_back({0,0,0});
+        return std::make_shared<Geometry>(std::move(mesh));      
+        
     }
 
 

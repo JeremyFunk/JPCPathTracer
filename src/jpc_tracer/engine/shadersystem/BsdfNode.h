@@ -4,6 +4,7 @@
 #include"jpc_tracer/core/core.h"
 #include "NormalSpace.h"
 #include "jpc_tracer/engine/shadersystem/IBsdfClosure.h"
+#include <iostream>
 
 namespace jpctracer::shadersys
 {
@@ -20,12 +21,34 @@ namespace jpctracer::shadersys
             eval_results = {&results[0],eval_size};
             sampled_results = {&results[0]+eval_size,sampling_size};
         }
+
+        ShaderResults(const ShaderResults& shres)
+            : rays(shres.rays),results(shres.results)
+        {
+            unsigned short eval_size = shres.eval_results.size;
+            unsigned short sampling_size = shres.sampled_results.size;
+            sampled_rays = {&rays[0],sampling_size};            
+            eval_results = {&results[0],eval_size};
+            sampled_results = {&results[0]+eval_size,sampling_size};
+        }
+
+        ShaderResults(ShaderResults&& shres)
+            : rays(std::move(shres.rays)),results(std::move(shres.results))
+        {
+            unsigned short eval_size = shres.eval_results.size;
+            unsigned short sampling_size = shres.sampled_results.size;
+            sampled_rays = {&rays[0],sampling_size};            
+            eval_results = {&results[0],eval_size};
+            sampled_results = {&results[0]+eval_size,sampling_size};
+        }
         View<Ray> sampled_rays;
         View<ShaderResult> sampled_results;
         View<ShaderResult> eval_results;
     private:
         std::array<Ray,50> rays;
         std::array<ShaderResult,75> results; 
+        
+
     };
 
     #define JPCMAXNODES 50
@@ -292,21 +315,21 @@ namespace jpctracer::shadersys
         Shader(const ShaderFuncT& _func) : func(_func) {}
         ShaderFuncT func;
 
-        ShaderResults EvalDIFFUSE        (const Vec3& scattering_dir, View<Ray> rays) const {return EvalShader<MATERIAL_DIFFUSE>(func, rays);}
-        ShaderResults EvalGLOSSY         (const Vec3& scattering_dir, View<Ray> rays) const {return EvalShader<MATERIAL_GLOSSY>(func, rays);}
-        ShaderResults EvalTRANSMISSION   (const Vec3& scattering_dir, View<Ray> rays) const {return EvalShader<MATERIAL_TRANSMISSION>(func, rays);}
-        ShaderResults EvalSUBSURFACE     (const Vec3& scattering_dir, View<Ray> rays) const {return EvalShader<MATERIAL_SUBSURFACE>(func, rays);}
-        ShaderResults EvalEMISSION       (const Vec3& scattering_dir, View<Ray> rays) const {return EvalShader<MATERIAL_EMISSION>(func, rays);}
-        ShaderResults EvalTRANSPARENCY   (const Vec3& scattering_dir, View<Ray> rays) const {return EvalShader<MATERIAL_TRANSPARENCY>(func, rays);}
-        ShaderResults EvalBSDF           (const Vec3& scattering_dir, View<Ray> rays) const {return EvalShader<MATERIAL_BSDF>(func, rays);}
+        ShaderResults EvalDIFFUSE        (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_DIFFUSE>      (func,scat_dir, rays);}
+        ShaderResults EvalGLOSSY         (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_GLOSSY>       (func,scat_dir, rays);}
+        ShaderResults EvalTRANSMISSION   (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_TRANSMISSION> (func,scat_dir, rays);}
+        ShaderResults EvalSUBSURFACE     (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_SUBSURFACE>   (func,scat_dir, rays);}
+        ShaderResults EvalEMISSION       (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_EMISSION>     (func,scat_dir, rays);}
+        ShaderResults EvalTRANSPARENCY   (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_TRANSPARENCY> (func,scat_dir, rays);}
+        ShaderResults EvalBSDF           (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_BSDF>         (func,scat_dir, rays);}
         
-        ShaderResults SampleDIFFUSE        (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_DIFFUSE>(func, rays,samples);};
-        ShaderResults SampleGLOSSY         (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_GLOSSY>(func, rays,samples);};
-        ShaderResults SampleTRANSMISSION   (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_TRANSMISSION>(func, rays,samples);};
-        ShaderResults SampleSUBSURFACE     (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_SUBSURFACE>(func, rays,samples);};
-        ShaderResults SampleEMISSION       (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_EMISSION>(func, rays,samples);};
-        ShaderResults SampleTRANSPARENCY   (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_TRANSPARENCY>(func, rays,samples);};
-        ShaderResults SampleBSDF           (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_BSDF>(func, rays,samples);};
+        ShaderResults SampleDIFFUSE        (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_DIFFUSE>      (func,scat_dir, rays,samples);};
+        ShaderResults SampleGLOSSY         (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_GLOSSY>       (func,scat_dir, rays,samples);};
+        ShaderResults SampleTRANSMISSION   (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_TRANSMISSION> (func,scat_dir, rays,samples);};
+        ShaderResults SampleSUBSURFACE     (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_SUBSURFACE>   (func,scat_dir, rays,samples);};
+        ShaderResults SampleEMISSION       (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_EMISSION>     (func,scat_dir, rays,samples);};
+        ShaderResults SampleTRANSPARENCY   (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_TRANSPARENCY> (func,scat_dir, rays,samples);};
+        ShaderResults SampleBSDF           (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_BSDF>         (func,scat_dir, rays,samples);};
     };
 
 

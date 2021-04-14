@@ -12,7 +12,9 @@ namespace jpctracer
     void FilmChannel::WriteImage(std::string directory) const
     {
         char sep = std::filesystem::path::preferred_separator;
+        
         std::string path = directory+sep+m_name+".png";
+        if(directory=="") path = m_name+".png";
         utility::WriteImage(path, m_pixels.data(), m_width, m_height);
     }
 
@@ -29,11 +31,11 @@ namespace jpctracer
         
         Vec3 rgb = ToRGB(spec);
         rgb[0] = std::clamp<Prec>(rgb[0],0,1);
-        rgb[0] = std::clamp<Prec>(rgb[0],0,1);
-        rgb[0] = std::clamp<Prec>(rgb[0],0,1);
+        rgb[1] = std::clamp<Prec>(rgb[1],0,1);
+        rgb[2] = std::clamp<Prec>(rgb[2],0,1);
         m_pixels[3*(y*m_width+x)] = rgb[0]*255; 
-        m_pixels[3*(y*m_width+x)] = rgb[1]*255;
-        m_pixels[3*(y*m_width+x)] = rgb[2]*255;
+        m_pixels[3*(y*m_width+x)+1] = rgb[1]*255;
+        m_pixels[3*(y*m_width+x)+2] = rgb[2]*255;
     }
 
 }

@@ -23,7 +23,7 @@ namespace jpctracer::renderer
         {
             const auto&  prop = m_values[property];
             if(prop.index()==0)
-                return std::get<Spectrum>(m_values[property]);
+                return std::get<Spectrum>(prop);
         }
             
         return FromRGB({0.5,0.5,0.5});
@@ -35,7 +35,7 @@ namespace jpctracer::renderer
         {
             const auto&  prop = m_values[property];
             if(prop.index()==1)
-                return std::get<Prec>(m_values[property]);
+                return std::get<Prec>(prop);
         }
             
         return 0.5;
@@ -47,7 +47,7 @@ namespace jpctracer::renderer
         {
             const auto&  prop = m_values[property];
             if(prop.index()==2)
-                return std::get<Vec3>(m_values[property]);
+                return std::get<Vec3>(prop);
         }
             
         return {0.5,0.5,0.5};

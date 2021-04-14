@@ -1,4 +1,5 @@
 #include "ProjectionCamera.h"
+#include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/maths/Constants.h"
 
 
@@ -37,6 +38,7 @@ namespace jpctracer::camera
         Vec3 origin ={0,0,0}; 
         Ray ray{dir, origin};
         ray.LensPosition = Vec2{x,y} + sample;
+        //JPC_LOG_INFO("CameraRay: {},{},{}",dir[0],dir[1],dir[2]);
         return ray;
 
     }

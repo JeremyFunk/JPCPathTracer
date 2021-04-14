@@ -20,6 +20,11 @@ namespace jpctracer::raytracing {
     using MaterialId = size_t;
     using RayId = size_t;
 
+    struct AccelerationSettings
+    {
+        raytracing::DynamicBVHType DynamicBVH = raytracing::DynamicBVHType::NAIVE;
+        raytracing::StaticBVHType StaticBVH = raytracing::StaticBVHType::NAIVE;
+    };
 
     struct SceneBuilder
     {
@@ -39,7 +44,7 @@ namespace jpctracer::raytracing {
 
 
 
-        std::unique_ptr<Scene> Build();
+        std::unique_ptr<Scene> Build(AccelerationSettings acceleration = AccelerationSettings());
 
     private:
         std::unique_ptr<Scene> m_scene_data;

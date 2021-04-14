@@ -1,9 +1,27 @@
 #include "DirectLightIntegrator.h"
+#include <math.h>
 
 
 
 namespace jpctracer
 {
+    DirectLightBehavior::DirectLightBehavior(uint light_samples) 
+        : m_light_samples(light_samples)
+    {
+        
+    }
+
+    DirectLightIntegrator::DirectLightIntegrator(uint sub_pixels,uint light_samples) 
+        : direct_light_behavior(0)
+    {
+        m_sub_pixels_x = std::ceil(std::sqrt(sub_pixels));
+        m_sub_pixels_y = m_sub_pixels_x;
+        m_light_samples_x = std::ceil(std::sqrt(light_samples));
+        m_light_samples_y = m_light_samples_x;
+        direct_light_behavior = DirectLightBehavior(m_light_samples_x*m_light_samples_y);
+        
+    }
+
     void DirectLightIntegrator::Integrate(UInt2 pixel, const ICamera* camera, ISampler* sampler,
                 Tracer& tracer, film::Film& film) const
     {
@@ -33,6 +51,8 @@ namespace jpctracer
 
             emssion_samples_it++;
         }
+
+        
 
         film.SavePixel("Combined",pixel,result/subpixel_samples.size());
     }

@@ -46,11 +46,11 @@ namespace jpctracer::renderer
 
         inline Tracer(const ShaderBuffer& shader_buffer, const raytracing::Scene* scene,
                 const shadersys::Lights* lights, const NormalSpace& normal_space)
-            : m_shader_buffer(shader_buffer),m_scene(scene),m_normal_space(&normal_space)
+            : m_shader_buffer(shader_buffer),m_scene(scene),m_normal_space(&normal_space),m_lights(lights)
             {}
         inline Tracer(const ShaderBuffer& shader_buffer, const raytracing::Scene* scene,
                 const shadersys::Lights* lights)
-            : m_shader_buffer(shader_buffer),m_scene(scene)
+            : m_shader_buffer(shader_buffer),m_scene(scene),m_lights(lights)
             {}
         
         void operator()(const std::derived_from<IRayBehavior> auto& ray_behavior,const Ray& ray,Payload* payload)

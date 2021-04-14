@@ -31,7 +31,6 @@ namespace jpctracer
 
         auto[light_val,light_pdf] = light;
         auto[bsdf_val,bsdf_pdf] = bsdf;
-        
         if(!IsDeltaDistribution(light_pdf))
             return bsdf_val*light_val/light_pdf;
         return bsdf_val*light_val;
@@ -40,14 +39,15 @@ namespace jpctracer
 
     struct DirectLightBehavior final : public IRayBehavior
     {
+        DirectLightBehavior(uint light_samples);
         inline void ClosestHitProgram(const HitPoint& hit_point, Payload* payload ,Tracer& tracer) const
         {
             
             ShaderResults lights = hit_point.ActiveLights({payload->samples,m_light_samples});
             payload->samples+=m_light_samples;
             
-            ShaderResults bsdfs = hit_point.Shader<MATERIAL_BSDF>(lights.sampled_rays,{payload->samples,1});
-            payload->samples+=1;
+            ShaderResults bsdfs = hit_point.Shader<MATERIAL_BSDF>(lights.sampled_rays);
+            //payload->samples+=1;
 
             Spectrum emission = hit_point.Emission();
             for(int i=0;i<m_light_samples;i++)
@@ -57,6 +57,11 @@ namespace jpctracer
             payload->result/=m_light_samples;
             payload->result+=emission;
         }
+
+        inline void Miss(Spectrum background_color,Payload* payload) const 
+        {
+            payload->result=background_color;
+        }
     private:
         uint m_light_samples; 
         ShadowBehavior m_shadow_behavior;       
@@ -65,6 +70,7 @@ namespace jpctracer
     class DirectLightIntegrator final: public IIntegrator
     {
     public:
+        DirectLightIntegrator(uint sub_pixels,uint light_samples);
         void Integrate(UInt2 pixel, const ICamera* camera, ISampler* sampler,
             Tracer& tracer, film::Film& film) const;
         

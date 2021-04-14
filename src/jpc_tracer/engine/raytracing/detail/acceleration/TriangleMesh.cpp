@@ -84,7 +84,7 @@ namespace jpctracer::raytracing
 
         Vec3 pos = mesh.Vertices[v1_id];
         Vec3 sup_1 = mesh.Vertices[v2_id]-pos;
-        Vec3 sup_2 = mesh.Vertices[v2_id]-pos;
+        Vec3 sup_2 = mesh.Vertices[v3_id]-pos;
 
         auto intersection = TriangleIntersect(ray, pos, sup_1, sup_2);
 

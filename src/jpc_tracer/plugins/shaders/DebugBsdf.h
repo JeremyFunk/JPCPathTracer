@@ -10,7 +10,6 @@ namespace jpctracer
         DebugBsdfClosure(Spectrum color = Black())
         :m_color(color)
         {
-            m_color[0] = std::sqrt(color[0]);
         }
         constexpr ShaderResult Eval(Ray incident_ray) const
         {

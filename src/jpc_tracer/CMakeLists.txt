@@ -15,6 +15,7 @@ set(AUTOSRC
 "core/maths/Spectrum.h"
 "core/maths/Vec.h"
 "core/maths/Constants.h"
+"engine/JPCTracerApi.h"
 "engine/PluginsApi.h"
 "engine/raytracing/SceneBuilder.cpp"
 "engine/raytracing/SceneBuilder.h"
@@ -42,10 +43,10 @@ set(AUTOSRC
 "engine/renderer/Tracer.h"
 "engine/renderer/MaterialSettings.h"
 "engine/renderer/Geomtry.h"
-"engine/utilities/objLoader.cpp"
+"engine/utilities/MeshIO.cpp"
 "engine/utilities/ImageIO.cpp"
 "engine/utilities/stringhelper.cpp"
-"engine/utilities/objLoader.h"
+"engine/utilities/MeshIO.h"
 "engine/utilities/stringhelper.h"
 "engine/utilities/ImageIO.h"
 "engine/films/FilmChannel.cpp"
@@ -54,7 +55,6 @@ set(AUTOSRC
 "engine/films/FilmChannel.h"
 "engine/shadersystem/DiscreteSampler.cpp"
 "engine/shadersystem/NormalSpace.cpp"
-"engine/shadersystem/BackgroundDistribution.cpp"
 "engine/shadersystem/Lights.cpp"
 "engine/shadersystem/IBsdfClosure.h"
 "engine/shadersystem/HitPoint.h"
@@ -64,10 +64,10 @@ set(AUTOSRC
 "engine/shadersystem/utility.h"
 "engine/shadersystem/DiscreteSampler.h"
 "engine/shadersystem/NormalSpace.h"
-"engine/shadersystem/BackgroundDistribution.h"
 "engine/shadersystem/Lights.h"
 "engine/shadersystem/lights/PointLights.cpp"
 "engine/shadersystem/lights/PointLights.h"
+"plugins/Plugins.h"
 "plugins/shaders/DebugBsdf.h"
 "plugins/shaders/Mix.h"
 "plugins/samplers/GridSampler.cpp"
@@ -96,3 +96,7 @@ openimageio
 
 jpctr_add_library(jpc_tracer "${AUTOSRC}" "${INC}" "${LIBS}" STATIC)
 
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(jpc_tracer OpenMP::OpenMP_CXX)
+endif()

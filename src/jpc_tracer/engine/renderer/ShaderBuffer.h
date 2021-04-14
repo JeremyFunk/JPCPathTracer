@@ -1,4 +1,5 @@
 #pragma once
+#include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/engine/shadersystem/BsdfNode.h"
 #include "jpc_tracer/engine/shadersystem/IBsdfClosure.h"
 #include <memory>
@@ -70,7 +71,7 @@ namespace jpctracer::renderer
         m_shader_builders.emplace_back([builder](MaterialSettings settings) -> std::unique_ptr<shadersys::IShader>
         {
             auto shader_func= builder(settings);
-            std::unique_ptr<shadersys::IShader> shader = std::make_unique<shadersys::Shader>(shader_func);
+            std::unique_ptr<shadersys::IShader> shader = std::make_unique<shadersys::Shader<decltype(shader_func)>>(shader_func);
             return shader;
         });
 

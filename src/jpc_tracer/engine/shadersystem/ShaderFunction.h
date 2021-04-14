@@ -30,9 +30,9 @@ namespace jpctracer::shadersys
     template<class T>
     concept ShaderMethod = ShaderMethodContext<T>
                         || ShaderMethodFree<T>
-                        || std::same_as<T,Spectrum>
+                        || std::convertible_to<T,Spectrum>
                         || std::convertible_to<T,Prec>
-                        || std::same_as<T,Vec3>;
+                        || std::convertible_to<T,Vec3>;
 
     template<ShaderMethodContext T>
     auto Eval(const ShaderContext* context,const T& func)
@@ -78,9 +78,9 @@ namespace jpctracer::shadersys
         requires __ShaderBindContext<func, Args...>
     inline constexpr auto ShaderBind(const func& f, Args&&... args)
     {
-        return [&](ShaderContext* context)
+        return [=](ShaderContext* context)
         {
-            return f(context, Eval(context,std::forward<Args>(args))...);
+            return f(context, Eval(context,args)...);
         };
     }
 
@@ -88,9 +88,9 @@ namespace jpctracer::shadersys
         requires __ShaderBindFree<func, Args...>
     inline constexpr auto ShaderBind(const func& f, Args&&... args)
     {
-        return [&](ShaderContext* context)
+        return [=](ShaderContext* context)
         {
-            return f(Eval(context,std::forward<Args>(args))...);
+            return f(Eval(context,args)...);
         };
     }
 

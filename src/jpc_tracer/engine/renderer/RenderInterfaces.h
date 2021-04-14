@@ -1,7 +1,6 @@
 #pragma once
 #include "jpc_tracer/core/core.h"
 #include "jpc_tracer/core/maths/Constants.h"
-#include "jpc_tracer/engine/PluginsApi.h"
 #include "jpc_tracer/engine/renderer/Tracer.h"
 #include "jpc_tracer/engine/films/Film.h"
 #include <memory>
