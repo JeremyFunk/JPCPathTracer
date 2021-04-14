@@ -3,6 +3,8 @@
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/core.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/engine/shadersystem/IBsdfClosure.h"
+#include "jpc_tracer/engine/shadersystem/Lights.h"
 #include "jpc_tracer/engine/shadersystem/NormalSpace.h"
 #include "jpc_tracer/engine/shadersystem/ShaderFunction.h"
 #include "BsdfNode.h"
@@ -15,8 +17,8 @@ namespace jpctracer::shadersys
     class HitPoint
     {
     public:
-        HitPoint(const shadersys::IShader* shader,const NormalSpace& normal_space)
-            : m_shader(shader),m_normal_space(normal_space)
+        HitPoint(const shadersys::IShader* shader,const shadersys::Lights* lights, const NormalSpace& normal_space)
+            : m_shader(shader),m_normal_space(normal_space), m_lights(lights)
         {
 
         }
@@ -63,11 +65,15 @@ namespace jpctracer::shadersys
 
         ShaderResults ActiveLights(View<Vec2> samples) const
         {
-            return ShaderResults(0,samples.size);
+            ShaderResults results = m_lights->Sample(samples, m_normal_space.Interaction);
+            for(auto& ray: results.sampled_rays)
+                ray = WorldToNormal(ray,m_normal_space);
+            return results;
         }
     private:
         const shadersys::IShader* m_shader; 
         const NormalSpace& m_normal_space;
+        const shadersys::Lights* m_lights;
         
 
     };

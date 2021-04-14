@@ -56,8 +56,6 @@ set(AUTOSRC
 "engine/shadersystem/NormalSpace.cpp"
 "engine/shadersystem/BackgroundDistribution.cpp"
 "engine/shadersystem/Lights.cpp"
-"engine/shadersystem/LightsDistribution.cpp"
-"engine/shadersystem/LightsDistribution.h"
 "engine/shadersystem/IBsdfClosure.h"
 "engine/shadersystem/HitPoint.h"
 "engine/shadersystem/shadersystem.h"

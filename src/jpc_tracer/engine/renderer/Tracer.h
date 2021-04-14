@@ -10,6 +10,7 @@
 #include "jpc_tracer/engine/raytracing/detail/TracingContext.h"
 #include "jpc_tracer/engine/renderer/ShaderBuffer.h"
 #include "jpc_tracer/engine/shadersystem/BsdfNode.h"
+#include "jpc_tracer/engine/shadersystem/Lights.h"
 #include "jpc_tracer/engine/shadersystem/NormalSpace.h"
 #include "jpc_tracer/engine/shadersystem/HitPoint.h"
 #include <memory>
@@ -43,8 +44,13 @@ namespace jpctracer::renderer
     
     public:
 
-        inline Tracer(const ShaderBuffer& shader_buffer, const raytracing::Scene* scene,const NormalSpace& normal_space)
+        inline Tracer(const ShaderBuffer& shader_buffer, const raytracing::Scene* scene,
+                const shadersys::Lights* lights, const NormalSpace& normal_space)
             : m_shader_buffer(shader_buffer),m_scene(scene),m_normal_space(&normal_space)
+            {}
+        inline Tracer(const ShaderBuffer& shader_buffer, const raytracing::Scene* scene,
+                const shadersys::Lights* lights)
+            : m_shader_buffer(shader_buffer),m_scene(scene)
             {}
         
         void operator()(const std::derived_from<IRayBehavior> auto& ray_behavior,const Ray& ray,Payload* payload)
@@ -54,14 +60,15 @@ namespace jpctracer::renderer
                 Ray world_ray = NormalToWorld(ray,*m_normal_space);
 
             const ShaderBuffer& buffer_temp = m_shader_buffer;
+            const shadersys::Lights* lights = m_lights;
 
             std::optional<SurfaceInteraction> interaction = raytracing::TraceRay(ray, 
                 //anyhit callback
-                [&ray_behavior,&payload,&buffer_temp,&world_ray](const SurfaceInteraction& interaction) ->AnyHitResult
+                [&ray_behavior,&payload,&buffer_temp,&lights,&world_ray](const SurfaceInteraction& interaction) ->AnyHitResult
                 {
                     const shadersys::IShader* shader = buffer_temp.GetShader(interaction.MaterialId);
 
-                    HitPoint hit_point(shader,shadersys::CreateNormalSpace(world_ray, interaction));
+                    HitPoint hit_point(shader,lights,shadersys::CreateNormalSpace(world_ray, interaction));
                     return ray_behavior.AnyHitProgram(hit_point,payload);
                 }, 
                 m_scene);
@@ -70,8 +77,8 @@ namespace jpctracer::renderer
             {
                 const shadersys::IShader* shader = buffer_temp.GetShader(interaction->MaterialId);
                 auto new_normal_space = shadersys::CreateNormalSpace(world_ray, *interaction);
-                HitPoint hit_point(shader,new_normal_space);
-                Tracer tracer(m_shader_buffer,m_scene,new_normal_space);
+                HitPoint hit_point(shader,lights,new_normal_space);
+                Tracer tracer(m_shader_buffer,m_scene,m_lights,new_normal_space);
                 return ray_behavior.ClosestHitProgram(hit_point,payload,tracer);
             }else
             {
@@ -84,6 +91,7 @@ namespace jpctracer::renderer
         const ShaderBuffer& m_shader_buffer;
         const raytracing::Scene* m_scene;
         const NormalSpace* m_normal_space = nullptr;
+        const shadersys::Lights* m_lights;
         
 
     };

@@ -24,6 +24,8 @@ namespace jpctracer::renderer
     public:
         JPCRenderer(std::unique_ptr<ISampler> sampler, std::unique_ptr<ICamera> camera, std::unique_ptr<IIntegrator> integrator);
         MaterialLibrary MaterialLib;
+        shadersys::Lights LightsLib;
+
         size_t TileSize = 16;
         AccelerationSettings Acceleration;
 
@@ -31,7 +33,7 @@ namespace jpctracer::renderer
         void Draw(std::shared_ptr<Geometry> geomtry);
         //void Draw(std::shared_ptr<Light> light);
         
-        film::Film Render(uint width,uint height);
+        void Render(uint width,uint height,std::string directory);
     private:
         std::unique_ptr<ISampler> m_sampler;
         std::unique_ptr<ICamera> m_camera;
