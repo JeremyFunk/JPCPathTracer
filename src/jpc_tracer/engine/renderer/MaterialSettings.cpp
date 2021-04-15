@@ -5,17 +5,12 @@
 
 namespace jpctracer::renderer
 {
-    MaterialSettings::MaterialSettings(std::string name, uint material_id) 
-        : name(name), material_id(material_id)
+    MaterialSettings::MaterialSettings(std::string name, uint material_id,TextureBuffer* text_buffer) 
+        : name(name), material_id(material_id), m_text_buffer(text_buffer)
     {
         
     }
-    
-    MaterialSettings::MaterialSettings() 
-        : name("uninitialized"), material_id(0)
-    {
-        
-    }
+
     
     Spectrum MaterialSettings::GetColor(std::string property) 
     {
@@ -51,6 +46,19 @@ namespace jpctracer::renderer
         }
             
         return {0.5,0.5,0.5};
+    }
+    
+    Texture MaterialSettings::GetTexture(std::string property) 
+    {
+        
+        if(m_values.contains(property))
+        {
+            const auto&  prop = m_values[property];
+            if(prop.index()==3)
+                return m_text_buffer->Load(std::get<std::string>(prop));
+        }
+            
+        return m_text_buffer->DefaultTexture();
     }
 
     void MaterialSettings::SetColor(std::string property,Spectrum color) 

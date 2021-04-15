@@ -35,7 +35,7 @@ namespace jpctracer::shadersys
                         || std::convertible_to<T,Vec3>;
 
     template<ShaderMethodContext T>
-    auto Eval(const ShaderContext* context,const T& func)
+    auto Eval(ShaderContext* context,const T& func)
     {
         return func(context);
     }

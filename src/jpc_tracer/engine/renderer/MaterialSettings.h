@@ -4,6 +4,7 @@
 #include <initializer_list>
 #include <unordered_map>
 #include <variant>
+#include "TextureBuffer.h"
 
 namespace jpctracer::renderer
 {
@@ -21,12 +22,13 @@ namespace jpctracer::renderer
         using properties_value_pair = std::pair<std::string,properties_t>;
         using settings = std::initializer_list<properties_value_pair>;
 
-        MaterialSettings(std::string name, uint material_id);
-        MaterialSettings();
+        MaterialSettings(std::string name, uint material_id,TextureBuffer* text_buffer);
+        
 
         Spectrum GetColor(std::string property);
         Prec GetValue(std::string property);
         Vec3 GetNormal(std::string property);
+        Texture GetTexture(std::string property);
         
 
         void SetColor(std::string property,Spectrum color);
@@ -44,6 +46,7 @@ namespace jpctracer::renderer
     private:
         
         std::unordered_map<std::string, properties_t> m_values;
+        TextureBuffer* m_text_buffer;
 
 
     };

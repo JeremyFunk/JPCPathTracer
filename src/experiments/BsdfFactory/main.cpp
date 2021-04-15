@@ -1,6 +1,7 @@
 
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/engine/PluginsApi.h"
 #include "jpc_tracer/plugins/shaders/DebugBsdf.h"
 
 
@@ -29,7 +30,7 @@ namespace jpctracer {
     ShaderResults shader(View<Ray> rays, View<Vec2> samples,float val)
     {
 
-        return SampleShader<MATERIAL_GLOSSY>(ShaderBind(material,val),Vec3(),
+        return SampleShader<MATERIAL_GLOSSY>(ShaderBind(material,val),NormalSpace(),
         rays,samples);
     }
 

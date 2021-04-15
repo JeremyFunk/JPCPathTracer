@@ -6,6 +6,7 @@ set(AUTOSRC
 "raytracing_core/TriangleIntersection.cpp"
 "raytracing_core/ShadingPrograms.cpp"
 "samplers/GridSamplers.cpp"
+"utilities/imageio.cpp"
 "math/VecTest.cpp"
 "math/SpectrumTest.cpp"
 "cameras/ProjectionCamera.cpp"
