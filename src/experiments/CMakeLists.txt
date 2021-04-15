@@ -1,2 +1,3 @@
 add_subdirectory(BsdfFactory)
 add_subdirectory(demo1)
+add_subdirectory(mirror_bsdf)
