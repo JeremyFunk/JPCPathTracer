@@ -1,7 +1,6 @@
 #include "NaiveIntersection.h"
 #include "../../Geometry.h"
 #include "TriangleMesh.h"
-#include "../ShadePrograms.h"
 #include <optional>
 
 
@@ -9,7 +8,8 @@ namespace jpctracer::raytracing
 {
 
     template<>
-    IntersectionResult NaiveIntersect(ShadePrograms& programs,const TriangleMesh& mesh,const Ray& ray,const int* material_per_slot) 
+    IntersectionResult NaiveIntersect(AnyHitCallBack any_hit_program,
+        const TriangleMesh& mesh,const Ray& ray,const int* material_per_slot) 
     {
 
         std::optional<SurfaceInteraction> closest_interaction;
@@ -20,7 +20,7 @@ namespace jpctracer::raytracing
             auto interaction = Intersect(mesh, i, ray, material_per_slot);
             if(interaction)
             {
-                AnyHitResult any_hit_result = programs.ExecuteAnyHit(*interaction);
+                AnyHitResult any_hit_result = any_hit_program(*interaction);
 
                 if(any_hit_result.ShouldTerminate)
                     return IntersectionResult{std::nullopt,true};
@@ -35,7 +35,8 @@ namespace jpctracer::raytracing
         return {closest_interaction,false};
     }
     
-    IntersectionResult NaiveInstancesIntersect(ShadePrograms& programs,  const Scene& scene,const Ray& ray) 
+    IntersectionResult NaiveInstancesIntersect(AnyHitCallBack any_hit_program,
+         const Scene& scene,const Ray& ray) 
     {
         std::optional<SurfaceInteraction> closest_interaction;
 
@@ -51,7 +52,7 @@ namespace jpctracer::raytracing
             switch (instance.mesh_id.type) {
             case MeshTypes::TRIANGLE:
                 int triangle_id = instance.mesh_id.id;
-                instance_result=NaiveIntersect(programs,scene.triangle_meshs[triangle_id],ray,materials_per_slot);
+                instance_result=NaiveIntersect(any_hit_program,scene.triangle_meshs[triangle_id],ray,materials_per_slot);
                 break;
             
             };

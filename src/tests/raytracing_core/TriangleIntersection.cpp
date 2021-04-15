@@ -1,5 +1,4 @@
 #include "gtest/gtest.h"
-#include "jpc_tracer/engine/raytracing/SurfaceInteraction.h"
 #include "jpc_tracer/engine/raytracing/detail/acceleration/TriangleMesh.h"
 
 namespace jpctracer::raytracing {

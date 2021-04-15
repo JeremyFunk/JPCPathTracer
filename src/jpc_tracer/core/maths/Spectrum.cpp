@@ -33,6 +33,13 @@ namespace jpctracer
     {
         return Spectrum{v,v,v,v};
     }
+    
+    Spectrum Vec3ToSpec(const Vec3& b) 
+    {
+        return Spectrum{b[0]*0.5f+0.5f,
+                        b[1]*0.5f+0.5f,
+                        b[2]*0.5f+0.5f,1.f};
+    }
 
     namespace math
     {

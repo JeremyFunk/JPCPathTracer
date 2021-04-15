@@ -27,15 +27,5 @@ namespace jpctracer::raytracing
         //BVH Data
         std::vector<BVHTree> static_mesh_tree;
         BVHTree static_instance_tree;
-
-        //intersection function ptr
-        std::vector<MissFuncPtr> mis_programs;
-        std::vector<AnyHitFuncPtr> any_hit_programs;
-        std::vector<ClosestHitFuncPtr> closest_hit_programs;
-        std::vector<const void*> materials;
-        
-        //counter
-        int material_count;
-        int ray_types_count;
     };
 }

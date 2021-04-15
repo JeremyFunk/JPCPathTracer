@@ -12,7 +12,7 @@ namespace jpctracer {
         EXPECT_NEAR(a[2],b[2],0.001);
         
     }
-    inline void TestSpecturm(const Spectrum& a,const Spectrum& b)
+    inline void TestSpectrum(const Spectrum& a,const Spectrum& b)
     {
         EXPECT_NEAR(a[0],b[0],0.001);
         EXPECT_NEAR(a[1],b[1],0.001);

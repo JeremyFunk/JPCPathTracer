@@ -29,8 +29,8 @@ namespace jpctracer::raytracing {
 
     struct MeshId 
     {
-        const MeshTypes type;
-        const size_t id;
+        MeshTypes type;
+        size_t id;
     };
 
 

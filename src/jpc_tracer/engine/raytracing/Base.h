@@ -37,19 +37,10 @@ namespace jpctracer::raytracing {
     using Mat3x3 = Eigen::Matrix<Prec, 3,3>;
     using Mat4x4 = Eigen::Matrix<Prec, 4,4>;
     */
-    struct Ray
-    {
-        Vec3 Direction;
-        Vec3 Origin;
-        float Time;
-        unsigned int Type;
-    };
 
     //Forward Decalaration
-    struct GlobalData;
-    struct ThreadData;
-    struct AnimationData;
-    struct Payload;
+
+    using AnyHitCallBack = const std::function<AnyHitResult(const SurfaceInteraction&)>&;
 
     #ifdef _MSC_VER
         #define M_E        2.71828182845904523536   // e

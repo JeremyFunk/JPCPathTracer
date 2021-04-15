@@ -5,9 +5,6 @@
 #include "jpc_tracer/core/maths/maths.h"
 
 namespace jpctracer {
-    namespace shader {
-        struct ShaderCache;
-    }
     namespace archetypes {
         //Archetypes are reference classes, for generic Programming
         //They must not be used in real code
@@ -88,24 +85,10 @@ namespace jpctracer {
             {}
         };
 
-        struct HitPoint
-        {
-            template<MaterialType type>
-            DistributionFunction Shader() const
-            {
-                return {};
-            }
-
-            const DistributionFunction& ActiveLights() const
-            {
-                return m_lights;
-            }
-        private:
-            DistributionFunction m_lights;
-        };
-
+        
+        
         //End forward declaration
-
+        /*
         struct RayBehavior
         {
             //returnes if it was an hit
@@ -134,6 +117,6 @@ namespace jpctracer {
         struct IntegratorBuilder
         {
             Integrator Build() {return{};}
-        };
+        };*/
     }
 }

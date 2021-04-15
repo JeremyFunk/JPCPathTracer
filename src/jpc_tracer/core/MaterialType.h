@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 namespace jpctracer {
     enum MaterialType
     {
@@ -18,4 +19,19 @@ namespace jpctracer {
     {
         return (type1 & type2) != 0;
     }
+
+    constexpr size_t MaterialTypeToId(const MaterialType& type)
+    {
+        switch (type) {
+            case MATERIAL_DIFFUSE: return 0;
+            case MATERIAL_GLOSSY: return 1;
+            case MATERIAL_TRANSMISSION: return 2;
+            case MATERIAL_SUBSURFACE: return 3;
+            case MATERIAL_EMISSION: return 4;
+            case MATERIAL_TRANSPARENCY: return 5;
+            case MATERIAL_BSDF: return 6;
+            
+        }
+    }
+
 }

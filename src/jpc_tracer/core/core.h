@@ -1,6 +1,6 @@
 #include "maths/maths.h"
 #include "Concepts.h"
-#include "IGeometryRange.h"
 #include "IAnimated.h"
 #include "MaterialType.h"
 #include "Logger.h"
+#include "View.h"

@@ -9,7 +9,7 @@ namespace jpctracer
     public:
         FilmChannel(std::string name, int width,int height);
 
-        void SavePixel(uint x, uint y, Spectrum spec);
+        void SavePixel(UInt2 pixel, Spectrum spec);
         void WriteImage(std::string directory) const;
 
         int GetWidth() {return m_width;};

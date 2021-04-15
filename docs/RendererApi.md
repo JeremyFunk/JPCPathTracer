@@ -40,31 +40,32 @@ int main()
     renderer.TileSize = 16;
     renderer.Acceleration.DynamicBVH = LBVH;
 
-    MaterialSettings material1 = renderer.MaterialLib.Create("Material2");
+    std::shader_ptr<MaterialSettings> material1 = renderer.MaterialLib.Create("Material2");
     
-    material1.SetMultiple(
+    material1->SetMultiple(
         {"Color","Path"},
         {"Roughness","Path"},
         {"Metalic","Path"},
         {"Fresnel",1.33}
     );
 
-    IGeometry sphere = LoadObj("path...");
+    std::shared_ptr<IGeometry> sphere = LoadObj("path...");
 
-    spherer.SetMaterial(0,material1);
+    sphere->MaterialSlots[0] = material1;
+    sphere->SetTransformation(Transformation());
     
     Transformation trans1 = {{-1,-2,3},{2,2,2},{30,90,180}};
     Transformation trans2 = {{-1,5,3},{1,2,2},{90,90,180}};
     
     Light = PointLight({0,0,20});
-    Light.Material.SetValue("Influence",100);
+    Light.Material->SetValue("Influence",100);
 
     Light.Material = renderer.MaterialLib.Create("SuperSun");
-    Light.Material.SetValue("Influence",100);
+    Light.Material->SetValue("Influence",100);
     
 
-    renderer.Draw(sphere,material1,trans1);
-    renderer.Draw(sphere,material1,trans2);
+    renderer.Draw(sphere);
+    renderer.Draw(sphere);
     renderer.Draw(Light);
     
     Image result = renderer.Render(width,height);

@@ -1,4 +1,4 @@
-#include "BasicFilm.h"
+#include "Film.h"
 #include "jpc_tracer/engine/films/FilmChannel.h"
 #include <mutex>
 
@@ -6,13 +6,13 @@
 
 namespace jpctracer::film
 {
-    BasicFilm::BasicFilm(uint width, uint height) 
+    Film::Film(uint width, uint height) 
         : m_width(width), m_height(height)
     {
         
     }
 
-    void BasicFilm::SavePixel(std::string channel,uint x, uint y, Spectrum val) 
+    void Film::SavePixel(std::string channel,UInt2 pixel, Spectrum val) 
     {
         //pretty hacky
         if(!m_film_channels.contains(channel))
@@ -25,11 +25,11 @@ namespace jpctracer::film
             }
             m_channel_mutex.unlock();
         }
-        m_film_channels.at(channel)->SavePixel(x, y, val);
+        m_film_channels.at(channel)->SavePixel(pixel, val);
 
     }
     
-    void BasicFilm::WriteChannels(std::string directory) 
+    void Film::WriteChannels(std::string directory) 
     {
         for(const auto& channel : m_film_channels)
         {
