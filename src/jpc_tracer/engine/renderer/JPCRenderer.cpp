@@ -77,22 +77,41 @@ namespace jpctracer::renderer
         const ShaderBuffer buffer = MaterialLib.CreateShaders();
         const std::unique_ptr<raytracing::Scene> scene = m_scene_builder.Build();
         const shadersys::Lights* lights = &LightsLib;
-
-        #pragma omp parallel for
-        for(int i = 0; i< tiles.size();i++)
+        if(ShouldMultiThread)
         {
-            Tile tile = tiles[i];
-            ISampler* thread_sampler(m_sampler->Clone());
-            Tracer tracer(buffer,scene.get(),lights);
-            for(uint y = tile.YRange[0];y<tile.YRange[1];y++)
+            #pragma omp parallel for
+            for(int i = 0; i< tiles.size();i++)
             {
-                for(uint x = tile.XRange[0];x<tile.XRange[1];x++)
+                Tile tile = tiles[i];
+                ISampler* thread_sampler(m_sampler->Clone());
+                Tracer tracer(buffer,scene.get(),lights);
+                for(uint y = tile.YRange[0];y<tile.YRange[1];y++)
                 {
-                    UInt2 pixel = {x,y};
-                    m_integrator->Integrate(pixel, m_camera.get(),thread_sampler, tracer, result_film);
+                    for(uint x = tile.XRange[0];x<tile.XRange[1];x++)
+                    {
+                        UInt2 pixel = {x,y};
+                        m_integrator->Integrate(pixel, m_camera.get(),thread_sampler, tracer, result_film);
+                    }
                 }
+                free(thread_sampler);
             }
-            free(thread_sampler);
+        }else
+        {
+            for(int i = 0; i< tiles.size();i++)
+            {
+                Tile tile = tiles[i];
+                ISampler* thread_sampler(m_sampler->Clone());
+                Tracer tracer(buffer,scene.get(),lights);
+                for(uint y = tile.YRange[0];y<tile.YRange[1];y++)
+                {
+                    for(uint x = tile.XRange[0];x<tile.XRange[1];x++)
+                    {
+                        UInt2 pixel = {x,y};
+                        m_integrator->Integrate(pixel, m_camera.get(),thread_sampler, tracer, result_film);
+                    }
+                }
+                free(thread_sampler);
+            }
         }
 
         result_film.WriteChannels(directory);

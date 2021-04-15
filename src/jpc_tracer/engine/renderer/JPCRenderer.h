@@ -20,7 +20,7 @@ namespace jpctracer::renderer
 
         size_t TileSize = 16;
         raytracing::AccelerationSettings Acceleration;
-
+        bool ShouldMultiThread = true;
 
         void Draw(std::shared_ptr<Geometry> geomtry);
         //void Draw(std::shared_ptr<Light> light);

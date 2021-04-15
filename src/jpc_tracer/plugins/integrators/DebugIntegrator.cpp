@@ -1,4 +1,5 @@
 #include "DebugIntegrator.h"
+#include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
 #include <vector>
@@ -21,6 +22,7 @@ namespace jpctracer
         Prec length = payload.scattering_dir.norm();
         Spectrum val = std::abs(length-1)<0.001 ? FromValue(1) : FromValue(0); 
         film.SavePixel("ScatteringRayIs1", pixel,val);
+        film.SavePixel("ScatteringRayZ", pixel, FromValue(payload.scattering_dir[2]*0.5+0.5));
     }
     
     void DebugBehavior::ClosestHitProgram(const HitPoint& hit_point, Payload* payload ,Tracer& trace) const
