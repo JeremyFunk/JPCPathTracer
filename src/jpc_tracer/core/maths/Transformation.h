@@ -9,11 +9,11 @@ namespace jpctracer {
         Vec3 Min;
         Vec3 Max;
 
-        // Bounds3D() : Min({}), Max({})
-        // {}
+        Bounds3D() : Min(Vec3()), Max(Vec3())
+        {}
 
-        // Bounds3D(Vec3& min, Vec3& max) : Min(min), Max(max)
-        // {}
+        Bounds3D(const Vec3& min, const Vec3& max) : Min(min), Max(max)
+        {}
 
         Vec3 operator[](const int& i) const
         {

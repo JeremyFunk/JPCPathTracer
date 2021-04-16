@@ -20,6 +20,8 @@ namespace jpctracer::raytracing
         std::vector<Bounds3D> shape_bounds; // size n
         std::vector<BVHNode> internal_nodes; //size n-1
 
+        BVHTree() = default;
+
         BVHTree(std::vector<Bounds3D>&& bounds) : shape_bounds(bounds), internal_nodes(bounds.size() - 1)
         {}
     };

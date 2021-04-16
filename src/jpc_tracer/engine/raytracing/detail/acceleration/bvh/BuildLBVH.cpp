@@ -37,8 +37,8 @@ namespace jpctracer::raytracing
 
             uint last_idx = idx + min_range*direction;
 
-            uint min_idx= std::min(idx, last_idx);
-            uint max_idx= std::max(idx, last_idx);
+            uint min_idx = std::min(idx, last_idx);
+            uint max_idx = std::max(idx, last_idx);
 
             uint split_idx = calc_split_idx(morton, min_idx, max_idx, direction);
 

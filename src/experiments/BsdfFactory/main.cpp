@@ -29,7 +29,7 @@ namespace jpctracer {
     ShaderResults shader(View<Ray> rays, View<Vec2> samples,float val)
     {
 
-        return SampleShader<MATERIAL_GLOSSY>(ShaderBind(material,val),
+        return SampleShader<MATERIAL_GLOSSY>(ShaderBind(material,val), {}
         rays,samples);
     }
 

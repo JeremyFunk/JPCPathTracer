@@ -12,7 +12,7 @@ set(AUTOSRC
 "shaders/ShaderFunction.cpp"
 )
 set(INC
-"")
+"../")
 
 set(LIBS 
     jpc_tracer
