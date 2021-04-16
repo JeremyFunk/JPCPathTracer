@@ -1,4 +1,5 @@
 #include "TriangleMesh.h"
+#include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/engine/raytracing/Base.h"
 
@@ -51,6 +52,8 @@ namespace jpctracer::raytracing
         output.Distance = intersection_point_distance;
         output.UV = {u,v};
         
+
+        
         return std::make_optional(output);
     }
 
@@ -68,10 +71,10 @@ namespace jpctracer::raytracing
         Vec3 point = ray.Direction * info.Distance + ray.Origin ;
         Prec distance = info.Distance;
        
-        
+
         Vec2 uv = Interpolate(uv_1, uv_2, uv_3, info.UV[0], info.UV[1]);
         Vec3 normal = Interpolate(normal_1, normal_2, normal_3, info.UV[0], info.UV[1]);
-
+        
         SurfaceInteraction interaction = {point,normal,uv,distance,material_id};
         return interaction;
     }
@@ -90,7 +93,7 @@ namespace jpctracer::raytracing
 
         if(intersection)
         {
-            auto[uv_ids,norm_ids,slot_id] = mesh.TriangleShadings[idx];
+            auto[norm_ids,uv_ids,slot_id] = mesh.TriangleShadings[idx];
             Vec2 uv_1 = mesh.UVs[uv_ids[0]];
             Vec2 uv_2 = mesh.UVs[uv_ids[1]];
             Vec2 uv_3 = mesh.UVs[uv_ids[2]];

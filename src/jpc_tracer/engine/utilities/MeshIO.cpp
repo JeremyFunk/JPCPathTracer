@@ -94,7 +94,7 @@ namespace jpctracer
         Vec3 normal = sup1.cross(sup2);
         mesh.Normals.push_back(normal.normalized());
         mesh.TriangleGeometries.push_back({0,1,2});
-        mesh.TriangleShadings.push_back({0,0,0});
+        mesh.TriangleShadings.push_back({{0,0,0},{0,1,2},0});
         return std::make_shared<Geometry>(std::move(mesh));      
         
     }

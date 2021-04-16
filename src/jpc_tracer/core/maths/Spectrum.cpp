@@ -29,10 +29,6 @@ namespace jpctracer
         return Spectrum{0,0,0,1};
     }
 
-    Spectrum FromValue(const Prec& v)
-    {
-        return Spectrum{v,v,v,v};
-    }
     
     Spectrum Vec3ToSpec(const Vec3& b) 
     {

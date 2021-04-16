@@ -10,6 +10,7 @@ set(AUTOSRC
 "shaders/BsdfFactory.cpp"
 "shaders/DiscreteSampler.cpp"
 "shaders/ShaderFunction.cpp"
+"utilities/imageio.cpp"
 )
 set(INC
 "../")

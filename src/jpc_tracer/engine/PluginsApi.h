@@ -20,22 +20,22 @@ namespace jpctracer
     using ShaderResults = shadersys::ShaderResults;
 
     template<class func, class... Args>
-    inline constexpr auto ShaderBind(const func& f, Args&&...args)
+    inline constexpr auto ShaderBind(func&& f, Args&&...args)
     {
         return shadersys::ShaderBind(f, std::forward<Args>(args)...);
     }
 
 
     template<int type,std::derived_from<IBsdfClosure> BsdfT, class... Args>
-    inline constexpr BsdfNode CreateBsdf(ShaderContext* ctx, Args&&...args)
+    inline constexpr BsdfNode CreateBsdf(ShaderContext& ctx, Args...args)
     {
-        if(ContainsMaterialType(type,ctx->ray_type))
+        if(ContainsMaterialType(type,ctx.ray_type))
             return shadersys::__CreateBsdf<BsdfT>(ctx,std::forward<Args>(args)...);
         
         return {-1,true};
     }
 
-    inline BsdfNode MixBsdf(ShaderContext* ctx, BsdfNode first,BsdfNode second,Prec mix_factor)
+    inline BsdfNode MixBsdf(ShaderContext& ctx, BsdfNode first,BsdfNode second,Prec mix_factor)
     {
         return shadersys::__MixBsdf(ctx,first,second,mix_factor);
     }

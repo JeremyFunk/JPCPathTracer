@@ -150,7 +150,7 @@ namespace jpctracer {
         && TraceRay<Tracer>;
         */
         //Samplers
-        //**********************************************************************
+        // **********************************************************************
         
         template<class T,class ResultIt2D,class ResultIt3D>
         concept SamplerBuilder = requires(T builder)
@@ -159,7 +159,7 @@ namespace jpctracer {
         };
 
         //Cameras
-        //**********************************************************************
+        // **********************************************************************
         template<class T>
         concept CameraBuilder = requires(T builder)
         {
@@ -167,7 +167,7 @@ namespace jpctracer {
         };
         /*
         //Integrator
-        //**********************************************************************
+        // **********************************************************************
         template<class T>
         concept IntegratorBuilder = requires(T builder)
         {

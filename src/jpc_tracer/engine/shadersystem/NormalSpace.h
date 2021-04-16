@@ -8,7 +8,7 @@ namespace jpctracer::shadersys {
     {
         SurfaceInteraction Interaction;
         //in normal space
-        Vec3 ScatteringDir;
+        Ray ScatteringRay;
 
         //Normal Space World Matrix
         Vec3 Normal;

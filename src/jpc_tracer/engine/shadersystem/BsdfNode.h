@@ -44,6 +44,7 @@ namespace jpctracer::shadersys
         View<Ray> sampled_rays;
         View<ShaderResult> sampled_results;
         View<ShaderResult> eval_results;
+        Spectrum emission = Black();
     private:
         std::array<Ray,50> rays;
         std::array<ShaderResult,75> results; 
@@ -57,6 +58,7 @@ namespace jpctracer::shadersys
     {
         int id =-1;
         bool is_leaf = false;
+        Spectrum emission = Black();
     };
 
     enum class BsdfState
@@ -69,8 +71,14 @@ namespace jpctracer::shadersys
 
     struct BsdfLinks
     {
-        BsdfNode left;
-        BsdfNode right;
+        struct Node {
+            int id = -1;
+            bool is_leaf = false;
+            Node(const BsdfNode& n): id(n.id),is_leaf(n.is_leaf) {}
+            Node() {};
+        };
+        Node left;
+        Node right;
         Prec weight = 1;
     };
 
@@ -80,7 +88,7 @@ namespace jpctracer::shadersys
         View<Ray> input_rays;
         View<Vec2> samples2D;
         ShaderResults results;
-        std::array<Prec,JPCMAXNODES> weights;
+        std::array<Prec,JPCMAXNODES> weights = {};
         int bsdf_idx = 0;
         int bsdf_count = -1;
         int bsdfnodes_count = 0;
@@ -99,14 +107,14 @@ namespace jpctracer::shadersys
         BsdfState state;
         BsdfMemory* memory;
         //in normal space
-        const Vec3& ScatteringDir;
+        const NormalSpace& normal_space;
     };
 
 
     template<std::derived_from<IBsdfClosure> BsdfT>
-    constexpr void SampleBsdf(ShaderContext* ctx,const BsdfT& bsdf,int bsdf_id)
+    constexpr void SampleBsdf(ShaderContext& ctx,const BsdfT& bsdf,int bsdf_id)
     {
-        BsdfMemory* mem = ctx->memory;
+        BsdfMemory* mem = ctx.memory;
         auto[left,right] = mem->sampled_ranges[bsdf_id];
         Prec weight = mem->weights[bsdf_id];
         for(int i = left;i<right;i++)
@@ -119,9 +127,9 @@ namespace jpctracer::shadersys
     }
 
     template<std::derived_from<IBsdfClosure> BsdfT>
-    constexpr void EvalBsdf(ShaderContext* ctx,const BsdfT& bsdf,int bsdf_id)
+    constexpr void EvalBsdf(ShaderContext& ctx,const BsdfT& bsdf,int bsdf_id)
     {
-        BsdfMemory* mem = ctx->memory;
+        BsdfMemory* mem = ctx.memory;
         auto[left,right] = mem->sampled_ranges[bsdf_id];
         Prec weight = mem->weights[bsdf_id];
         for(int i = 0;i<mem->samples2D.size;i++)
@@ -139,12 +147,12 @@ namespace jpctracer::shadersys
     }    
 
     template<std::derived_from<IBsdfClosure> BsdfT,class... Args>
-    constexpr BsdfNode __CreateBsdf(ShaderContext* ctx, Args&&... args)
+    constexpr BsdfNode __CreateBsdf(ShaderContext& ctx, Args&&... args)
     {
-        int bsdf_id = ctx->memory->bsdf_idx;
-        ctx->memory->bsdf_idx++;
+        int bsdf_id = ctx.memory->bsdf_idx;
+        ctx.memory->bsdf_idx++;
 
-        switch(ctx->state)
+        switch(ctx.state)
         {                
             case BsdfState::WEIGHTS:
                 break;
@@ -167,18 +175,18 @@ namespace jpctracer::shadersys
     }
 
 
-    inline BsdfNode __MixBsdf(ShaderContext* ctx, BsdfNode node1,BsdfNode node2, Prec weight)
+    inline BsdfNode __MixBsdf(ShaderContext& ctx, BsdfNode node1,BsdfNode node2, Prec weight)
     {
-        if(ctx->state==BsdfState::WEIGHTS)
+        if(ctx.state==BsdfState::WEIGHTS)
         {
-            BsdfMemory* mem = ctx->memory;
+            BsdfMemory* mem = ctx.memory;
             if(node1.id==-1) return node2;
             if(node2.id==-1) return node1;
 
             uint bsdfnode_id = mem->bsdfnodes_count;
             mem->links[bsdfnode_id] = BsdfLinks{node1,node2,weight};
             mem->bsdfnodes_count++;
-            return {bsdfnode_id,false};
+            return {bsdfnode_id,false,node1.emission*weight+node2.emission*(1-weight)};
         }
         return {-1,true};
     }
@@ -187,7 +195,10 @@ namespace jpctracer::shadersys
     {
         if(root_node.is_leaf) 
         {
-            bsdf_mem.weights[root_node.id]*=1;
+            if(bsdf_mem.weights[root_node.id]==0)
+                bsdf_mem.weights[root_node.id] = 1;
+            else
+                bsdf_mem.weights[root_node.id]*=1;
         }
         else
         {
@@ -198,12 +209,21 @@ namespace jpctracer::shadersys
                 if(! left.is_leaf) 
                     links[left.id].weight*=weight;
                 else 
-                    bsdf_mem.weights[left.id]*=weight;
-
+                {
+                    if(bsdf_mem.weights[left.id]==0)
+                        bsdf_mem.weights[left.id]=weight;
+                    else
+                        bsdf_mem.weights[left.id] *= weight;
+                }
                 if(! right.is_leaf) 
                     links[right.id].weight*=weight;
                 else
-                    bsdf_mem.weights[right.id]*=weight;
+                {
+                    if (bsdf_mem.weights[right.id] == 0)
+                        bsdf_mem.weights[right.id] = 1-weight;
+                    else
+                        bsdf_mem.weights[right.id]*=1-weight;
+                }
                 assert(left.is_leaf || left.id<bsdf_idx);
                 assert(right.is_leaf || right.id<bsdf_idx);
                 
@@ -227,7 +247,7 @@ namespace jpctracer::shadersys
         {
             next_sum+=weights[bsdf_idx];
             int last_samples_idx = samples_idx;
-            while(next_sum<=samples[samples_idx][0] && samples_idx<samples.size)
+            while(next_sum>=samples[samples_idx][0] && samples_idx<samples.size)
             {
                 samples[samples_idx][0]-=last_sum;
                 samples[samples_idx][0]/=next_sum-last_sum;
@@ -242,46 +262,52 @@ namespace jpctracer::shadersys
     }
 
     template<MaterialType type,class ShaderFuncT>
-    ShaderResults SampleShader(ShaderFuncT shader_func,const Vec3& scattering_dir,View<Ray> rays, View<Vec2> samples)
+    ShaderResults SampleShader(ShaderFuncT shader_func,const NormalSpace& normal_space,View<Ray> rays, View<Vec2> samples)
     {
-        ShaderResults results{(unsigned short)rays.size,(unsigned short)samples.size};
-        BsdfMemory bsdf_mem = {rays,samples,std::move(results)};
-        bsdf_mem.weights.fill(1);
+        BsdfMemory bsdf_mem = {rays,samples,ShaderResults{(unsigned short)rays.size,(unsigned short)samples.size}};
+        //bsdf_mem.weights.fill(1);
 
-        ShaderContext context{type,BsdfState::WEIGHTS,&bsdf_mem,scattering_dir};
-        
         for(int i=0;i<3;i+=1)
         {
-            context.state = (BsdfState) i;
-            BsdfNode root_node = shader_func(&context);
+            ShaderContext context{type,(BsdfState) i,&bsdf_mem,normal_space};
+            BsdfNode root_node = shader_func(context);
             if(i==0)
             {
+                bsdf_mem.results.emission = root_node.emission;
+                if(bsdf_mem.bsdf_idx==0) return bsdf_mem.results; 
+                bsdf_mem.bsdf_count=bsdf_mem.bsdf_idx;
+
                 ComputeWeights(root_node,bsdf_mem);
                 bsdf_mem.sampled_ranges = SetSamplingRanges(bsdf_mem.weights,bsdf_mem.samples2D,bsdf_mem.bsdf_count);
             }
+            bsdf_mem.bsdf_idx = 0;
         }
         return bsdf_mem.results;
     }
 
     template<MaterialType type,class ShaderFuncT>
-    ShaderResults EvalShader(ShaderFuncT shader_func,const Vec3& scattering_dir,View<Ray> rays)
+    ShaderResults EvalShader(ShaderFuncT shader_func,const NormalSpace& normal_space,View<Ray> rays)
     {
-        ShaderResults results{(unsigned short)rays.size,0};
-        BsdfMemory bsdf_mem = {rays,{nullptr,0},std::move(results)};
-        bsdf_mem.weights.fill(1);
+        
+        BsdfMemory bsdf_mem = {rays,{nullptr,0},ShaderResults{(unsigned short)rays.size,0}};
+        //bsdf_mem.weights.fill(1);
 
-        ShaderContext context{type,BsdfState::WEIGHTS,&bsdf_mem,scattering_dir};
+        
         
         for(int i=0;i<3;i+=2)
         {
             bsdf_mem.bsdf_idx = 0;
-            context.state = (BsdfState) i;
-            BsdfNode root_node = shader_func(&context);
+            ShaderContext context{type,(BsdfState) i,&bsdf_mem,normal_space};
+            BsdfNode root_node = shader_func(context);
             if(i==0)
             {
+                bsdf_mem.results.emission = root_node.emission;
+                if(bsdf_mem.bsdf_idx==0) return bsdf_mem.results;
+                bsdf_mem.bsdf_count=bsdf_mem.bsdf_idx;
+
                 ComputeWeights(root_node,bsdf_mem);
             }
-            bsdf_mem.bsdf_count=bsdf_mem.bsdf_idx;
+            bsdf_mem.bsdf_idx = 0;   
         }
         return bsdf_mem.results;
 
@@ -290,21 +316,21 @@ namespace jpctracer::shadersys
     //All rays should be in the Normal space
     struct IShader
     {
-        virtual ShaderResults EvalDIFFUSE        (const Vec3& scattering_dir, View<Ray> rays) const = 0;
-        virtual ShaderResults EvalGLOSSY         (const Vec3& scattering_dir, View<Ray> rays) const = 0;
-        virtual ShaderResults EvalTRANSMISSION   (const Vec3& scattering_dir, View<Ray> rays) const = 0;
-        virtual ShaderResults EvalSUBSURFACE     (const Vec3& scattering_dir, View<Ray> rays) const = 0;
-        virtual ShaderResults EvalEMISSION       (const Vec3& scattering_dir, View<Ray> rays) const = 0;
-        virtual ShaderResults EvalTRANSPARENCY   (const Vec3& scattering_dir, View<Ray> rays) const = 0;
-        virtual ShaderResults EvalBSDF           (const Vec3& scattering_dir, View<Ray> rays) const = 0;
+        virtual ShaderResults EvalDIFFUSE        (const NormalSpace& normal_space, View<Ray> rays) const = 0;
+        virtual ShaderResults EvalGLOSSY         (const NormalSpace& normal_space, View<Ray> rays) const = 0;
+        virtual ShaderResults EvalTRANSMISSION   (const NormalSpace& normal_space, View<Ray> rays) const = 0;
+        virtual ShaderResults EvalSUBSURFACE     (const NormalSpace& normal_space, View<Ray> rays) const = 0;
+        virtual ShaderResults EvalEMISSION       (const NormalSpace& normal_space, View<Ray> rays) const = 0;
+        virtual ShaderResults EvalTRANSPARENCY   (const NormalSpace& normal_space, View<Ray> rays) const = 0;
+        virtual ShaderResults EvalBSDF           (const NormalSpace& normal_space, View<Ray> rays) const = 0;
         
-        virtual ShaderResults SampleDIFFUSE        (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const = 0;
-        virtual ShaderResults SampleGLOSSY         (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const = 0;
-        virtual ShaderResults SampleTRANSMISSION   (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const = 0;
-        virtual ShaderResults SampleSUBSURFACE     (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const = 0;
-        virtual ShaderResults SampleEMISSION       (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const = 0;
-        virtual ShaderResults SampleTRANSPARENCY   (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const = 0;
-        virtual ShaderResults SampleBSDF           (const Vec3& scattering_dir, View<Ray> rays, View<Vec2> samples) const = 0;
+        virtual ShaderResults SampleDIFFUSE        (const NormalSpace& normal_space, View<Ray> rays, View<Vec2> samples) const = 0;
+        virtual ShaderResults SampleGLOSSY         (const NormalSpace& normal_space, View<Ray> rays, View<Vec2> samples) const = 0;
+        virtual ShaderResults SampleTRANSMISSION   (const NormalSpace& normal_space, View<Ray> rays, View<Vec2> samples) const = 0;
+        virtual ShaderResults SampleSUBSURFACE     (const NormalSpace& normal_space, View<Ray> rays, View<Vec2> samples) const = 0;
+        virtual ShaderResults SampleEMISSION       (const NormalSpace& normal_space, View<Ray> rays, View<Vec2> samples) const = 0;
+        virtual ShaderResults SampleTRANSPARENCY   (const NormalSpace& normal_space, View<Ray> rays, View<Vec2> samples) const = 0;
+        virtual ShaderResults SampleBSDF           (const NormalSpace& normal_space, View<Ray> rays, View<Vec2> samples) const = 0;
 
         virtual ~IShader() {}
     };
@@ -315,21 +341,21 @@ namespace jpctracer::shadersys
         Shader(const ShaderFuncT& _func) : func(_func) {}
         ShaderFuncT func;
 
-        ShaderResults EvalDIFFUSE        (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_DIFFUSE>      (func,scat_dir, rays);}
-        ShaderResults EvalGLOSSY         (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_GLOSSY>       (func,scat_dir, rays);}
-        ShaderResults EvalTRANSMISSION   (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_TRANSMISSION> (func,scat_dir, rays);}
-        ShaderResults EvalSUBSURFACE     (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_SUBSURFACE>   (func,scat_dir, rays);}
-        ShaderResults EvalEMISSION       (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_EMISSION>     (func,scat_dir, rays);}
-        ShaderResults EvalTRANSPARENCY   (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_TRANSPARENCY> (func,scat_dir, rays);}
-        ShaderResults EvalBSDF           (const Vec3& scat_dir, View<Ray> rays) const {return EvalShader<MATERIAL_BSDF>         (func,scat_dir, rays);}
+        ShaderResults EvalDIFFUSE        (const NormalSpace& n_space, View<Ray> rays) const {return EvalShader<MATERIAL_DIFFUSE>      (func,n_space, rays);}
+        ShaderResults EvalGLOSSY         (const NormalSpace& n_space, View<Ray> rays) const {return EvalShader<MATERIAL_GLOSSY>       (func,n_space, rays);}
+        ShaderResults EvalTRANSMISSION   (const NormalSpace& n_space, View<Ray> rays) const {return EvalShader<MATERIAL_TRANSMISSION> (func,n_space, rays);}
+        ShaderResults EvalSUBSURFACE     (const NormalSpace& n_space, View<Ray> rays) const {return EvalShader<MATERIAL_SUBSURFACE>   (func,n_space, rays);}
+        ShaderResults EvalEMISSION       (const NormalSpace& n_space, View<Ray> rays) const {return EvalShader<MATERIAL_EMISSION>     (func,n_space, rays);}
+        ShaderResults EvalTRANSPARENCY   (const NormalSpace& n_space, View<Ray> rays) const {return EvalShader<MATERIAL_TRANSPARENCY> (func,n_space, rays);}
+        ShaderResults EvalBSDF           (const NormalSpace& n_space, View<Ray> rays) const {return EvalShader<MATERIAL_BSDF>         (func,n_space, rays);}
         
-        ShaderResults SampleDIFFUSE        (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_DIFFUSE>      (func,scat_dir, rays,samples);};
-        ShaderResults SampleGLOSSY         (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_GLOSSY>       (func,scat_dir, rays,samples);};
-        ShaderResults SampleTRANSMISSION   (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_TRANSMISSION> (func,scat_dir, rays,samples);};
-        ShaderResults SampleSUBSURFACE     (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_SUBSURFACE>   (func,scat_dir, rays,samples);};
-        ShaderResults SampleEMISSION       (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_EMISSION>     (func,scat_dir, rays,samples);};
-        ShaderResults SampleTRANSPARENCY   (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_TRANSPARENCY> (func,scat_dir, rays,samples);};
-        ShaderResults SampleBSDF           (const Vec3& scat_dir, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_BSDF>         (func,scat_dir, rays,samples);};
+        ShaderResults SampleDIFFUSE        (const NormalSpace& n_space, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_DIFFUSE>      (func,n_space, rays,samples);};
+        ShaderResults SampleGLOSSY         (const NormalSpace& n_space, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_GLOSSY>       (func,n_space, rays,samples);};
+        ShaderResults SampleTRANSMISSION   (const NormalSpace& n_space, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_TRANSMISSION> (func,n_space, rays,samples);};
+        ShaderResults SampleSUBSURFACE     (const NormalSpace& n_space, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_SUBSURFACE>   (func,n_space, rays,samples);};
+        ShaderResults SampleEMISSION       (const NormalSpace& n_space, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_EMISSION>     (func,n_space, rays,samples);};
+        ShaderResults SampleTRANSPARENCY   (const NormalSpace& n_space, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_TRANSPARENCY> (func,n_space, rays,samples);};
+        ShaderResults SampleBSDF           (const NormalSpace& n_space, View<Ray> rays, View<Vec2> samples) const {return SampleShader<MATERIAL_BSDF>         (func,n_space, rays,samples);};
     };
 
 

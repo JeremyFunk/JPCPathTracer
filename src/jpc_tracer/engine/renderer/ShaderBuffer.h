@@ -49,6 +49,8 @@ namespace jpctracer::renderer
 
         std::vector<std::shared_ptr<MaterialSettings>> m_created_materials;
 
+        TextureBuffer m_texture_buffer;
+
     };
     void MaterialLibrary::Register(std::string name, const ShaderBuilder auto& builder) 
     {
@@ -56,13 +58,13 @@ namespace jpctracer::renderer
         m_shader_builders.emplace_back([builder](MaterialSettings settings) -> std::unique_ptr<shadersys::IShader>
         {
             auto shader_func= builder(settings);
-            std::unique_ptr<shadersys::IShader> shader = std::make_unique<shadersys::Shader>(shader_func);
+            std::unique_ptr<shadersys::IShader> shader = std::make_unique<shadersys::Shader<decltype(shader_func)>>(shader_func);
             return shader;
         });
 
         uint type_id = m_shader_builders.size()-1;
 
-        m_default_settings.push_back(MaterialSettings(name,type_id));
+        m_default_settings.push_back(MaterialSettings(name,type_id,&m_texture_buffer));
         m_name_id_map[name] = type_id;
     }
 
@@ -77,7 +79,7 @@ namespace jpctracer::renderer
 
         uint type_id = m_shader_builders.size()-1;
 
-        MaterialSettings default_set(name,type_id);
+        MaterialSettings default_set(name,type_id,&m_texture_buffer);
         default_set.SetMultiple(default_settings);
 
         m_default_settings.push_back(default_set);

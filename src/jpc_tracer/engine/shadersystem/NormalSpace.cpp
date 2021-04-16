@@ -47,7 +47,11 @@ namespace jpctracer::shadersys
         mem.Tangent1 = mem.Normal.cross(temp_v).normalized();
         mem.Tangent2 = mem.Normal.cross(mem.Tangent1).normalized();
 
-        mem.ScatteringDir = WorldToNormal(scattering_ray.Direction, mem);
+        Vec3 scattering_dir = WorldToNormal(scattering_ray.Direction, mem);
+        //Flip ray
+        scattering_dir*=-1;
+
+        mem.ScatteringRay = Ray{scattering_dir,{0,0,0},0,0,scattering_ray.Time};
 
         return mem;
     }
