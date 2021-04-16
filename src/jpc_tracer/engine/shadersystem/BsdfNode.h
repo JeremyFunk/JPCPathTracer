@@ -79,7 +79,8 @@ namespace jpctracer::shadersys
         };
         Node left;
         Node right;
-        Prec weight = 1;
+        Prec left_weight = 1;
+        Prec right_weight = 1;
     };
 
     struct BsdfMemory
@@ -184,7 +185,7 @@ namespace jpctracer::shadersys
             if(node2.id==-1) return node1;
 
             uint bsdfnode_id = mem->bsdfnodes_count;
-            mem->links[bsdfnode_id] = BsdfLinks{node1,node2,weight};
+            mem->links[bsdfnode_id] = BsdfLinks{node1,node2,weight,1-weight};
             mem->bsdfnodes_count++;
             return {bsdfnode_id,false,node1.emission*weight+node2.emission*(1-weight)};
         }
@@ -205,24 +206,31 @@ namespace jpctracer::shadersys
             for(int bsdf_idx = root_node.id; bsdf_idx>=0;bsdf_idx--)
             {
                 auto& links = bsdf_mem.links;
-                auto&[left,right,weight] = links[bsdf_idx];
+                auto&[left,right,left_weight,right_weight] = links[bsdf_idx];
                 if(! left.is_leaf) 
-                    links[left.id].weight*=weight;
+                {
+                    links[left.id].left_weight*= left_weight;
+                    links[left.id].right_weight *= left_weight;
+
+                }
                 else 
                 {
                     if(bsdf_mem.weights[left.id]==0)
-                        bsdf_mem.weights[left.id]=weight;
+                        bsdf_mem.weights[left.id]= left_weight;
                     else
-                        bsdf_mem.weights[left.id] *= weight;
+                        bsdf_mem.weights[left.id] *= left_weight;
                 }
-                if(! right.is_leaf) 
-                    links[right.id].weight*=weight;
+                if (!right.is_leaf)
+                {
+                    links[right.id].left_weight *= right_weight;
+                    links[right.id].right_weight *= right_weight;
+                }
                 else
                 {
                     if (bsdf_mem.weights[right.id] == 0)
-                        bsdf_mem.weights[right.id] = 1-weight;
+                        bsdf_mem.weights[right.id] = right_weight;
                     else
-                        bsdf_mem.weights[right.id]*=1-weight;
+                        bsdf_mem.weights[right.id]*= right_weight;
                 }
                 assert(left.is_leaf || left.id<bsdf_idx);
                 assert(right.is_leaf || right.id<bsdf_idx);
