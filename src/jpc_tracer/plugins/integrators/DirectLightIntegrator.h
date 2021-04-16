@@ -49,13 +49,12 @@ namespace jpctracer
             ShaderResults bsdfs = hit_point.Shader<MATERIAL_BSDF>(lights.sampled_rays);
             //payload->samples+=1;
 
-            Spectrum emission = hit_point.Emission();
             for(int i=0;i<m_light_samples;i++)
             {
                 payload->result+= ComputeDirectLight(bsdfs.eval_results[i], lights.sampled_results[i], lights.sampled_rays[i], tracer, m_shadow_behavior);
             }
             payload->result/=m_light_samples;
-            payload->result+=emission;
+            payload->result+= bsdfs.emission;
         }
 
         inline void Miss(Spectrum background_color,Payload* payload) const 

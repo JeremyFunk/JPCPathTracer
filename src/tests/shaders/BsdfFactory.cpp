@@ -10,7 +10,7 @@ namespace jpctracer {
     
     TEST(shaders,factor_debugbsdf)
     {
-        auto f = [&](ShaderContext* ctx)
+        auto f = [&](ShaderContext& ctx)
         {
             BsdfNode node1 = DebugBsdf(ctx, FromRGB({0,0,1}));
             BsdfNode node2 = DebugBsdf(ctx, FromRGB({1,0,0}));
@@ -24,7 +24,7 @@ namespace jpctracer {
     
     TEST(shaders,factor_debugbsdf2)
     {
-        auto f = [&](ShaderContext* ctx)
+        auto f = [&](ShaderContext& ctx)
         {
             BsdfNode node1 = DebugBsdf(ctx, FromRGB({0,0,1}));
             BsdfNode node2 = DebugBsdf(ctx, FromRGB({1,0,0}));

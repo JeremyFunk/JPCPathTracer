@@ -31,8 +31,8 @@ namespace jpctracer {
         Ray m_mirror_ray;
     };
 
-    constexpr BsdfNode MirrorBsdf(ShaderContext* ctx)
+    constexpr BsdfNode MirrorBsdf(ShaderContext& ctx)
     {
-        return CreateBsdf<MATERIAL_GLOSSY, MirrorBsdfClosure>(ctx, ctx->normal_space.ScatteringRay);
+        return CreateBsdf<MATERIAL_GLOSSY, MirrorBsdfClosure>(ctx, ctx.normal_space.ScatteringRay);
     }
 }

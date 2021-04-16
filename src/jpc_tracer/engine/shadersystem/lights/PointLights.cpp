@@ -27,7 +27,7 @@ namespace jpctracer::shadersys
             out_incident_ray.LensPosition = {0,0};
             out_incident_ray.Origin = interaction.Point;
 
-            out_values[i].luminance = m_colors[sampled_idx];
+            out_values[i].luminance = m_colors[sampled_idx] / (out_incident_ray.ClipEnd * out_incident_ray.ClipEnd);
             out_values[i].pdf = 0;
         }
     }

@@ -1,6 +1,7 @@
 #pragma once
 #include "jpc_tracer/core/core.h"
 #include "jpc_tracer/engine/PluginsApi.h"
+#include <limits>
 #include <random>
 
 namespace jpctracer::sampler {
@@ -68,7 +69,31 @@ namespace jpctracer::sampler {
             std::uniform_real_distribution<Prec> dist;
         public:
             RandOp(std::random_device& rd);
-            Prec operator()();
+            inline Prec operator()()
+            {
+                return dist(m_gen); 
+            }
+        };
+
+        struct RandOpXoroshiro128
+        {
+            //Reference https://thompsonsed.co.uk/random-number-generators-for-c-performance-tested
+            uint64_t shuffle_table[4];
+            // The actual algorithm
+            inline uint64_t next(void)
+            {
+                uint64_t s1 = shuffle_table[0];
+                uint64_t s0 = shuffle_table[1];
+                uint64_t result = s0 + s1;
+                shuffle_table[0] = s0;
+                s1 ^= s1 << 23;
+                shuffle_table[1] = s1 ^ s0 ^ (s1 >> 18) ^ (s0 >> 5);
+                return result;
+            }
+            inline Prec operator()()
+            {
+                return (Prec)next() / (Prec) std::numeric_limits<uint64_t>::max(); 
+            }
         };
 
     }
@@ -77,6 +102,11 @@ namespace jpctracer::sampler {
     {
         std::random_device rd;
         return detail::GridSampler(detail::RandOp(rd));
+    
+    };
+    inline auto StratifiedSampler2()
+    {
+        return detail::GridSampler(detail::RandOpXoroshiro128());
     
     };
     inline auto DebugSampler()

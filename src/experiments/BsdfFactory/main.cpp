@@ -9,16 +9,16 @@
 #include <iostream>
 
 namespace jpctracer {
-    inline BsdfNode DebugBsdf1(ShaderContext* ctx, Spectrum spec)
+    inline BsdfNode DebugBsdf1(ShaderContext& ctx, Spectrum spec)
     {
         return CreateBsdf<MATERIAL_DIFFUSE, DebugBsdfClosure>(ctx,spec);
     }
-    inline BsdfNode DebugBsdf2(ShaderContext* ctx, Spectrum spec)
+    inline BsdfNode DebugBsdf2(ShaderContext& ctx, Spectrum spec)
     {
         return CreateBsdf<MATERIAL_GLOSSY, DebugBsdfClosure>(ctx,spec);
     }
 
-    inline BsdfNode material(ShaderContext* ctx,Prec val)
+    inline BsdfNode material(ShaderContext& ctx,Prec val)
     {
         Prec val_glossy = std::sqrt(val);
         DebugBsdf1(ctx, FromRGB({val,val,val}));

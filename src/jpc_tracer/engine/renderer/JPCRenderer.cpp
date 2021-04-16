@@ -77,6 +77,7 @@ namespace jpctracer::renderer
         const ShaderBuffer buffer = MaterialLib.CreateShaders();
         const std::unique_ptr<raytracing::Scene> scene = m_scene_builder.Build();
         const shadersys::Lights* lights = &LightsLib;
+        JPC_LOG_INFO("Start Rendering");
         if(ShouldMultiThread)
         {
             #pragma omp parallel for
@@ -113,6 +114,7 @@ namespace jpctracer::renderer
                 free(thread_sampler);
             }
         }
+        JPC_LOG_INFO("End Rendering");
 
         result_film.WriteChannels(directory);
     }

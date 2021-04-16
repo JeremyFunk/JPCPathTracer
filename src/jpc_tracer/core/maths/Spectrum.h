@@ -7,7 +7,7 @@ namespace jpctracer
     using Spectrum = math::Vec<Prec,4>;
 
     Vec3 ToRGB(const Spectrum& spec);
-    constexpr Spectrum FromRGB(const Vec3& rgb) noexcept
+    inline Spectrum FromRGB(const Vec3& rgb) noexcept
     {
         return Spectrum{rgb[0],rgb[1],rgb[2],1.0};
     }
@@ -16,7 +16,11 @@ namespace jpctracer
 
     bool IsBlack(Spectrum spec);
     Spectrum Black();
-    Spectrum FromValue(const Prec& v);
+    inline Spectrum FromValue(const Prec& v)
+    {
+        return Spectrum{v,v,v,v};
+    }
+
 
     Spectrum Vec3ToSpec(const Vec3& b);
 
