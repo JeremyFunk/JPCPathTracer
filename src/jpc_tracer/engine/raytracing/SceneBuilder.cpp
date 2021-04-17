@@ -1,5 +1,6 @@
 #include "SceneBuilder.h"
 #include "detail/Scene.h"
+#include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/maths/Transformation.h"
 #include "jpc_tracer/engine/raytracing/Geometry.h"
 #include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVH.h"
@@ -34,7 +35,10 @@ namespace jpctracer::raytracing {
     
     InstanceId SceneBuilder::AddInstance(MeshId mesh_id) 
     {
-        m_scene_data->static_instances.push_back({Instance{mesh_id},Transformation()});
+        m_scene_data->static_instances.push_back({Instance{mesh_id}, Transformation{1,0,0,0,
+                                                                                    0,1,0,0,
+                                                                                    0,0,1,0,
+                                                                                    0,0,0,1}});
         return m_scene_data->static_instances.size()-1;
     }
     
@@ -60,6 +64,8 @@ namespace jpctracer::raytracing {
 
         if (acceleration.StaticBVH == StaticBVHType::LBVH)
         {
+             JPC_LOG_INFO("Start building LBVH Trees");
+
             // build mesh bvhs
             m_scene_data->static_mesh_tree.reserve(m_scene_data->triangle_meshs.size() + m_scene_data->sphere_meshs.size());
             
@@ -87,6 +93,8 @@ namespace jpctracer::raytracing {
                 m_scene_data->static_mesh_tree.emplace_back(BuildLBVH(std::move(bounds), std::move(morton_codes)));
             }
 
+            JPC_LOG_INFO("Finished building Mesh LBVH Trees");
+
             // build instance tree
             std::vector<Bounds3D> instance_bounds;
             instance_bounds.reserve(m_scene_data->static_instances.size());
@@ -96,7 +104,13 @@ namespace jpctracer::raytracing {
 
             for (const auto& instance : m_scene_data->static_instances)
             {
-                const Bounds3D bound = ApplyTransformation(m_scene_data->static_mesh_tree[instance.first.mesh_id.id].internal_nodes[0].bound, instance.second);
+                const auto& idx = instance.first.mesh_id.id;
+
+                Bounds3D bound;
+                if(m_scene_data->static_mesh_tree[idx].internal_nodes.size() == 0)
+                    bound = ApplyTransformation(m_scene_data->static_mesh_tree[idx].shape_bounds[0], instance.second);
+                else
+                    bound = ApplyTransformation(m_scene_data->static_mesh_tree[idx].internal_nodes[0].bound, instance.second);
 
                 instance_bounds.emplace_back(bound);
                 instance_morton_codes.emplace_back(GetBoxMortonCode(bound));
@@ -106,6 +120,8 @@ namespace jpctracer::raytracing {
             SortVectorsByMorton(instance_morton_codes, instance_bounds, m_scene_data->static_instances);
 
             m_scene_data->static_instance_tree = BuildLBVH(std::move(instance_bounds), std::move(instance_morton_codes));
+
+            JPC_LOG_INFO("Finished building Static Instance LBVH Tree");
         }
 
         auto scene = std::make_unique<Scene>();

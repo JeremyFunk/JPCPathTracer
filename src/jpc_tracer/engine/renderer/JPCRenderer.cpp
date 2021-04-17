@@ -75,7 +75,7 @@ namespace jpctracer::renderer
         std::vector<Tile> tiles = SeperateToTiles(width,height, TileSize);
 
         const ShaderBuffer buffer = MaterialLib.CreateShaders();
-        const std::unique_ptr<raytracing::Scene> scene = m_scene_builder.Build();
+        const std::unique_ptr<raytracing::Scene> scene = m_scene_builder.Build(Acceleration);
         const shadersys::Lights* lights = &LightsLib;
         JPC_LOG_INFO("Start Rendering");
         if(ShouldMultiThread)

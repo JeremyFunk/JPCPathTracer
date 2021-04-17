@@ -113,6 +113,7 @@ namespace jpctracer::raytracing
         if(morton_first == morton_last)
             return (min_idx + max_idx) >> 1;
 
+        //int compare_number = __lzcnt(morton_first ^ morton_last); // MSVC
         int compare_number = __builtin_clz(morton_first ^ morton_last);
 
         int split_idx = 0;

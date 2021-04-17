@@ -19,6 +19,11 @@ namespace jpctracer::raytracing {
     {
 
         IntersectionResult intersection = Intersect(*scene, ray, any_hit_program);
+
+        if (intersection.interaction.has_value())
+        {
+            int a = 10;
+        }
         
         if(intersection.ShouldTerminate)
             return std::nullopt;

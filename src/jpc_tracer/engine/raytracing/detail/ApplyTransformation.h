@@ -39,11 +39,11 @@ namespace jpctracer::raytracing {
         return {ApplyTransformation(ray.Direction, trans), ApplyTransformation(ray.Origin, trans), ray.LensPosition, ray.ClipEnd, ray.Time};
     }
 
-    inline void ApplyTransformation(Ray& ray, const Transformation& trans)
-    {
-        ApplyTransformation(ray.Direction, trans);
-        ApplyTransformation(ray.Origin, trans);
-    }
+    // inline void ApplyTransformation(Ray& ray, const Transformation& trans)
+    // {
+    //     ApplyTransformation(ray.Direction, trans);
+    //     ApplyTransformation(ray.Origin, trans);
+    // }
 
     inline Bounds3D ApplyTransformation(const Bounds3D& bounds, const Transformation& trans)
     {

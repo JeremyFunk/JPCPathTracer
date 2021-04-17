@@ -12,9 +12,13 @@ namespace jpctracer::raytracing {
         {
             return NaiveInstancesIntersect(any_hit_program, scene,ray);
         }
-        else if (scene.static_bvh_type == StaticBVHType::LBVH) {
+        else if (scene.static_bvh_type == StaticBVHType::LBVH)
+        {
+            // LBVH TREE
+
             return BVHStaticIntersect(ray, scene, any_hit_program);
         }
+
         return {std::nullopt,false};
     }
 

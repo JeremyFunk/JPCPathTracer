@@ -98,6 +98,14 @@ namespace jpctracer
         return std::make_shared<Geometry>(std::move(mesh));      
         
     }
+    
+    std::shared_ptr<renderer::Geometry> CreateSphere(Vec3 Pos, Prec radius) 
+    {
+        raytracing::SphereMesh mesh;
+        mesh.Spheres.push_back({Pos, radius});
+        mesh.MaterialSlots.resize(1);
+        return std::make_shared<Geometry>(std::move(mesh));
+    }
 
 
 }

@@ -2,6 +2,7 @@
 
 #include "jpc_tracer/core/maths/Constants.h"
 #include <stdint.h>
+
 namespace jpctracer::raytracing
 {
     inline const uint32_t LeftShift3(uint32_t x)
@@ -21,7 +22,6 @@ namespace jpctracer::raytracing
 
         return x * 4 + y * 2 + z;
     }
-
     
     inline int CountLeadingZerosCombined(const uint32_t& a, const uint32_t& b)
     {
@@ -29,6 +29,7 @@ namespace jpctracer::raytracing
 
         if (combined == 0)  return 32U;
 
+        //return __lzcnt(combined); //MSVC 
         return __builtin_clz(combined);
     }
 }

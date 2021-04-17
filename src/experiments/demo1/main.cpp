@@ -37,8 +37,16 @@ int main()
 
     triangle->MaterialSlots[0] = shader;
 
+    auto sphere = jpctracer::CreateSphere({0,0,-2}, 0.5);
+    sphere->MaterialSlots[0] = shader;
+
     renderer.Draw(triangle);
+    renderer.Draw(sphere);
     renderer.LightsLib.AddPointLight({0,0,0}, jpctracer::FromRGB({1,1,1}));
+
+    //Peer
+    renderer.ShouldMultiThread = true;
+    renderer.Acceleration = { jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::LBVH };
 
     //Chris
     renderer.Render(300, 300, "");

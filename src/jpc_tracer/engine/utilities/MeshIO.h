@@ -14,4 +14,5 @@ namespace jpctracer
 
     std::shared_ptr<renderer::Geometry> LoadMesh(std::string path);
     std::shared_ptr<renderer::Geometry> CreateTriangle(Vec3 vertex1,Vec3 vertex2, Vec3 vertex3);
+    std::shared_ptr<renderer::Geometry> CreateSphere(Vec3 Pos, Prec radius);
 }
