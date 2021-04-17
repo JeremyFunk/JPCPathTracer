@@ -4,6 +4,8 @@
 #include "jpc_tracer/engine/shadersystem/BsdfNode.h"
 #include "jpc_tracer/engine/films/Film.h"
 #include "jpc_tracer/engine/renderer/RenderInterfaces.h"
+#include "jpc_tracer/engine/utilities/SphericalCoordinates.h"
+#include "jpc_tracer/engine/utilities/SamplingRoutins.h"
 #include"shadersystem/shadersystem.h"
 
 #include "raytracing/Geometry.h"

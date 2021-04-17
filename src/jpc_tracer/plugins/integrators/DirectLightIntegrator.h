@@ -34,8 +34,8 @@ namespace jpctracer
         auto[light_val,light_pdf] = light;
         auto[bsdf_val,bsdf_pdf] = bsdf;
         if (!IsDeltaDistribution(light_pdf))
-            return bsdf_val * light_val / light_pdf *std::abs(ray.Direction[2]);
-        return bsdf_val * light_val * std::abs(ray.Direction[2]);
+            return bsdf_val * light_val / light_pdf *std::abs(CosTheta(ray.Direction));
+        return bsdf_val * light_val * std::abs(CosTheta(ray.Direction));
     };
 
 

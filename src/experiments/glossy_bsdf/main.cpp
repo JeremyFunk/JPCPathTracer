@@ -11,42 +11,51 @@
 
 int main()
 {
-    jpctracer::Logger::Init();
-    using sampler_t = decltype(jpctracer::sampler::StratifiedSampler2());
-    std::unique_ptr<jpctracer::ISampler> sampler = std::make_unique<sampler_t>(jpctracer::sampler::StratifiedSampler2());
+    using namespace jpctracer;
+    Logger::Init();
+    using sampler_t = decltype(sampler::StratifiedSampler2());
+    std::unique_ptr<ISampler> sampler = std::make_unique<sampler_t>(sampler::StratifiedSampler2());
 
-    std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
+    std::unique_ptr<ICamera> camera = std::make_unique<camera::ProjectionCamera>(1);
 
-    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4,4);
+    std::unique_ptr<IIntegrator> integrator = std::make_unique<DirectLightIntegrator>(4,4);
     
-    jpctracer::JPCRenderer renderer(std::move(sampler),std::move(camera),std::move(integrator));
+    JPCRenderer renderer(std::move(sampler),std::move(camera),std::move(integrator));
     renderer.TileSize = 64;
     renderer.ShouldMultiThread = false;
     
     renderer.MaterialLib.Register(
         "Default",
-        [](jpctracer::MaterialSettings settings)
+        [](MaterialSettings settings)
         {
-            return jpctracer::ShaderBind(jpctracer::GlossyBsdf, settings.GetColor("Color"),settings.GetValue("Roughness"));
+            
+            auto bsdf_glossy = ShaderBind(GlossyBsdf, FromRGB({1,1,1}),settings.GetValue("roughness"));
+            auto bsdf_diffuse = ShaderBind(DiffuseBsdf,settings.GetColor("color"));
+            return ShaderBind(MixBsdf,bsdf_glossy,bsdf_diffuse,settings.GetValue("glossy_influence"));
         },
         {
-            {"Color",jpctracer::FromRGB({1,1,0})},
-            {"Roughness",0}
+            {"color",FromRGB({1,1,0})},
+            {"roughness",0.f},
+            {"glossy_influence", 0.2f }
         }
         );
 
     auto shader = renderer.MaterialLib.Get("Default");
     std::cout << "Set roughness\n";
     float roughness = 0;
+    float glossy_influence = 0;
     std::cin >> roughness;
+    std::cout << "Set glossy influence\n";
+    std::cin >> glossy_influence;
     shader->SetValue("Roughness", roughness);
+    shader->SetValue("glossy_influence", glossy_influence);
     //chris
-    auto triangle = jpctracer::CreateTriangle({-1,1,-2}, {1,-1,-2}, {1,1,-2});
+    auto triangle = CreateTriangle({-1,1,-2}, {1,-1,-2}, {1,1,-2});
 
     triangle->MaterialSlots[0] = shader;
 
     renderer.Draw(triangle);
-    renderer.LightsLib.AddPointLight({0,0,0}, jpctracer::FromRGB({10,10,10}));
+    renderer.LightsLib.AddPointLight({0,0,0}, FromRGB({10,10,10}));
 
     //Chris
     renderer.Render(500, 300, "");

@@ -2,7 +2,6 @@
 #include "jpc_tracer/core/maths/Spectrum.h"
 #include "jpc_tracer/engine/PluginsApi.h"
 #include "jpc_tracer/engine/shadersystem/IBsdfClosure.h"
-#include "SphericalCoordinates.h"
 #include "Fresnel.h"
 
 namespace jpctracer
