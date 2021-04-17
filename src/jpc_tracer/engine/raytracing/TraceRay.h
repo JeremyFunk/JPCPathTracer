@@ -5,6 +5,6 @@
 
 namespace jpctracer::raytracing {
 
-    std::optional<SurfaceInteraction> TraceRay(const Ray& ray, AnyHitCallBack any_hit_program, 
+    std::optional<SurfaceInteraction> TraceRay(Ray& ray, AnyHitCallBack any_hit_program, 
         const Scene* scene);
 }

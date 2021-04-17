@@ -11,6 +11,7 @@ namespace jpctracer {
 
         Bounds3D a {min, max};
 
-        std::cout << a[0][0] << ' ' << a[1][0];
+        EXPECT_EQ(a[0][0], 0);
+        EXPECT_EQ(a[1][0], 2);
     }
 }

@@ -36,8 +36,8 @@ namespace jpctracer::raytracing {
         MeshId AddMesh(SphereMesh&& mesh);
 
         InstanceId AddInstance(MeshId mesh_id);
-        //InstanceId AddInstance(MeshId mesh_id, Transformation trans);
-        //InstanceId AddInstance(MeshId mesh_id, Animated<Transformation> trans);
+        InstanceId AddInstance(MeshId mesh_id, Transformation trans);
+        // InstanceId AddInstance(MeshId mesh_id, Animated<Transformation> trans);
         
         
         void MaterialBind(InstanceId instance, size_t material_slot, uint material_id);

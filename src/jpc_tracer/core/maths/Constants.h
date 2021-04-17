@@ -1,5 +1,6 @@
 #pragma once
 #include "Vec.h"
+#include "Mat.h"
 #include <cstdint>
 
 namespace jpctracer {
@@ -12,8 +13,8 @@ namespace jpctracer {
     using Vec2 = math::Vec<Prec,2>;
     using Int2 = math::Vec<int,2>;
     using UInt2 = math::Vec<unsigned int,2>;
-    using Mat3x3 = int;
-    using Mat4x4 = int;
+    using Mat3x3 = math::Mat<Prec, 3, 3>;
+    using Mat4x4 = math::Mat<Prec, 4, 4>;
 
     using Transformation = Mat4x4;
 

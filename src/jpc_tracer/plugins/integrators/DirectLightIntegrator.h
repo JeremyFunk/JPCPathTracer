@@ -19,7 +19,7 @@ namespace jpctracer
 
     inline Spectrum ComputeDirectLight(const  ShaderResult& bsdf,
                             const ShaderResult& light,
-                            const Ray& ray,
+                            Ray& ray,
                             Tracer& tracer,
                             const ShadowBehavior& shadow_behavior )
     {

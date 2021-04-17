@@ -11,10 +11,10 @@
 
 namespace jpctracer::raytracing
 {
-    int number_leading_zeros(uint32_t* morton, const int& idx, const int offset);
-    int calc_direction(uint32_t* morton, const int& idx);
-    std::pair<int, int> calc_range(uint32_t* morton, const int& idx, const int& dir);
-    uint calc_split_idx(uint32_t* morton, const int& min_idx, const int& max_idx, const int& dir);
+    int number_leading_zeros(uint32_t* morton, const int& idx, const int offset, const size_t& number_nodes);
+    int calc_direction(uint32_t* morton, const int& idx, const size_t& number_nodes);
+    uint calc_last_idx(uint32_t* morton, const int& idx, const int& dir, const size_t& number_nodes);
+    uint calc_split_idx(uint32_t* morton, const int& min_idx, const int& max_idx, const int& dir, const size_t& number_nodes);
     Bounds3D calc_bounds(Bounds3D* bound_begin, const Bounds3D* bound_end);
 
     
@@ -24,41 +24,44 @@ namespace jpctracer::raytracing
         BVHTree tree(std::move(bounds));
 
         const size_t number_nodes = tree.internal_nodes.size();
+        const size_t number_shapes = tree.shape_bounds.size();
 
         uint32_t* morton = morton_codes.data();
 
         //build binary radix tree
-        #pragma omp parallel for
+        // #pragma omp parallel for
         for(uint idx = 0; idx < number_nodes; idx++)
         {
-            int direction = calc_direction(morton, idx);
+            int direction = calc_direction(morton, idx, number_nodes);
 
-            auto [ min_range, max_range ] = calc_range(morton, idx, direction);
-
-            uint last_idx = idx + min_range*direction;
+            uint last_idx = calc_last_idx(morton, idx, direction, number_nodes);
 
             uint min_idx = std::min(idx, last_idx);
             uint max_idx = std::max(idx, last_idx);
 
-            uint split_idx = calc_split_idx(morton, min_idx, max_idx, direction);
+            uint split_idx = calc_split_idx(morton, min_idx, max_idx, direction, number_nodes);
 
-            tree.internal_nodes[idx] = {calc_bounds(&tree.shape_bounds[min_idx], &tree.shape_bounds[max_idx]), min_idx, max_idx, split_idx};
+            const Bounds3D bound = calc_bounds(&tree.shape_bounds[min_idx], &tree.shape_bounds[max_idx]);
+
+            tree.internal_nodes[idx] = {bound, min_idx, max_idx, split_idx};
         }
 
         return tree;
     }
 
-    int number_leading_zeros(uint32_t* morton, const int& idx, const int offset)
+    int number_leading_zeros(uint32_t* morton, const int& idx, const int offset, const size_t& number_nodes)
     {
-        if(offset < 0) return -1;
+        const int second_idx = idx + offset;
+
+        if(second_idx < 0 || second_idx > number_nodes) return -1;
 
         uint32_t morton_a = *(morton + idx);
-        uint32_t morton_b = *(morton + idx + offset);
+        uint32_t morton_b = *(morton + second_idx);
 
         if (morton_a == morton_b)
         {
             size_t temp_idx_a = idx;
-            size_t temp_idx_b = idx + offset;
+            size_t temp_idx_b = second_idx;
 
             while (temp_idx_a)
             {
@@ -73,36 +76,36 @@ namespace jpctracer::raytracing
             }
 
             morton_a += idx;
-            morton_b += idx + offset;
+            morton_b += second_idx;
         }
 
         return CountLeadingZerosCombined(morton_a, morton_b);
     }
 
-    int calc_direction(uint32_t* morton, const int& idx) 
+    int calc_direction(uint32_t* morton, const int& idx, const size_t& number_nodes)
     {
-        return (number_leading_zeros(morton, idx, 1) - number_leading_zeros(morton, idx, -1) < 0) ? -1 : 1;
+        return (number_leading_zeros(morton, idx, 1, number_nodes) - number_leading_zeros(morton, idx, -1, number_nodes) < 0) ? -1 : 1;
     }
 
-    std::pair<int, int> calc_range(uint32_t* morton, const int& idx, const int& dir)
+    uint calc_last_idx(uint32_t* morton, const int& idx, const int& dir, const size_t& number_nodes)
     {
-        int min_diff = number_leading_zeros(morton, idx, - dir);
+        int min_diff = number_leading_zeros(morton, idx, -dir, number_nodes);
 
         int upper_range = 2;
-        while (number_leading_zeros(morton, idx, dir * upper_range) > min_diff)
+        while (number_leading_zeros(morton, idx, dir * upper_range, number_nodes) > min_diff)
             upper_range *= 2;
 
         int lower_range = 0;
         for (int i = upper_range/2; i >= 1; i /= 2)
         {
-            if (number_leading_zeros(morton, idx, (min_diff + i) * dir) > min_diff)
+            if (number_leading_zeros(morton, idx, (lower_range + i) * dir, number_nodes) > min_diff)
                 lower_range += i;
         }
 
-        return {lower_range, upper_range};
+        return idx + (lower_range*dir);
     }
 
-    uint calc_split_idx(uint32_t* morton, const int& min_idx, const int& max_idx, const int& dir)
+    uint calc_split_idx(uint32_t* morton, const int& min_idx, const int& max_idx, const int& dir, const size_t& number_nodes)
     {
         const uint32_t morton_first = *(morton + min_idx);
         const uint32_t morton_last = *(morton + max_idx);
@@ -112,7 +115,7 @@ namespace jpctracer::raytracing
 
         int compare_number = __builtin_clz(morton_first ^ morton_last);
 
-        int split_idx = min_idx;
+        int split_idx = 0;
         int step = max_idx - min_idx;
 
         do
@@ -120,7 +123,7 @@ namespace jpctracer::raytracing
             step = (step + 1) >> 1;
             int new_split = split_idx + step;
 
-            if(new_split < max_idx && number_leading_zeros(morton, min_idx, new_split) > compare_number)
+            if(new_split < max_idx && number_leading_zeros(morton, min_idx, new_split, number_nodes) > compare_number)
             {
                 split_idx = new_split;
             }
@@ -142,7 +145,7 @@ namespace jpctracer::raytracing
                  std::min(a.Min[2], b.Min[2])};
     }
 
-    Bounds3D calc_bounds(Bounds3D* bound_begin, Bounds3D* bound_end)
+    Bounds3D calc_bounds(Bounds3D* bound_begin, const Bounds3D* bound_end)
     {
         Bounds3D bound = *bound_begin;
 

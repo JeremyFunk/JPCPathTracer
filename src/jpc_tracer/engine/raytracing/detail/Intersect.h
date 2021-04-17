@@ -5,6 +5,6 @@
 
 namespace jpctracer::raytracing {
     
-    IntersectionResult Intersect(const Scene& scene,const Ray& ray,
+    IntersectionResult Intersect(const Scene& scene, Ray& ray,
         AnyHitCallBack any_hit_program);
 }

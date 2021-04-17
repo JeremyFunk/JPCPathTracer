@@ -53,7 +53,7 @@ namespace jpctracer::renderer
             : m_shader_buffer(shader_buffer),m_scene(scene),m_lights(lights)
             {}
         
-        void operator()(const std::derived_from<IRayBehavior> auto& ray_behavior,const Ray& ray,Payload* payload)
+        void operator()(const std::derived_from<IRayBehavior> auto& ray_behavior, Ray& ray,Payload* payload)
         {
             Ray world_ray = ray;
             if(m_normal_space)

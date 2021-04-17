@@ -13,7 +13,8 @@ namespace jpctracer::raytracing {
 
     enum class StaticBVHType
     {
-        NAIVE
+        NAIVE,
+        LBVH
     };
 
     struct EntityId

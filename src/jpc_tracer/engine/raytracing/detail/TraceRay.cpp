@@ -13,12 +13,12 @@ namespace jpctracer::raytracing {
     
 
 
-    std::optional<SurfaceInteraction> TraceRay(const Ray& ray,
+    std::optional<SurfaceInteraction> TraceRay(Ray& ray,
         AnyHitCallBack any_hit_program, 
         const Scene* scene) 
     {
 
-        IntersectionResult intersection = Intersect(*scene,ray,any_hit_program);
+        IntersectionResult intersection = Intersect(*scene, ray, any_hit_program);
         
         if(intersection.ShouldTerminate)
             return std::nullopt;

@@ -1,7 +1,10 @@
 set(AUTOSRC
 "test_utils.h"
+"acceleration/LBVHTest.cpp"
+"acceleration/SortTest.cpp"
 "acceleration/testing.cpp"
 "cameras/ProjectionCamera.cpp"
+"math/MatTest.cpp"
 "math/SpectrumTest.cpp"
 "math/VecTest.cpp"
 "raytracing_core/ShadingPrograms.cpp"
