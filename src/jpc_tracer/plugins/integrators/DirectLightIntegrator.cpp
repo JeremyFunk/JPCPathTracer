@@ -5,6 +5,8 @@
 
 namespace jpctracer
 {
+    
+
     DirectLightBehavior::DirectLightBehavior(uint light_samples) 
         : m_light_samples(light_samples)
     {

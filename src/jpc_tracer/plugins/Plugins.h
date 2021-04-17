@@ -6,3 +6,5 @@
 #include "shaders/DebugBsdf.h"
 #include "shaders/Mix.h"
 #include "shaders/MirrorBsdf.h"
+#include "shaders/GlossyBsdf.h"
+#include "shaders/LambertianBsdf.h"
