@@ -20,6 +20,7 @@ int main()
     std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4,1);
     
     jpctracer::JPCRenderer renderer(std::move(sampler),std::move(camera),std::move(integrator));
+    renderer.ShouldMultiThread = false;
     
     renderer.MaterialLib.Register(
         "Default",
@@ -33,23 +34,26 @@ int main()
     );
 
     auto shader = renderer.MaterialLib.Get("Default");
-    auto triangle = jpctracer::CreateTriangle({-1,1,-2}, {1,-1,-2}, {1,1,-2});
+    auto triangle = jpctracer::CreateTriangle({-5,5,-5}, {5,-5,-5}, {5,5,-5});
 
     triangle->MaterialSlots[0] = shader;
 
     auto sphere = jpctracer::CreateSphere({0,0,-2}, 0.5);
     sphere->MaterialSlots[0] = shader;
 
+    //auto monkey = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
+
     renderer.Draw(triangle);
     renderer.Draw(sphere);
-    renderer.LightsLib.AddPointLight({0,0,0}, jpctracer::FromRGB({1,1,1}));
+    //renderer.Draw(monkey);
+    renderer.LightsLib.AddPointLight({0,-2,0}, jpctracer::FromRGB({10,10,10}));
 
     //Peer
     renderer.ShouldMultiThread = true;
     renderer.Acceleration = { jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::LBVH };
 
     //Chris
-    renderer.Render(300, 300, "");
+    renderer.Render(100, 100, "");
 
     return 0;
 }

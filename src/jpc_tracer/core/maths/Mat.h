@@ -4,7 +4,7 @@
 
 #include <algorithm>
 #include <array>
-#include <vcruntime.h>
+//#include <vcruntime.h>
 
 namespace jpctracer::math {
 
@@ -130,5 +130,7 @@ namespace jpctracer::math {
     template<class T, class S,size_t _X_dim, size_t _Y_dim>
     constexpr void operator%=(Mat<T,_X_dim, _Y_dim>& a,const S& s){ detail::MatMutableOpScalar(a,s, std::modulus<T>()); }
 
+
+    
 
 }

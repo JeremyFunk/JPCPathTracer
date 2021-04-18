@@ -6,7 +6,6 @@
 #include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVH.h"
 #include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BuildLBVH.h"
 #include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVHBuilderHelper.h"
-#include "jpc_tracer/engine/raytracing/detail/ApplyTransformation.h"
 #include <memory>
 #include <stdint.h>
 
@@ -35,10 +34,7 @@ namespace jpctracer::raytracing {
     
     InstanceId SceneBuilder::AddInstance(MeshId mesh_id) 
     {
-        m_scene_data->static_instances.push_back({Instance{mesh_id}, Transformation{1,0,0,0,
-                                                                                    0,1,0,0,
-                                                                                    0,0,1,0,
-                                                                                    0,0,0,1}});
+        m_scene_data->static_instances.push_back({Instance{mesh_id}, Transformation::Identity()});
         return m_scene_data->static_instances.size()-1;
     }
     
@@ -108,9 +104,9 @@ namespace jpctracer::raytracing {
 
                 Bounds3D bound;
                 if(m_scene_data->static_mesh_tree[idx].internal_nodes.size() == 0)
-                    bound = ApplyTransformation(m_scene_data->static_mesh_tree[idx].shape_bounds[0], instance.second);
+                    bound = Apply(instance.second,m_scene_data->static_mesh_tree[idx].shape_bounds[0]);
                 else
-                    bound = ApplyTransformation(m_scene_data->static_mesh_tree[idx].internal_nodes[0].bound, instance.second);
+                    bound = Apply(instance.second, m_scene_data->static_mesh_tree[idx].internal_nodes[0].bound);
 
                 instance_bounds.emplace_back(bound);
                 instance_morton_codes.emplace_back(GetBoxMortonCode(bound));

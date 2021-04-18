@@ -15,7 +15,7 @@ namespace jpctracer::renderer
         Geometry(raytracing::SphereMesh _mesh) : mesh(_mesh) {}
         
         std::variant<raytracing::TriangleMesh,raytracing::SphereMesh,raytracing::MeshId> mesh;
-        std::shared_ptr<IAnimated<Transformation>> transformation = nullptr;
+        Transformation transformation = Transformation::Identity();
 
         std::unordered_map<uint, std::shared_ptr<MaterialSettings>> MaterialSlots;
 

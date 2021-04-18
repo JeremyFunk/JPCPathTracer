@@ -7,14 +7,11 @@ namespace jpctracer {
     {
         //incident_dir in normal space
         MirrorBsdfClosure(Ray scattering_ray)
+            : m_mirror_ray(scattering_ray)
         {
-            Vec3 scattering_dir = scattering_ray.Direction;
-            Prec time = scattering_ray.Time;   
-            m_mirror_ray.Direction[0]= scattering_dir[0]*-1;
-            m_mirror_ray.Direction[1]=scattering_dir[1]*-1;
-            m_mirror_ray.Direction[2] = scattering_dir[2];
-            m_mirror_ray.Time = time;
-            m_mirror_ray.Origin = {0,0,0};
+
+            m_mirror_ray.Direction.flip(0);
+            m_mirror_ray.Direction.flip(1);
         }
         inline ShaderResult Eval( Ray incident_ray) const
         {

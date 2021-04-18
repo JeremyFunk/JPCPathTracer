@@ -153,7 +153,7 @@ namespace jpctracer
     
         Spectrum m_color;
         Prec m_alpha;
-        const Vec3& m_scattering_dir;
+        const Norm3& m_scattering_dir;
         const Prec m_time;
     };
     

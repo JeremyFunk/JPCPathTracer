@@ -14,7 +14,6 @@ namespace jpctracer::raytracing
     */
     std::optional<IntersectionInfo> TriangleIntersect(const Ray& ray, Vec3 position, Vec3 support_vec_1,Vec3 support_vec_2) 
     {
-        assert((ray.Direction.norm()-1.f)<0.001);
         //defines close to 0
         Prec epsilon = 0.00001;
 
@@ -68,14 +67,14 @@ namespace jpctracer::raytracing
     {
         
         
-        Vec3 point = ray.Direction * info.Distance + ray.Origin ;
+        Vec3 point = Vec3(ray.Direction) * info.Distance + ray.Origin ;
         Prec distance = info.Distance;
        
 
         Vec2 uv = Interpolate(uv_1, uv_2, uv_3, info.UV[0], info.UV[1]);
         Vec3 normal = Interpolate(normal_1, normal_2, normal_3, info.UV[0], info.UV[1]);
         
-        SurfaceInteraction interaction = {point,normal,uv,distance,material_id};
+        SurfaceInteraction interaction = {point,normal.normalized(),uv,distance,material_id};
         return interaction;
     }
     

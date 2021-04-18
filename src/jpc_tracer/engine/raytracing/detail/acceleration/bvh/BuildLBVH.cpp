@@ -5,7 +5,6 @@
 #include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVH.h"
 #include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/MortonCode.h"
 #include <stdint.h>
-#include <vcruntime.h>
 #include <vector>
 #include <execution>
 

@@ -1,6 +1,5 @@
 #include "BVHInetersection.h"
 #include "jpc_tracer/engine/raytracing/Geometry.h"
-#include "jpc_tracer/engine/raytracing/detail/ApplyTransformation.h"
 #include "jpc_tracer/engine/raytracing/detail/Intersect.h"
 #include "jpc_tracer/engine/raytracing/detail/acceleration/BoundingBoxIntersection.h"
 #include "jpc_tracer/engine/raytracing/detail/acceleration/IntersectionInfo.h"
@@ -28,7 +27,7 @@ namespace jpctracer::raytracing
         {
             const int* material_per_slot = &scene.static_instances[0].first.materials_per_slot[0];
 
-            Ray mesh_ray = ApplyTransformation(ray, scene.static_instances[0].second);
+            Ray mesh_ray = Apply(scene.static_instances[0].second, ray);
 
             if (scene.triangle_meshs.size() == 0)
                 return NaiveMeshTreeTraversal(mesh_ray, scene.static_mesh_tree[0], scene.sphere_meshs[0], any_hit_program, material_per_slot);
@@ -63,7 +62,7 @@ namespace jpctracer::raytracing
                     // travers mesh tree
                     const int* material_per_slot = &scene.static_instances[last_idx].first.materials_per_slot[0];
 
-                    Ray mesh_ray = ApplyTransformation(ray, scene.static_instances[last_idx].second);
+                    Ray mesh_ray = Apply(scene.static_instances[last_idx].second, ray);
 
                     const size_t number_triangle_meshs = scene.triangle_meshs.size();
 
@@ -95,7 +94,7 @@ namespace jpctracer::raytracing
                     // travers mesh tree
                     const int* material_per_slot = &scene.static_instances[first_idx].first.materials_per_slot[0];
 
-                    Ray mesh_ray = ApplyTransformation(ray, scene.static_instances[first_idx].second);
+                    Ray mesh_ray = Apply(scene.static_instances[first_idx].second, ray);
 
                     const size_t number_triangle_meshs = scene.triangle_meshs.size();
 

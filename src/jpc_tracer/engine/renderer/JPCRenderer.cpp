@@ -38,7 +38,7 @@ namespace jpctracer::renderer
                 break;
         }
 
-        auto instance_id = m_scene_builder.AddInstance(mesh_id);
+        auto instance_id = m_scene_builder.AddInstance(mesh_id,geomtry->transformation);
         for(auto materials: geomtry->MaterialSlots)
             m_scene_builder.MaterialBind(instance_id, materials.first, materials.second->material_id);
     }
