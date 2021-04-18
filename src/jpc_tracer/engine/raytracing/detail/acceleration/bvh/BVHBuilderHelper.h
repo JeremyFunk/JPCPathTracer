@@ -2,72 +2,41 @@
 
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/Transformation.h"
-#include "jpc_tracer/engine/raytracing/Geometry.h"
 #include <stdint.h>
-#include <algorithm>
-#include <numeric>
-#include <vector>
 
 namespace jpctracer::raytracing
 {
-    // Triangle
-    std::vector<Bounds3D> GenerateTriangleBounds(const TriangleMesh& mesh);
-    std::vector<Vec3> GetTriangleCenters(const TriangleMesh& mesh);
-    std::vector<uint32_t> GenerateTriangleMortonCodes(const TriangleMesh& mesh);
-    void SortTriangleByMortonCode(TriangleMesh& mesh, std::vector<uint32_t>& morton_codes);
-
-    // Sphere
-    std::vector<Bounds3D> GenerateSphereBounds(const SphereMesh& mesh);
-    std::vector<Vec3> GetSphereCenters(const SphereMesh& mesh);
-    std::vector<uint32_t> GenerateSphereMortonCodes(const SphereMesh& mesh);
-    void SortSphereByMortonCode(SphereMesh& mesh, std::vector<uint32_t>& morton_codes);
-
-    // Bounding Box
-    Vec3 GetBoxCenter(const Bounds3D& bound);
-    uint32_t GetBoxMortonCode(const Bounds3D& bound);
-
-    namespace sorthelper {
-        std::vector<size_t> GeneratePermutation(const std::vector<uint32_t>& morton_codes);
-        
-        template <class T>
-        void ApplyPermutationInPlace(const std::vector<size_t>& order, std::vector<T>& vec)
-        {
-            std::vector<bool> done(vec.size());
-
-            for (size_t i = 0; i < vec.size(); i++)
-            {
-                if (done[i]) continue;
-
-                done[i] = true;
-
-                // order
-                size_t prev_j = i;
-                size_t j = order[i];
-                
-                while (i != j)
-                {
-                    std::swap(vec[prev_j], vec[j]);
-                    done[j] = true;
-
-                    prev_j = j;
-                    j = order[j];
-                }
-            }
-        }
-
-        template <class T, typename... TT>
-        void ApplyPermutationInPlace(const std::vector<size_t>& order, std::vector<T>& vec, std::vector<TT>&... tt)
-        {
-            ApplyPermutationInPlace(order, vec);
-            ApplyPermutationInPlace(order, tt...);
-        }  
-    }
-
-    template<typename... TT>
-    void SortVectorsByMorton(std::vector<uint32_t>& morton_codes, std::vector<TT>&... tt)
+    inline const uint32_t LeftShift3(uint32_t x)
     {
-        const auto order = sorthelper::GeneratePermutation(morton_codes);
-        sorthelper::ApplyPermutationInPlace(order, morton_codes);
-        sorthelper::ApplyPermutationInPlace(order, tt...);
+        x = (x * 0x00010001u) & 0xFF0000FFu;
+        x = (x * 0x00000101u) & 0x0F00F00Fu;
+        x = (x * 0x00000011u) & 0xC30C30C3u;
+        x = (x * 0x00000005u) & 0x49249249u;
+        return x;
     }
+
+    inline const uint32_t EncodeMorton(const Vec3& centroid)
+    {
+        const uint32_t x = LeftShift3(std::min(std::max(centroid[0] * 1024.0f, 0.0f), 1023.0f));
+        const uint32_t y = LeftShift3(std::min(std::max(centroid[1] * 1024.0f, 0.0f), 1023.0f));
+        const uint32_t z = LeftShift3(std::min(std::max(centroid[2] * 1024.0f, 0.0f), 1023.0f));
+
+        return x * 4 + y * 2 + z;
+    }
+    
+    inline int CountLeadingZerosCombined(const uint32_t& a, const uint32_t& b)
+    {
+        const uint32_t combined = a ^ b;
+
+        if (combined == 0)  return 32U;
+
+        //return __lzcnt(combined); //MSVC 
+        return __builtin_clz(combined);
+    }
+
+    int number_leading_zeros(uint32_t* morton, const int& idx, const int offset, const size_t& number_nodes);
+    int calc_direction(uint32_t* morton, const int& idx, const size_t& number_nodes);
+    uint calc_last_idx(uint32_t* morton, const int& idx, const int& dir, const size_t& number_nodes);
+    uint calc_split_idx(uint32_t* morton, const int& min_idx, const int& max_idx, const int& dir, const size_t& number_nodes);
+    Bounds3D calc_bounds(Bounds3D* bound_begin, const Bounds3D* bound_end);
 }

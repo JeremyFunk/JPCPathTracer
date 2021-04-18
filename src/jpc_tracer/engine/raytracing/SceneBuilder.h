@@ -51,7 +51,7 @@ namespace jpctracer::raytracing {
 
         size_t m_material_count;
 
-
+        void __BuildLBVH();
     };
 
 

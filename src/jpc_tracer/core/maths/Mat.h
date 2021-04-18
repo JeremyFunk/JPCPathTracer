@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <array>
-//#include <vcruntime.h>
 
 namespace jpctracer::math {
 
@@ -131,6 +130,6 @@ namespace jpctracer::math {
     constexpr void operator%=(Mat<T,_X_dim, _Y_dim>& a,const S& s){ detail::MatMutableOpScalar(a,s, std::modulus<T>()); }
 
 
-    
+
 
 }

@@ -1,192 +1,114 @@
 #include "BVHBuilderHelper.h"
-#include "jpc_tracer/core/maths/Constants.h"
-#include "jpc_tracer/core/maths/Transformation.h"
-#include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/MortonCode.h"
-#include <algorithm>
-#include <numeric>
 #include <stdint.h>
-#include <vector>
 
 
 
 namespace jpctracer::raytracing
-{
-    std::vector<Bounds3D> GenerateTriangleBounds(const TriangleMesh& mesh)
+{    
+    int number_leading_zeros(uint32_t* morton, const int& idx, const int offset, const size_t& number_nodes)
     {
-        std::vector<Bounds3D> bounds;
-        bounds.reserve(mesh.TriangleGeometries.size());
+        const int second_idx = idx + offset;
 
-        for(const auto& triangle : mesh.TriangleGeometries)
+        if(second_idx < 0 || second_idx > number_nodes) return -1;
+
+        uint32_t morton_a = *(morton + idx);
+        uint32_t morton_b = *(morton + second_idx);
+
+        if (morton_a == morton_b)
         {
-            const Vec3 v1 = mesh.Vertices[triangle.Vertex1Id];
-            const Vec3 v2 = mesh.Vertices[triangle.Vertex2Id];
-            const Vec3 v3 = mesh.Vertices[triangle.Vertex3Id];
+            size_t temp_idx_a = idx;
+            size_t temp_idx_b = second_idx;
 
-            const Vec3 max {std::max({v1[0], v2[0], v3[0]}), 
-                            std::max({v1[1], v2[1], v3[1]}),
-                            std::max({v1[2], v2[2], v3[2]})};
+            while (temp_idx_a)
+            {
+                morton_a *= 10;
+                temp_idx_a /= 10;
+            }
 
-            const Vec3 min {std::min({v1[0], v2[0], v3[0]}), 
-                            std::min({v1[1], v2[1], v3[1]}),
-                            std::min({v1[2], v2[2], v3[2]})};
+            while (temp_idx_b)
+            {
+                morton_b *= 10;
+                temp_idx_b /= 10;
+            }
 
-            bounds.emplace_back(min, max);
+            morton_a += idx;
+            morton_b += second_idx;
         }
 
-        return bounds;
+        return CountLeadingZerosCombined(morton_a, morton_b);
     }
-    
-    std::vector<Vec3> GetTriangleCenters(const TriangleMesh& mesh) 
+
+    int calc_direction(uint32_t* morton, const int& idx, const size_t& number_nodes)
     {
-        std::vector<Vec3> center;
-        center.reserve(mesh.TriangleGeometries.size());
-
-        for(const auto& triangle : mesh.TriangleGeometries)
-            center.emplace_back((1.0/3.0) * (mesh.Vertices[triangle.Vertex1Id] + mesh.Vertices[triangle.Vertex2Id] + mesh.Vertices[triangle.Vertex3Id]));
-
-        return center;
+        return (number_leading_zeros(morton, idx, 1, number_nodes) - number_leading_zeros(morton, idx, -1, number_nodes) < 0) ? -1 : 1;
     }
-    
-    std::vector<uint32_t> GenerateTriangleMortonCodes(const TriangleMesh& mesh) 
-    {
-        std::vector<uint32_t> codes;
-        codes.reserve(mesh.TriangleGeometries.size());
 
-        for(const auto& triangle : mesh.TriangleGeometries)
+    uint calc_last_idx(uint32_t* morton, const int& idx, const int& dir, const size_t& number_nodes)
+    {
+        int min_diff = number_leading_zeros(morton, idx, -dir, number_nodes);
+
+        int upper_range = 2;
+        while (number_leading_zeros(morton, idx, dir * upper_range, number_nodes) > min_diff)
+            upper_range *= 2;
+
+        int lower_range = 0;
+        for (int i = upper_range/2; i >= 1; i /= 2)
         {
-            const auto center = (1.0/3.0) * (mesh.Vertices[triangle.Vertex1Id] + mesh.Vertices[triangle.Vertex2Id] + mesh.Vertices[triangle.Vertex3Id]);
-            codes.emplace_back(EncodeMorton(center));
+            if (number_leading_zeros(morton, idx, (lower_range + i) * dir, number_nodes) > min_diff)
+                lower_range += i;
         }
 
-        return codes;
+        return idx + (lower_range*dir);
     }
 
-    void SortTriangleByMortonCode(TriangleMesh& mesh, std::vector<uint32_t>& morton_codes)
+    uint calc_split_idx(uint32_t* morton, const int& min_idx, const int& max_idx, const int& dir, const size_t& number_nodes)
     {
-        SortVectorsByMorton(morton_codes, mesh.TriangleGeometries, mesh.TriangleShadings);
-        return;
+        const uint32_t morton_first = *(morton + min_idx);
+        const uint32_t morton_last = *(morton + max_idx);
 
-        // const auto order = sorthelper::GeneratePermutation(morton_codes);
+        if(morton_first == morton_last)
+            return (min_idx + max_idx) >> 1;
 
-        // sorthelper::ApplyPermutationInPlace(morton_codes, order);
-        // sorthelper::ApplyPermutationInPlace(mesh.TriangleGeometries, order);
-        // sorthelper::ApplyPermutationInPlace(mesh.TriangleShadings, order);
-    }
-    
-    std::vector<Bounds3D> GenerateSphereBounds(const SphereMesh& mesh)
-    {
-        std::vector<Bounds3D> bounds;
-        bounds.reserve(mesh.Spheres.size());
+        //int compare_number = __lzcnt(morton_first ^ morton_last); // MSVC
+        int compare_number = __builtin_clz(morton_first ^ morton_last);
 
-        for(const auto& sphere : mesh.Spheres)
+        int split_idx = 0;
+        int step = max_idx - min_idx;
+
+        do
         {
-            const Vec3 min {sphere.Position[0] - sphere.Radius, sphere.Position[1] - sphere.Radius, sphere.Position[2] - sphere.Radius};
-            const Vec3 max {sphere.Position[0] + sphere.Radius, sphere.Position[1] + sphere.Radius, sphere.Position[2] + sphere.Radius};
+            step = (step + 1) >> 1;
+            int new_split = split_idx + step;
 
-            bounds.emplace_back(min, max);
-        }
+            if(new_split < max_idx && number_leading_zeros(morton, min_idx, new_split, number_nodes) > compare_number)
+            {
+                split_idx = new_split;
+            }
 
-        return bounds;
+        } while(step > 1);
+
+        return split_idx;
     }
-    
-    std::vector<Vec3> GetSphereCenters(const SphereMesh& mesh)
+
+    void Union(Bounds3D& a, const Bounds3D& b)
     {
-        std::vector<Vec3> center;
-        center.reserve(mesh.Spheres.size());
+        // a = a & b
+        a.Max = {std::max(a.Max[0], b.Max[0]),
+                 std::max(a.Max[1], b.Max[1]),
+                 std::max(a.Max[2], b.Max[2])};
 
-        for(const auto& sphere : mesh.Spheres)
-            center.emplace_back(sphere.Position);
-
-        return center;
+        a.Min = {std::min(a.Min[0], b.Min[0]),
+                 std::min(a.Min[1], b.Min[1]),
+                 std::min(a.Min[2], b.Min[2])};
     }
-    
-    std::vector<uint32_t> GenerateSphereMortonCodes(const SphereMesh& mesh) 
+
+    Bounds3D calc_bounds(Bounds3D* bound_begin, const Bounds3D* bound_end)
     {
-        std::vector<uint32_t> codes;
-        codes.reserve(mesh.Spheres.size());
+        Bounds3D bound = *bound_begin;
 
-        for(const auto& sphere : mesh.Spheres)
-            codes.emplace_back(EncodeMorton(sphere.Position));
+        while(++bound_begin != bound_end)
+            Union(bound, *bound_begin);
 
-        return codes;
+        return bound;
     }
-
-    void SortSphereByMortonCode(SphereMesh& mesh, std::vector<uint32_t>& morton_codes)
-    {
-        SortVectorsByMorton(morton_codes, mesh.Spheres);
-        return;
-
-        // const auto order = sorthelper::GeneratePermutation(morton_codes);
-
-        // sorthelper::ApplyPermutationInPlace(morton_codes, order);
-        // sorthelper::ApplyPermutationInPlace(mesh.Spheres, order);
-    }
-    
-    Vec3 GetBoxCenter(const Bounds3D& bound) 
-    {
-        return 0.5 * (bound.Min + bound.Max);
-    }
-    
-    uint32_t GetBoxMortonCode(const Bounds3D& bound) 
-    {
-        return EncodeMorton(0.5 * (bound.Min + bound.Max));
-    }
-    
-    // template<typename... TT>
-    // void SortVectorsByMorton(std::vector<uint32_t>& morton_codes, std::vector<TT>&... tt) 
-    // {
-    //     const auto order = sorthelper::GeneratePermutation(morton_codes);
-    //     sorthelper::ApplyPermutationInPlace(order, morton_codes);
-    //     sorthelper::ApplyPermutationInPlace(order, tt...);
-    // }
-
-
-    namespace sorthelper
-    {
-        std::vector<size_t> GeneratePermutation(const std::vector<uint32_t>& morton_codes) 
-        {
-            std::vector<size_t> order(morton_codes.size());
-
-            std::iota(order.begin(), order.end(), 0);
-
-            std::sort(order.begin(), order.end(),
-                        [&](size_t a, size_t b) { return (morton_codes[a] < morton_codes[b]); } );
-
-            return order;
-        }
-    }
-
-    //     template <class T>
-    //     void ApplyPermutationInPlace(const std::vector<size_t>& order, std::vector<T>& vec)
-    //     {
-    //         std::vector<bool> done(vec.size());
-
-    //         for (size_t i = 0; i < vec.size(); i++)
-    //         {
-    //             if (done[i]) continue;
-
-    //             done[i] = true;
-
-    //             // order
-    //             size_t prev_j = i;
-    //             size_t j = order[i];
-                
-    //             while (i != j)
-    //             {
-    //                 std::swap(vec[prev_j], vec[j]);
-    //                 done[j] = true;
-
-    //                 prev_j = j;
-    //                 j = order[j];
-    //             }
-    //         }
-    //     }
-        
-    //     template<class T, typename... TT>
-    //     void ApplyPermutationInPlace(const std::vector<size_t>& order, std::vector<T>& vec, std::vector<TT>&... tt)
-    //     {
-    //         ApplyPermutationInPlace(order, vec);
-    //         ApplyPermutationInPlace(order, tt...);
-    //     }      
-    // }     
 }
