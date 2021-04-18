@@ -5,7 +5,7 @@
 #include "jpc_tracer/engine/raytracing/Geometry.h"
 #include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVH.h"
 #include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BuildLBVH.h"
-#include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVHBuilderHelper.h"
+#include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVHConstructionHelper.h"
 #include "jpc_tracer/engine/raytracing/detail/ApplyTransformation.h"
 #include <memory>
 #include <stdint.h>
@@ -55,16 +55,9 @@ namespace jpctracer::raytracing {
         mat_slots[material_slot] = material_id;
     }
     
-    std::unique_ptr<Scene> SceneBuilder::Build(AccelerationSettings acceleration) 
+    void SceneBuilder::__BuildLBVH() 
     {
-        
-        
-        m_scene_data->static_bvh_type = acceleration.StaticBVH;
-        m_scene_data->dynamic_bvh_type = acceleration.DynamicBVH;
-
-        if (acceleration.StaticBVH == StaticBVHType::LBVH)
-        {
-             JPC_LOG_INFO("Start building LBVH Trees");
+        JPC_LOG_INFO("Start building LBVH Trees");
 
             // build mesh bvhs
             m_scene_data->static_mesh_tree.reserve(m_scene_data->triangle_meshs.size() + m_scene_data->sphere_meshs.size());
@@ -122,6 +115,18 @@ namespace jpctracer::raytracing {
             m_scene_data->static_instance_tree = BuildLBVH(std::move(instance_bounds), std::move(instance_morton_codes));
 
             JPC_LOG_INFO("Finished building Static Instance LBVH Tree");
+    }
+    
+    std::unique_ptr<Scene> SceneBuilder::Build(AccelerationSettings acceleration) 
+    {
+        
+        
+        m_scene_data->static_bvh_type = acceleration.StaticBVH;
+        m_scene_data->dynamic_bvh_type = acceleration.DynamicBVH;
+
+        if (acceleration.StaticBVH == StaticBVHType::LBVH)
+        {
+             __BuildLBVH();
         }
 
         auto scene = std::make_unique<Scene>();

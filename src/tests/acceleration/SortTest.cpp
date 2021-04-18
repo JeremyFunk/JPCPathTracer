@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #include "jpc_tracer/core/maths/Constants.h"
-#include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVHBuilderHelper.h"
+#include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVHConstructionHelper.h"
 
 namespace jpctracer {
 
