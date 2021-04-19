@@ -117,6 +117,4 @@ namespace jpctracer::raytracing
 
         return {closest_interaction,false};
     }
-
-    // IntersectionResult BVHStaticIntersect (Ray& ray, const Scene& scene, AnyHitCallBack any_hit_program);
 }
