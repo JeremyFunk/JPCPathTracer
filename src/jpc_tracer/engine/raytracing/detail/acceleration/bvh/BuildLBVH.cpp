@@ -21,8 +21,8 @@ namespace jpctracer::raytracing
 
         uint32_t* morton = morton_codes.data();
 
-        //build binary radix tree
-        #pragma omp parallel for
+        // build binary radix tree
+        // #pragma omp parallel for
         for(uint idx = 0; idx < number_nodes; idx++)
         {
             int direction = calc_direction(morton, idx, number_nodes);

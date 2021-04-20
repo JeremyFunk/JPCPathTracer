@@ -37,7 +37,7 @@ int main()
 
     triangle->MaterialSlots[0] = shader;
 
-    auto sphere = jpctracer::CreateSphere({0,0,-2}, 0.5);
+    auto sphere = jpctracer::CreateSphere({1,1,-2}, 0.5);
     sphere->MaterialSlots[0] = shader;
 
     renderer.Draw(triangle);

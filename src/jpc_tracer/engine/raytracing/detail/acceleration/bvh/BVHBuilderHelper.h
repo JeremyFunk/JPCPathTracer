@@ -4,6 +4,33 @@
 #include "jpc_tracer/core/maths/Transformation.h"
 #include <stdint.h>
 
+#ifdef __clang__
+    #define clz(x) __builtin_clz(x)
+
+#elif defined _MSC_VER
+    #define clz(x) __lzcnt(x)
+
+#else 
+    static uint32_t ALWAYS_INLINE popcnt(uint32_t x)
+    {
+        x -= ((x >> 1) & 0x55555555);
+        x = (((x >> 2) & 0x33333333) + (x & 0x33333333));
+        x = (((x >> 4) + x) & 0x0f0f0f0f);
+        x += (x >> 8);
+        x += (x >> 16);
+        return x & 0x0000003f;
+    }
+    static uint32_t ALWAYS_INLINE clz(uint32_t x)
+    {
+        x |= (x >> 1);
+        x |= (x >> 2);
+        x |= (x >> 4);
+        x |= (x >> 8);
+        x |= (x >> 16);
+        return 32 - popcnt(x);
+    }
+#endif
+
 namespace jpctracer::raytracing
 {
     inline const uint32_t LeftShift3(uint32_t x)
@@ -30,8 +57,7 @@ namespace jpctracer::raytracing
 
         if (combined == 0)  return 32U;
 
-        //return __lzcnt(combined); //MSVC 
-        return __builtin_clz(combined);
+        return clz(combined);
     }
 
     int number_leading_zeros(uint32_t* morton, const int& idx, const int offset, const size_t& number_nodes);
