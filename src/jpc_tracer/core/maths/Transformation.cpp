@@ -14,7 +14,7 @@ namespace jpctracer {
     
     Transformation Transformation::dot(const Transformation& trans) 
     {
-        return {this->Matrix.dot(trans.Matrix), trans.Matrix.dot(this->Matrix)};
+        return {this->Matrix.dot(trans.Matrix), trans.InverseMatrix.dot(this->InverseMatrix)};
     }
 
     Prec degree_to_rad(Prec degree)
@@ -98,15 +98,15 @@ namespace jpctracer {
     {
         return Transformation{
             Mat4x4{
-                0, 0, 0, x,
-                0, 0, 0, y,
-                0, 0, 0, z,
+                1, 0, 0, x,
+                0, 1, 0, y,
+                0, 0, 1, z,
                 0, 0, 0, 1
             },
             Mat4x4{
-                0, 0, 0, -x,
-                0, 0, 0, -y,
-                0, 0, 0, -z,
+                1, 0, 0, -x,
+                0, 1, 0, -y,
+                0, 0, 1, -z,
                 0, 0, 0,  1
             }
         };
@@ -114,7 +114,12 @@ namespace jpctracer {
     
     Transformation RotScalTrans(Vec3 translation, Vec3 scale, Vec3 rotation) 
     {
-        return XYZRotation(rotation).dot(Scale(scale)).dot(Translation(translation));
+        return Translation(translation).dot(Scale(scale)).dot(XYZRotation(rotation));
+    }
+    
+    Transformation RotScalTrans(Vec3 translation, Prec scale, Vec3 rotation) 
+    {
+        return RotScalTrans(translation,Vec3{scale,scale,scale},rotation);
     }
 
 
@@ -175,7 +180,7 @@ namespace jpctracer {
         return {Apply(trans,ray.Direction), Apply(trans,ray.Origin), ray.LensPosition, ray.ClipEnd, ray.Time};
     }
 
-    Ray AllpyInverse(const Transformation& trans, const Ray& ray) 
+    Ray ApplyInverse(const Transformation& trans, const Ray& ray) 
     {
         return {AllpyInverse(trans,ray.Direction), AllpyInverse(trans,ray.Origin), ray.LensPosition, ray.ClipEnd, ray.Time};
     }

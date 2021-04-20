@@ -21,8 +21,8 @@ namespace jpctracer::raytracing
         {
             AnyHitResult any_hit_result = any_hit_program(*interaction);
 
-                if(any_hit_result.ShouldTerminate)
-                    return IntersectionResult{std::nullopt, true};
+            if(any_hit_result.ShouldTerminate)
+                return IntersectionResult{std::nullopt, true};
         }
 
         return {interaction, false};

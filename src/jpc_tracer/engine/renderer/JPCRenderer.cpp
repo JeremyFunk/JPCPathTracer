@@ -41,6 +41,8 @@ namespace jpctracer::renderer
         auto instance_id = m_scene_builder.AddInstance(mesh_id,geomtry->transformation);
         for(auto materials: geomtry->MaterialSlots)
             m_scene_builder.MaterialBind(instance_id, materials.first, materials.second->material_id);
+        if(geomtry->MaterialSlots.size()==0)
+            m_scene_builder.MaterialBind(instance_id, 0, 0);
     }
     
     struct Tile

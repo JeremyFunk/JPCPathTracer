@@ -1,5 +1,6 @@
 #include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/core/maths/Transformation.h"
 #include "jpc_tracer/engine/JPCTracerApi.h"
 #include "jpc_tracer/engine/PluginsApi.h"
 #include "jpc_tracer/engine/utilities/MeshIO.h"
@@ -43,9 +44,13 @@ int main()
 
     //auto monkey = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
 
+    auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
+    cube->transformation = jpctracer::RotScalTrans({0,0,-4}, 1, {0,0,0});
+    cube->MaterialSlots[0] = shader;
+
     renderer.Draw(triangle);
-    renderer.Draw(sphere);
-    //renderer.Draw(monkey);
+    //renderer.Draw(sphere);
+    renderer.Draw(cube);
     renderer.LightsLib.AddPointLight({0,-2,0}, jpctracer::FromRGB({10,10,10}));
 
     //Peer
@@ -53,7 +58,7 @@ int main()
     renderer.Acceleration = { jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::LBVH };
 
     //Chris
-    renderer.Render(100, 100, "");
+    renderer.Render(500, 300, "");
 
     return 0;
 }

@@ -52,6 +52,7 @@ namespace jpctracer {
     Transformation Translation(Vec3 translation); 
 
     Transformation RotScalTrans(Vec3 translation, Vec3 scale, Vec3 rotation);
+    Transformation RotScalTrans(Vec3 translation, Prec scale, Vec3 rotation);
     
 
     Vec3 Apply(const Transformation &trans, const Vec3 &vec);
