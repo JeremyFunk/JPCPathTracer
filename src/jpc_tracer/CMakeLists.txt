@@ -29,6 +29,8 @@ set(AUTOSRC
 "engine/raytracing/detail/Scene.h"
 "engine/raytracing/detail/Intersect.h"
 "engine/raytracing/detail/TracingContext.h"
+"engine/raytracing/detail/acceleration/BoundingBoxIntersection.cpp"
+"engine/raytracing/detail/acceleration/IntersectionInfo.cpp"
 "engine/raytracing/detail/acceleration/NaiveIntersection.cpp"
 "engine/raytracing/detail/acceleration/IntersectionInfo.cpp"
 "engine/raytracing/detail/acceleration/TriangleMesh.cpp"
