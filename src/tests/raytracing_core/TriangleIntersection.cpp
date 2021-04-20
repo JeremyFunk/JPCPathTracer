@@ -22,17 +22,18 @@ namespace jpctracer::raytracing {
 
         Vec3 start_origin = {1.1472,-1.2257,1.01};
 
-        Ray ray {expected_position-start_origin,start_origin};
+        Vec3 ray_pos = expected_position-start_origin;
 
-        Prec expected_distance = ray.Direction.norm();
-        ray.Direction = ray.Direction.normalized();
+        Ray ray {Norm3(ray_pos),start_origin};
+
+        Prec expected_distance = ray_pos.norm();
 
         auto intersection = TriangleIntersect(ray, v1, s_1, s_2);
         EXPECT_TRUE(intersection.has_value());
 
         SurfaceInteraction interaction = TriangleGetInteraction(ray, intersection.value(), 0, normal, normal, normal, uv_1, uv_2, uv_3);
 
-        EXPECT_NEAR((interaction.Normal-normal).norm(), 0, 0.001);
+        EXPECT_NEAR((Vec3(interaction.Normal)-normal).norm(), 0, 0.001);
         EXPECT_NEAR((interaction.Point-expected_position).norm(),0,0.001);
         EXPECT_NEAR(interaction.Distance,expected_distance,0.001);
         EXPECT_NEAR((interaction.UV-expected_uv).norm(),0,0.001);   
@@ -50,10 +51,10 @@ namespace jpctracer::raytracing {
         Vec3 start_origin = {1.1472,-1.2257,1.01};
         Vec3 ray_dir_point = {0,0.75,1.75};
 
+        Vec3 ray_pos = ray_dir_point-start_origin;
         Ray ray {ray_dir_point-start_origin,start_origin};
 
-        Prec expected_distance = ray.Direction.norm();
-        ray.Direction = ray.Direction.normalized();
+        Prec expected_distance = ray_pos.norm();
 
         auto intersection = TriangleIntersect(ray, v1, s_1, s_2);
         EXPECT_FALSE(intersection.has_value());
@@ -72,10 +73,11 @@ namespace jpctracer::raytracing {
         Vec3 start_origin = {1.1472,-1.2257,1.01};
         Vec3 ray_dir_point = {2.5,-3,1};
 
-        Ray ray {ray_dir_point-start_origin,start_origin};
+        Vec3 ray_pos = ray_dir_point-start_origin;
 
-        Prec expected_distance = ray.Direction.norm();
-        ray.Direction = ray.Direction.normalized();
+        Ray ray {ray_pos,start_origin};
+
+        Prec expected_distance = ray_pos.norm();
 
         auto intersection = TriangleIntersect(ray, v1, s_1, s_2);
         EXPECT_FALSE(intersection.has_value());
@@ -94,10 +96,11 @@ namespace jpctracer::raytracing {
         Vec3 start_origin = {1.1472,-1.2257,1.01};
         Vec3 ray_dir_point = {-1,0.2,0.75};
 
-        Ray ray {ray_dir_point-start_origin,start_origin};
+        Vec3 ray_pos = ray_dir_point-start_origin;
 
-        Prec expected_distance = ray.Direction.norm();
-        ray.Direction = ray.Direction.normalized();
+        Ray ray {ray_pos,start_origin};
+
+        Prec expected_distance = ray_pos.norm();
 
         auto intersection = TriangleIntersect(ray, v1, s_1, s_2);
         EXPECT_FALSE(intersection.has_value());
@@ -116,10 +119,11 @@ namespace jpctracer::raytracing {
         Vec3 start_origin = {1.1472,-1.2257,1.01};
         Vec3 ray_dir_point = {0.9,1,0.5};
 
-        Ray ray {ray_dir_point-start_origin,start_origin};
+        Vec3 ray_pos = ray_dir_point-start_origin;
 
-        Prec expected_distance = ray.Direction.norm();
-        ray.Direction = ray.Direction.normalized();
+        Ray ray {ray_pos,start_origin};
+
+        Prec expected_distance = ray_pos.norm();
 
         auto intersection = TriangleIntersect(ray, v1, s_1, s_2);
         EXPECT_FALSE(intersection.has_value());

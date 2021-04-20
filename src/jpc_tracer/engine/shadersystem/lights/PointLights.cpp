@@ -12,7 +12,7 @@ namespace jpctracer::shadersys
         if(m_positions.size()==0)
         {
             for(auto& val:out_values) val = {Black(),0};
-            for(auto& ray:out_incident_rays) ray = Ray{{0,0,0},{0,0,0}};
+            for(auto& ray:out_incident_rays) ray = Ray{Vec3{0,1,0}.normalized(),{0,0,0}};
         }
         for(int i = 0;i<samples.size;i++)
         {

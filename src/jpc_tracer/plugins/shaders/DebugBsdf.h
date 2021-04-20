@@ -1,4 +1,5 @@
 #pragma once
+#include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/engine/PluginsApi.h"
 
 namespace jpctracer
@@ -18,7 +19,7 @@ namespace jpctracer
         
         inline ShaderResult Sample2D(Ray* out_incident_ray,Vec2 rand_p) const
         {
-            *out_incident_ray = Ray{{m_color[0]*rand_p[0],m_color[1],m_color[2]}};
+            *out_incident_ray = Ray{Vec3{m_color[0]*rand_p[0],m_color[1],m_color[2]}};
             return {m_color*rand_p[0],1};
         }
     

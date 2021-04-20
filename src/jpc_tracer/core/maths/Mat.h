@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <array>
-#include <vcruntime.h>
 
 namespace jpctracer::math {
 
@@ -18,6 +17,8 @@ namespace jpctracer::math {
 
         template<class T2> 
         T operator[](const T2& idx) const {return Data[idx];}
+
+        
 
         bool operator==(const Mat<T,_X_dim, _Y_dim>& v) const { return Data==v.Data;}
         bool operator!=(const Mat<T,_X_dim, _Y_dim>& v) const { return Data!=v.Data;}
@@ -48,21 +49,29 @@ namespace jpctracer::math {
         constexpr Mat<T, _Y_dim, _Y_dim2> dot(Mat<T2,_X_dim, _Y_dim2> a) const{
             
             Mat<T, _Y_dim, _Y_dim2> result;
-            for(int y = 0; y < _Y_dim; y++)
+            for(unsigned int i = 0; i < _Y_dim; i++)
             {
-                for(int x = 0; x < _Y_dim2; x++)
+                for(unsigned  int j = 0; j < _Y_dim2; j++)
                 {
-                    T temp = 0;
+                    result[{i,j}] = 0;
 
-                    for(int z = 0; z < _X_dim; z++)
+                    for(unsigned int k = 0; k < _X_dim; k++)
                     {
-                        temp += Data[y*_Y_dim + z] * a[z + x*_Y_dim2];
+                        result[{i,j}] += (*this)[{i,k}] * a[{k,j}];
                     }
-
-                    result[x + y*_Y_dim] = temp;
                 }
             }
             return result;
+        }
+
+    private:
+        // y,x
+        T operator[](const Vec<unsigned int,2>& coord) const {
+            return Data[coord[0]*_X_dim+coord[1]];
+        }
+        // y,x
+        T& operator[](const Vec<unsigned int,2>& coord) {
+            return Data[coord[0]*_X_dim+coord[1]];
         }
 
     };
@@ -129,6 +138,8 @@ namespace jpctracer::math {
     constexpr void operator/=(Mat<T,_X_dim, _Y_dim>& a,const S& s){ detail::MatMutableOpScalar(a,s, std::divides<T>()); }
     template<class T, class S,size_t _X_dim, size_t _Y_dim>
     constexpr void operator%=(Mat<T,_X_dim, _Y_dim>& a,const S& s){ detail::MatMutableOpScalar(a,s, std::modulus<T>()); }
+
+
 
 
 }

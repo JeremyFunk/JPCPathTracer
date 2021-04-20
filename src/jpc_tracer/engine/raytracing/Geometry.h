@@ -53,7 +53,7 @@ namespace jpctracer::raytracing {
     struct TriangleMesh
     {
         std::vector<Vec3> Vertices;
-        std::vector<Vec3> Normals;
+        std::vector<Norm3> Normals;
         std::vector<Vec2> UVs;
         
         std::vector<TriangleGeometry> TriangleGeometries;   

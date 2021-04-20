@@ -55,7 +55,7 @@ namespace jpctracer::shadersys
 
         Spectrum Emission() const
         {
-            const Vec3& scat_dir = m_normal_space.ScatteringRay.Direction;
+            const Norm3& scat_dir = m_normal_space.ScatteringRay.Direction;
             Ray scat_ray = {scat_dir,{0,0,0}};
             ShaderResults results = m_shader->EvalEMISSION(m_normal_space,View<Ray>{&scat_ray,1});
             return results.eval_results[0].luminance;

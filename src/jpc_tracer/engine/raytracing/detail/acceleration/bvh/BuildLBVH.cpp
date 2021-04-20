@@ -6,7 +6,6 @@
 #include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVHBuilderHelper.h"
 #include <stdint.h>
 #include <jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVHBuilderHelper.h>
-#include <vcruntime.h>
 #include <vector>
 #include <execution>
 

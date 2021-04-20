@@ -1,4 +1,5 @@
 #include "MeshIO.h"
+#include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/engine/JPCTracerApi.h"
 #include "jpc_tracer/engine/renderer/Geomtry.h"
 #include "stringhelper.h"

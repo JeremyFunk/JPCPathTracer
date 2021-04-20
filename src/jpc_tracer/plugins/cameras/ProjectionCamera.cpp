@@ -33,7 +33,7 @@ namespace jpctracer::camera
         Vec2 sample = random_point;
         Prec rayX =  (x + sample[0]) * _image_width_inv * _near_plane_width * 2 - _near_plane_width;
         Prec rayY = (y + sample[1]) * _image_height_inv * _near_plane_height * 2 - _near_plane_height;
-        Vec3 dir = Vec3{rayX, -rayY, -_near_plane}.normalized();
+        Vec3 dir = Vec3{rayX, -rayY, -_near_plane};
         
         Vec3 origin ={0,0,0}; 
         Ray ray{dir, origin};

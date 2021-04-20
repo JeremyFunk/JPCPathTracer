@@ -45,7 +45,7 @@ namespace jpctracer::raytracing
         //output
         SurfaceInteraction interaction;
 
-        interaction.Point = ray.Direction * distance + ray.Origin ;
+        interaction.Point = Vec3(ray.Direction) * distance + ray.Origin ;
         interaction.Normal = perfect_dir.normalized();
         interaction.Distance = distance;
         interaction.UV = {0,0};

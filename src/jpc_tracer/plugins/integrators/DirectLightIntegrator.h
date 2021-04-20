@@ -1,5 +1,6 @@
 #pragma once
 #include "jpc_tracer/core/Concepts.h"
+#include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/core.h"
 #include "jpc_tracer/core/maths/Constants.h"
@@ -28,6 +29,9 @@ namespace jpctracer
 
         
         Payload shadow_test;
+        //JPC_LOG_INFO("Shadow ray dir: {},{},{} pos: {},{},{}",
+        //    ray.Direction[0], ray.Direction[1], ray.Direction[2],
+        //    ray.Origin[0],ray.Origin[1],ray.Origin[2]);
         tracer(shadow_behavior,ray,&shadow_test);
         if(shadow_test.IsShadow) return Black();
 
