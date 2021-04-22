@@ -44,7 +44,8 @@ int main()
 
     //auto monkey = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
 
-    auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
+    // auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj"); // Christian
+    auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\cube.obj"); // Peer
     cube->transformation = jpctracer::RotScalTrans({0,0,-4}, 1, {0,0,0});
     cube->MaterialSlots[0] = shader;
 

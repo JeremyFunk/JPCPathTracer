@@ -1,5 +1,6 @@
 #include "Transformation.h" 
 #include "jpc_tracer/core/maths/Constants.h"
+#include "jpc_tracer/engine/raytracing/Base.h"
 namespace jpctracer {
     Transformation Transformation::Identity() 
     {
