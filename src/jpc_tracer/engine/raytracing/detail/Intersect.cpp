@@ -35,10 +35,6 @@ IntersectionResult Intersect(const Scene &scene, Ray &ray,
             &scene.static_instances[instance_idx].first.materials_per_slot[0],
             any_hit_program);
       };
-        if(instance_idx==1)
-        {
-            std::cout<<"test";
-        }
       Ray mesh_ray = ApplyInverse(scene.static_instances[instance_idx].second, ray);
 
       // Intersect Mesh Tree

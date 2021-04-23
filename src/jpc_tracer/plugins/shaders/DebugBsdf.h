@@ -1,38 +1,42 @@
 #pragma once
+#include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/engine/PluginsApi.h"
 
 namespace jpctracer
 {
-    
-    struct DebugBsdfClosure final: public IBsdfClosure
-    {
 
-        DebugBsdfClosure(Spectrum color = Black())
-        :m_color(color)
-        {
-        }
-        inline ShaderResult Eval(Ray incident_ray) const
-        {
-            return {m_color,1};
-        }
-        
-        inline ShaderResult Sample2D(Ray* out_incident_ray,Vec2 rand_p) const
-        {
-            *out_incident_ray = Ray{Vec3{m_color[0]*rand_p[0],m_color[1],m_color[2]}};
-            return {m_color*rand_p[0],1};
-        }
-    
-        Spectrum m_color;
-    };
+struct DebugBsdfClosure final : public IBsdfClosure
+{
 
-    constexpr BsdfNode DebugBsdf(ShaderContext& ctx, Spectrum color)
+    DebugBsdfClosure(Spectrum color = Black()) : m_color(color)
     {
-        return CreateBsdf<MATERIAL_DIFFUSE |MATERIAL_GLOSSY, DebugBsdfClosure>(ctx,color);
+    }
+    inline ShaderResult Eval(Ray incident_ray) const
+    {
+        return {m_color, 1};
     }
 
+    inline Norm3 Sample2D(Vec2 rand_p) const
+    {
+        return Vec3{m_color[0] * rand_p[0], m_color[1], m_color[2]};
+    }
 
+    Spectrum m_color;
+};
 
-
-
+inline BsdfNode DebugBsdf(Spectrum color)
+{
+    return CreateBsdf(MATERIAL_DIFFUSE, DebugBsdfClosure(color));
 }
+
+struct DebugMaterial
+{
+    Spectrum color = FromRGB({1, 1, 1});
+    auto bsdf()
+    {
+        return [=](Ray scattered) { return DebugBsdf(color); };
+    }
+};
+
+} // namespace jpctracer

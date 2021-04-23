@@ -3,76 +3,81 @@
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/core.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
-#include "jpc_tracer/engine/shadersystem/IBsdfClosure.h"
 #include "jpc_tracer/engine/shadersystem/Lights.h"
 #include "jpc_tracer/engine/shadersystem/NormalSpace.h"
-#include "jpc_tracer/engine/shadersystem/ShaderFunction.h"
-#include "BsdfNode.h"
-
+#include "jpc_tracer/engine/shadersystem/Shader.h"
 
 namespace jpctracer::shadersys
 {
 
-    
-    class HitPoint
+class HitPoint
+{
+
+  public:
+    HitPoint(const shadersys::IShader* shader, const shadersys::Lights* lights, const NormalSpace& normal_space,
+             ShaderResultsStack& results_stack)
+        : m_shader(shader), m_normal_space(normal_space), m_lights(lights), m_results_stack(results_stack)
     {
-    public:
-        HitPoint(const shadersys::IShader* shader,const shadersys::Lights* lights, const NormalSpace& normal_space)
-            : m_shader(shader),m_normal_space(normal_space), m_lights(lights)
-        {
+        m_stack_begin_state = m_results_stack.GetCurrentState();
+    }
+    // Rays should_be in normal space
+    CombinedBsdfs Shader(View<Ray> eval_rays, View<Vec2> samples) const
+    {
+        CombinedBsdfs result = m_results_stack.CreateCombined(eval_rays.size, samples.size);
+        m_shader->Sample(m_normal_space.Interaction, m_normal_space.ScatteringRay, eval_rays, samples, result);
+        return result;
+    }
 
-        }
-        //Rays should_be in normal space
-        template<MaterialType type>
-        ShaderResults Shader(View<Ray> eval_rays,View<Vec2> samples) const
-        {
-            switch (type) {
-                case MATERIAL_DIFFUSE:          return m_shader->SampleDIFFUSE       (m_normal_space,eval_rays, samples);
-                case MATERIAL_GLOSSY:           return m_shader->SampleGLOSSY        (m_normal_space,eval_rays, samples);
-                case MATERIAL_TRANSMISSION:     return m_shader->SampleTRANSMISSION  (m_normal_space,eval_rays, samples);
-                case MATERIAL_TRANSPARENCY:     return m_shader->SampleTRANSPARENCY  (m_normal_space,eval_rays, samples);
-                case MATERIAL_SUBSURFACE:       return m_shader->SampleSUBSURFACE    (m_normal_space,eval_rays, samples);
-                case MATERIAL_EMISSION:         return m_shader->SampleEMISSION      (m_normal_space,eval_rays, samples);
-                
-                default:                        return m_shader->SampleBSDF          (m_normal_space, eval_rays, samples);
-            }
-        }
+    CombinedBsdfs Shader(View<Ray> eval_rays) const
+    {
+        CombinedBsdfs result = m_results_stack.CreateCombined(eval_rays.size, 0);
+        m_shader->Eval(m_normal_space.Interaction, m_normal_space.ScatteringRay, eval_rays, result);
+        return result;
+    }
 
-        template<MaterialType type>
-        ShaderResults Shader(View<Ray> eval_rays) const
-        {
-            switch (type) {
-                case MATERIAL_DIFFUSE:          return m_shader->EvalDIFFUSE         (m_normal_space, eval_rays);
-                case MATERIAL_GLOSSY:           return m_shader->EvalGLOSSY          (m_normal_space, eval_rays);
-                case MATERIAL_TRANSMISSION:     return m_shader->EvalTRANSMISSION    (m_normal_space, eval_rays);
-                case MATERIAL_TRANSPARENCY:     return m_shader->EvalTRANSPARENCY    (m_normal_space, eval_rays);
-                case MATERIAL_SUBSURFACE:       return m_shader->EvalSUBSURFACE      (m_normal_space, eval_rays);
-                case MATERIAL_EMISSION:         return m_shader->EvalEMISSION        (m_normal_space, eval_rays);
-                
-                default:                        return m_shader->EvalBSDF            (m_normal_space, eval_rays);
-            }
-        }
+    SeperatedBsdfs ShaderSeperated(View<Ray> eval_rays, View<Vec2> samples) const
+    {
+        SeperatedBsdfs result = m_results_stack.CreateSeperated(eval_rays.size, samples.size);
+        m_shader->Sample(m_normal_space.Interaction, m_normal_space.ScatteringRay, eval_rays, samples, result);
+        return result;
+    }
 
-        Spectrum Emission() const
-        {
-            const Norm3& scat_dir = m_normal_space.ScatteringRay.Direction;
-            Ray scat_ray = {scat_dir,{0,0,0}};
-            ShaderResults results = m_shader->EvalEMISSION(m_normal_space,View<Ray>{&scat_ray,1});
-            return results.eval_results[0].luminance;
-        }
+    SeperatedBsdfs ShaderSeperated(View<Ray> eval_rays) const
+    {
+        SeperatedBsdfs result = m_results_stack.CreateSeperated(eval_rays.size, 0);
+        m_shader->Eval(m_normal_space.Interaction, m_normal_space.ScatteringRay, eval_rays, result);
+        return result;
+    }
 
-        ShaderResults ActiveLights(View<Vec2> samples) const
-        {
-            ShaderResults results = m_lights->Sample(samples, m_normal_space.Interaction);
-            for(auto& ray: results.sampled_rays)
-                ray = WorldToNormal(ray,m_normal_space);
-            return results;
-        }
-    private:
-        const shadersys::IShader* m_shader; 
-        const NormalSpace& m_normal_space;
-        const shadersys::Lights* m_lights;
-        
+    Spectrum Emission() const
+    {
+        return m_shader->Emission(m_normal_space.Interaction);
+    }
 
-    };
-}
+    Prec Transparency() const
+    {
+        return m_shader->Transparency(m_normal_space.Interaction);
+    }
+
+    LightResults ActiveLights(View<Vec2> samples) const
+    {
+        LightResults result = m_results_stack.CreateLightResults(samples.size);
+
+        m_lights->Sample(samples, m_normal_space.Interaction, result);
+        for (auto& ray : result.rays)
+            ray = WorldToNormal(ray, m_normal_space);
+        return result;
+    }
+    ~HitPoint()
+    {
+        m_results_stack.SetState(m_stack_begin_state);
+    }
+
+  private:
+    const shadersys::IShader* m_shader;
+    const NormalSpace& m_normal_space;
+    const shadersys::Lights* m_lights;
+    ShaderResultsStack& m_results_stack;
+    ShaderResultsStack::State m_stack_begin_state;
+};
+} // namespace jpctracer::shadersys
