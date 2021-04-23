@@ -22,14 +22,14 @@ namespace jpctracer::raytracing
 
         //build binary radix tree
         #pragma omp parallel for
-        for(uint idx = 0; idx < number_nodes; idx++)
+        for(int idx = 0; idx < number_nodes; idx++)
         {
             int direction = calc_direction(morton, idx, number_nodes);
 
             uint last_idx = calc_last_idx(morton, idx, direction, number_nodes);
 
-            uint min_idx = std::min(idx, last_idx);
-            uint max_idx = std::max(idx, last_idx);
+            uint min_idx = std::min<uint>(idx, last_idx);
+            uint max_idx = std::max<uint>(idx, last_idx);
 
             uint split_idx = calc_split_idx(morton, min_idx, max_idx, direction, number_nodes);
 

@@ -85,8 +85,8 @@ void JPCRenderer::Render(uint width, uint height, std::string directory)
         {
             Tile tile = tiles[i];
             ISampler* thread_sampler(m_sampler->Clone());
-            static shadersys::ShaderResultsStack shaderres;
-#pragma omp threadprivate(shaderres)
+            static thread_local shadersys::ShaderResultsStack shaderres{};
+//#pragma omp threadprivate(shaderres)
             jpc_assertm(shaderres.IsEmpty(), "ShaderResultsStack is not in default state");
 
             Tracer tracer(buffer, scene.get(), lights, shaderres);
