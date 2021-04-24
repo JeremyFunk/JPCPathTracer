@@ -109,7 +109,10 @@ struct Norm
         Data[axis] *= -1;
     }
 
-
+    std::string to_string() const
+    {
+        return Vec<T,_Size>{Data}.to_string();
+    }
 
     static constexpr Norm<T,_Size> normalize(const Vec<T,_Size>& vec){
         
@@ -189,7 +192,13 @@ struct Vec
         return result;
     }
 
-
+    std::string to_string() const
+    {
+        std::string res = std::to_string(Data[0]);
+        for(int i = 1;i<_Size;i++)
+            res+=", "+std::to_string(Data[i]);
+        return"("+ res+")";
+    }
 
 };
 

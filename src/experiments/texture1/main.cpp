@@ -34,7 +34,7 @@ int main()
 
     std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
 
-    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(32, 4);
+    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(128, 4);
 
     jpctracer::JPCRenderer renderer(std::move(sampler), std::move(camera), std::move(integrator));
     renderer.TileSize = 64;
@@ -43,7 +43,7 @@ int main()
     auto shader = renderer.MaterialLib.Create<Material1>();
 
     // chris
-    //shader.BindTexture(&shader->Color1, "/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/color_grid.png");
+    // shader.BindTexture(&shader->Color1, "/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/color_grid.png");
     shader.BindTexture(&shader->Color1, "H:\\dev\\path-tracing\\V2\\JPCPathTracer\\resource\\color_grid.png");
 
     auto triangle = jpctracer::CreateTriangle({-1, 1, -2}, {1, -1, -2}, {1, 1, -2});

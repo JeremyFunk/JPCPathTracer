@@ -99,13 +99,14 @@ void init_context(CombinedBsdfs& result, const Ray& scattered_ray, View<Ray> ray
 
 Range get_smprange();
 Range get_evalrange();
+Range get_smprays_range();
 
 const Vec2* get_samples();
 
 void set_sampled_direction(Norm3 dir, int idx);
 const Ray* get_eval_rays();
+const Ray* get_smp_rays();
 void accum_eval(MaterialType type, ShaderResult eval, int idx);
-
 
 bool should_sample();
 bool should_eval();
@@ -136,10 +137,15 @@ template <class T> void eval_bsdf(MaterialType type, const T& bsdf)
 
     for (int i = range.first; i < range.last; i++)
         accum_eval(type, bsdf.Eval(rays[i]), i);
+
+    Range range_smp = get_smprays_range();
+    const Ray* rays_smp = get_smp_rays();
+
+    for (int i = range_smp.first; i < range_smp.last; i++)
+        accum_eval(type, bsdf.Eval(rays_smp[i]), i + range.last);
 }
 
-template<Closure S, class R>
-void EvalShader(S&& shader, Ray scattered_ray, View<Ray> rays, R& result)
+template <Closure S, class R> void EvalShader(S&& shader, Ray scattered_ray, View<Ray> rays, R& result)
 {
     init_context(result, scattered_ray, rays);
     for (int i = 1; i < 4; i += 2)
@@ -181,13 +187,11 @@ template <std::derived_from<IBsdfClosure> T> BsdfNode __CreateBsdf(MaterialType 
         detail::eval_bsdf(type, bsdf);
     return detail::finalize_bsdf(bsdf.Emission(), bsdf.Transparency());
 }
-template <Closure S>
-void EvalShader(S&& shader, Ray scattered_ray, View<Ray> rays, SeperatedBsdfs& result)
+template <Closure S> void EvalShader(S&& shader, Ray scattered_ray, View<Ray> rays, SeperatedBsdfs& result)
 {
     detail::EvalShader(shader, scattered_ray, rays, result);
 }
-template <Closure S> 
-void EvalShader(S&& shader, Ray scattered_ray, View<Ray> rays, CombinedBsdfs& result)
+template <Closure S> void EvalShader(S&& shader, Ray scattered_ray, View<Ray> rays, CombinedBsdfs& result)
 {
     detail::EvalShader(shader, scattered_ray, rays, result);
 }
@@ -201,8 +205,7 @@ void SampleShader(S&& shader, Ray scattered_ray, View<Ray> rays, View<Vec2> samp
 {
     detail::SampleShader(shader, scattered_ray, rays, samples, result);
 }
-template <Closure S> 
-Spectrum EmissionShader(S&& shader)
+template <Closure S> Spectrum EmissionShader(S&& shader)
 {
     detail::init_context();
     next_state(detail::BsdfState::WEIGHTS);
@@ -210,8 +213,7 @@ Spectrum EmissionShader(S&& shader)
     detail::finish_context();
     return node.emission;
 }
-template <Closure S> 
-Prec TransparencyShader(S&& shader)
+template <Closure S> Prec TransparencyShader(S&& shader)
 {
     detail::init_context();
     next_state(detail::BsdfState::WEIGHTS);

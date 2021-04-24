@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BsdfClosure.h"
+#include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
 #include "jpc_tracer/engine/shadersystem/TextureBuffer.h"
@@ -129,6 +130,7 @@ template <ShaderFunc T> class ShaderRef
             m_shader->color_bindings.push_back({texture, redirect_prop});
             return true;
         }
+        JPC_LOG_ERROR("Could not bind texture");
         return false;
     }
     // returns false if Spectrum* is no property of *this
@@ -141,6 +143,7 @@ template <ShaderFunc T> class ShaderRef
             m_shader->value_bindings.push_back({texture, redirect_prop});
             return true;
         }
+        JPC_LOG_ERROR("Could not bind texture");
         return false;
     }
     // returns false if Spectrum* is no property of *this
@@ -153,6 +156,7 @@ template <ShaderFunc T> class ShaderRef
             m_shader->normal_bindings.push_back({texture, redirect_prop});
             return true;
         }
+        JPC_LOG_ERROR("Could not bind texture");
         return false;
     }
 
@@ -164,7 +168,7 @@ template <ShaderFunc T> class ShaderRef
         // check if points to shader
         std::uintptr_t dest_shader = (std::uintptr_t)&m_shader->default_shader;
         std::uintptr_t prop = (std::uintptr_t)property;
-        if (dest_shader <= prop && prop + sizeof(propT) < dest_shader + sizeof(T))
+        if (dest_shader <= prop && prop + sizeof(propT) <= dest_shader + sizeof(T))
         {
             result = prop - dest_shader;
             return true;
