@@ -35,7 +35,7 @@ std::optional<IntersectionInfo> TriangleIntersect(const Ray& ray, Vec3 position,
     Vec3 cross_op_s1 = diff_origin_position.cross(support_vec_1);
     Prec v = ray.Direction.dot(cross_op_s1) * inv_determinante;
 
-    if (u < ERROR_THICCNESS || u > 1 - ERROR_THICCNESS || v < ERROR_THICCNESS || u + v > 1 - ERROR_THICCNESS)
+    if (u < -ERROR_THICCNESS || u > 1 + ERROR_THICCNESS || v < -ERROR_THICCNESS || u + v > 1 + ERROR_THICCNESS)
         return std::nullopt;
 
     // intersection point

@@ -38,11 +38,11 @@ int main()
 
     std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
 
-    // std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4, 1);
-    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DebugIntegrator>();
+    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4, 1);
+    // std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DebugIntegrator>();
 
     jpctracer::JPCRenderer renderer(std::move(sampler), std::move(camera), std::move(integrator));
-    renderer.ShouldMultiThread = false;
+    renderer.ShouldMultiThread = true;
 
     auto shader = renderer.MaterialLib.Create<Material1>();
 
@@ -52,7 +52,10 @@ int main()
 
     triangle->MaterialSlots[0] = shader;
 
-    auto cube_shader = renderer.MaterialLib.Create<Material2>();
+    auto cube_shader = renderer.MaterialLib.Create<Material1>();
+
+    cube_shader.BindTexture(&cube_shader->color,
+                            "/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/color_grid.png");
 
     auto sphere = jpctracer::CreateSphere({0, 0, -2}, 0.5);
     sphere->MaterialSlots[0] = shader;
@@ -64,7 +67,7 @@ int main()
     cube->transformation = jpctracer::RotScalTrans({0, 0, -4}, 1, {0, 0, 0});
     cube->MaterialSlots[0] = cube_shader;
 
-    // renderer.Draw(triangle);
+    renderer.Draw(triangle);
     // renderer.Draw(sphere);
     renderer.Draw(cube);
     renderer.LightsLib.AddPointLight({0, -2, 0}, jpctracer::FromRGB({10, 10, 10}));
@@ -73,7 +76,7 @@ int main()
     renderer.Acceleration = {jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::NAIVE};
 
     // Chris
-    renderer.Render(100, 100, "");
+    renderer.Render(1920, 1080, "");
 
     return 0;
 }

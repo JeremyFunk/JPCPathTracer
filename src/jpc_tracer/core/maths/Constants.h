@@ -18,6 +18,24 @@ using UInt2 = math::Vec<unsigned int, 2>;
 using Mat3x3 = math::Mat<Prec, 3, 3>;
 using Mat4x4 = math::Mat<Prec, 4, 4>;
 
+struct Ray
+{
+    Norm3 Direction;
+    Vec3 Origin;
+    Vec2 LensPosition = {0, 0};
+    Prec ClipEnd = 10000;
+    float Time = 0;
+};
+
+struct SurfaceInteraction
+{
+    Vec3 Point;
+    Norm3 Normal;
+    Vec2 UV;
+    Prec Distance;
+    int MaterialId;
+};
+
 #ifdef _MSC_VER
 #define M_E 2.71828182845904523536        // e
 #define M_LOG2E 1.44269504088896340736    // log2(e)
@@ -33,14 +51,5 @@ using Mat4x4 = math::Mat<Prec, 4, 4>;
 #define M_SQRT2 1.41421356237309504880    // sqrt(2)
 #define M_SQRT1_2 0.707106781186547524401 // 1/sqrt(2)
 #endif
-
-struct SurfaceInteraction
-{
-    Vec3 Point;
-    Norm3 Normal;
-    Vec2 UV;
-    Prec Distance;
-    int MaterialId;
-};
 
 } // namespace jpctracer

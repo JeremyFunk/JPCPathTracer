@@ -15,15 +15,20 @@ IntersectionResult NaiveIntersect(AnyHitCallBack any_hit_program, const Triangle
 
     std::optional<SurfaceInteraction> closest_interaction;
 
+    Vec3 ray_real_origin = Apply(trans, ray.Origin);
+
     for (int i = 0; i < GetSize(mesh); i++)
     {
         auto interaction = Intersect(mesh, i, ray, material_per_slot);
 
         if (interaction)
         {
-            JPC_LOG_INFO("Triangle id: {}", i);
+            // JPC_LOG_INFO("Triangle id: {}", i);
+            auto temp_p = interaction->Point;
+            auto temp_n = interaction->Normal;
             interaction->Point = Apply(trans, interaction->Point);
             interaction->Normal = Apply(trans, interaction->Normal);
+            interaction->Distance = (interaction->Point - ray_real_origin).norm();
             AnyHitResult any_hit_result = any_hit_program(*interaction);
 
             if (any_hit_result.ShouldTerminate)
