@@ -5,9 +5,9 @@
 
 namespace jpctracer::raytracing
 {
-template <class MeshT> // MeshT == TriangleMesh || MeshT == SphereMesh
-IntersectionResult NaiveIntersect(AnyHitCallBack any_hit_program, const MeshT& mesh, const Ray& ray,
-                                  const int* material_per_slot, const Transformation& trans);
+// template <class MeshT> // MeshT == TriangleMesh || MeshT == SphereMesh
+// IntersectionResult NaiveIntersect(AnyHitCallBack any_hit_program, const MeshT& mesh, const Ray& ray,
+//                                  const int* material_per_slot, const Transformation& trans);
 
 IntersectionResult NaiveInstancesIntersect(AnyHitCallBack any_hit_program, const Scene& scene, const Ray& ray);
 } // namespace jpctracer::raytracing

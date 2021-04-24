@@ -1,5 +1,6 @@
 #include "NaiveIntersection.h"
 #include "../../Geometry.h"
+#include "SphereMesh.h"
 #include "TriangleMesh.h"
 #include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/maths/Transformation.h"
@@ -8,8 +9,8 @@
 namespace jpctracer::raytracing
 {
 
-template <>
-IntersectionResult NaiveIntersect(AnyHitCallBack any_hit_program, const TriangleMesh& mesh, const Ray& ray,
+template <class T>
+IntersectionResult NaiveIntersect(AnyHitCallBack any_hit_program, const T& mesh, const Ray& ray,
                                   const int* material_per_slot, const Transformation& trans)
 {
 
@@ -58,15 +59,17 @@ IntersectionResult NaiveInstancesIntersect(AnyHitCallBack any_hit_program, const
         IntersectionResult instance_result;
         Ray transformed_ray = ApplyInverse(transformation, ray);
         // JPC_LOG_INFO("Before Trans: Dir: {} Origin: {} ", ray.Direction.to_string(), ray.Origin.to_string());
+        int mesh_id = instance.mesh_id.id;
         switch (instance.mesh_id.type)
         {
+
         case MeshTypes::TRIANGLE:
-            int triangle_id = instance.mesh_id.id;
-            if (triangle_id == 1)
-            {
-                // JPC_LOG_INFO("debug");
-            }
-            instance_result = NaiveIntersect(any_hit_program, scene.triangle_meshs[triangle_id], transformed_ray,
+
+            instance_result = NaiveIntersect(any_hit_program, scene.triangle_meshs[mesh_id], transformed_ray,
+                                             materials_per_slot, transformation);
+            break;
+        case MeshTypes::SPHERE:
+            instance_result = NaiveIntersect(any_hit_program, scene.sphere_meshs[mesh_id], transformed_ray,
                                              materials_per_slot, transformation);
             break;
         };
