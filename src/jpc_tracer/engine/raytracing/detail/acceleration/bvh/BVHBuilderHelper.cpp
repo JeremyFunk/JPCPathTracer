@@ -69,9 +69,9 @@ namespace jpctracer::raytracing
         if(morton_first == morton_last)
             return (min_idx + max_idx) >> 1;
 
-        int compare_number = clz(morton_first ^ morton_last); 
+        int compare_number = CountLeadingZerosCombined(morton_first, morton_last);
 
-        int split_idx = 0;
+        int split_idx = min_idx;
         int step = max_idx - min_idx;
 
         do

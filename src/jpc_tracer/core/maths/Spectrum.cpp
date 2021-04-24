@@ -14,7 +14,8 @@ namespace jpctracer
 
     Prec& Transparency(Spectrum& spec) 
     {
-        return spec[4];
+        // return spec[4];
+        return spec[3];
     }
     
     bool IsBlack(Spectrum spec) 

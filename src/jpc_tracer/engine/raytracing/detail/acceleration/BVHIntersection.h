@@ -29,7 +29,7 @@ namespace jpctracer::raytracing
     }
 
     template <class IntersectFunc>
-    IntersectionResult BVHIntersect (Ray& ray, const BVHTree& tree, AnyHitCallBack any_hit_program, IntersectFunc intersect_func) // const TriangleMesh& mesh, const int* material_per_slot
+    IntersectionResult BVHIntersect (Ray& ray, const BVHTree& tree, AnyHitCallBack any_hit_program, IntersectFunc intersect_func)
     {
         if (tree.internal_nodes.size() == 0)
         {
@@ -59,8 +59,6 @@ namespace jpctracer::raytracing
                 const auto& first_idx = tree.internal_nodes[current_idx].first_idx;
                 const auto& last_idx = tree.internal_nodes[current_idx].last_idx;
                 const auto& split_idx = tree.internal_nodes[current_idx].split_idx;
-
-                IntersectionResult instance_result;
 
                 //right leaf
                 if(last_idx == split_idx + 1)

@@ -43,7 +43,10 @@ CombinedBsdfs ShaderResultsStack::CreateCombined(uint eval_count, uint samples_c
     CombinedBsdfs result;
     result.all_bsdfs = {&m_bsdf_com[bsdf_start], (size_t)eval_count + samples_count};
     result.eval_bsdfs = {&m_bsdf_com[bsdf_start], eval_count};
-    result.sampled_bsdfs = {&m_bsdf_com[bsdf_eval_end], samples_count};
+    if (samples_count != 0)
+        result.sampled_bsdfs = {&m_bsdf_com[bsdf_eval_end], samples_count};
+    else
+        result.sampled_bsdfs = {nullptr, samples_count};
     Setup(eval_count, samples_count, result);
     return result;
 }
@@ -60,7 +63,10 @@ SeperatedBsdfs ShaderResultsStack::CreateSeperated(uint eval_count, uint samples
     SeperatedBsdfs result;
     result.all_bsdfs = {&m_bsdf_sep[bsdf_start], (size_t)eval_count + samples_count};
     result.eval_bsdfs = {&m_bsdf_sep[bsdf_start], eval_count};
-    result.sampled_bsdfs = {&m_bsdf_sep[bsdf_eval_end], samples_count};
+    if (samples_count != 0)
+        result.sampled_bsdfs = {&m_bsdf_sep[bsdf_eval_end], samples_count};
+    else
+        result.sampled_bsdfs = {nullptr, samples_count};
     Setup(eval_count, samples_count, result);
     return result;
 }
@@ -97,10 +103,17 @@ template <class T> void ShaderResultsStack::Setup(uint eval_count, uint samples_
 
     result.all_pdf = {&m_pdfs[pdf_start], (size_t)eval_count + samples_count};
     result.eval_pdf = {&m_pdfs[pdf_start], eval_count};
-    result.sampled_pdf = {&m_pdfs[pdf_eval_end], samples_count};
+
+    if (samples_count != 0)
+        result.sampled_pdf = {&m_pdfs[pdf_eval_end], samples_count};
+    else
+            result.sampled_pdf = {nullptr, samples_count};
 
     result.emission = Black();
     result.transparency = 1;
-    result.sampled_rays = {&m_rays[rays_start], samples_count};
+    if (samples_count != 0)
+        result.sampled_rays = {&m_rays[rays_start], samples_count};
+    else
+        result.sampled_rays = {nullptr, samples_count};
 }
 } // namespace jpctracer::shadersys

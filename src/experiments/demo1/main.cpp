@@ -79,6 +79,7 @@ int main()
 
     // Peer
     renderer.Acceleration = {jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::NAIVE};
+    // renderer.ShouldMultiThread = false;
 
     // Chris
     renderer.Render(1920, 1080, "");
