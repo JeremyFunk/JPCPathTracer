@@ -10,6 +10,17 @@
 #include "jpc_tracer/plugins/shaders/DebugBsdf.h"
 #include <memory>
 
+struct Material1
+{
+    jpctracer::Spectrum color = jpctracer::FromRGB({1, 1, 1});
+    auto bsdf()
+    {
+        return [=](jpctracer::Ray scattered) { return jpctracer::DebugBsdf(color); };
+    }
+};
+
+static_assert(jpctracer::JPCShader<Material1>);
+
 int main()
 {
     jpctracer::Logger::Init();
@@ -18,48 +29,38 @@ int main()
 
     std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
 
-    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4,1);
-    
-    jpctracer::JPCRenderer renderer(std::move(sampler),std::move(camera),std::move(integrator));
-    renderer.ShouldMultiThread = false;
-    
-    renderer.MaterialLib.Register(
-        "Default",
-        [](jpctracer::MaterialSettings settings)
-        {
-            return jpctracer::ShaderBind(jpctracer::DebugBsdf, settings.GetColor("Color"));
-        },
-        {
-            {"Color",jpctracer::FromRGB({1,0,1})}
-        }
-    );
+    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4, 1);
 
-    auto shader = renderer.MaterialLib.Get("Default");
-    auto triangle = jpctracer::CreateTriangle({-5,5,-5}, {5,-5,-5}, {5,5,-5});
+    jpctracer::JPCRenderer renderer(std::move(sampler), std::move(camera), std::move(integrator));
+    renderer.ShouldMultiThread = true;
+
+    auto shader = renderer.MaterialLib.Create<Material1>();
+
+    shader->color = jpctracer::FromRGB({0.4, 0.6, 1});
+
+    auto triangle = jpctracer::CreateTriangle({-5, 5, -5}, {5, -5, -5}, {5, 5, -5});
 
     triangle->MaterialSlots[0] = shader;
 
-    auto sphere = jpctracer::CreateSphere({1,1,-2}, 0.5);
+    auto sphere = jpctracer::CreateSphere({0, 0, -2}, 0.5);
     sphere->MaterialSlots[0] = shader;
 
-    //auto monkey = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
+    // auto monkey = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
 
-    // auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj"); // Christian
-    auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\cube.obj"); // Peer
-    cube->transformation = jpctracer::RotScalTrans({0,0,-4}, 1, {0,0,0});
+    auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
+    cube->transformation = jpctracer::RotScalTrans({0, 0, -4}, 1, {0, 0, 0});
     cube->MaterialSlots[0] = shader;
 
     renderer.Draw(triangle);
-    //renderer.Draw(sphere);
-    renderer.Draw(cube);
-    renderer.LightsLib.AddPointLight({0,-2,0}, jpctracer::FromRGB({10,10,10}));
+    // renderer.Draw(sphere);
+    // renderer.Draw(cube);
+    renderer.LightsLib.AddPointLight({0, -2, 0}, jpctracer::FromRGB({10, 10, 10}));
 
-    //Peer
-    renderer.ShouldMultiThread = true;
-    renderer.Acceleration = { jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::LBVH };
+    // Peer
+    renderer.Acceleration = {jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::LBVH};
 
-    //Chris
-    renderer.Render(500, 300, "");
+    // Chris
+    renderer.Render(1920, 1080, "");
 
     return 0;
 }
