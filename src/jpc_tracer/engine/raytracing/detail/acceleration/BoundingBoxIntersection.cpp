@@ -33,7 +33,7 @@ namespace jpctracer::raytracing
         if(z_max < x_max)
             x_max = z_max;
 
-        if(x_max <= 0 /*|| ray.max_length  <= x_min*/)
+        if(x_max <= 0 || ray.ClipEnd <= x_min)
             return false;
         
         return true;
