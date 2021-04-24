@@ -99,11 +99,13 @@ void init_context(CombinedBsdfs& result, const Ray& scattered_ray, View<Ray> ray
 
 Range get_smprange();
 Range get_evalrange();
+Range get_smprays_range();
 
 const Vec2* get_samples();
 
 void set_sampled_direction(Norm3 dir, int idx);
 const Ray* get_eval_rays();
+const Ray* get_smp_rays();
 void accum_eval(MaterialType type, ShaderResult eval, int idx);
 
 bool should_sample();
@@ -135,6 +137,12 @@ template <class T> void eval_bsdf(MaterialType type, const T& bsdf)
 
     for (int i = range.first; i < range.last; i++)
         accum_eval(type, bsdf.Eval(rays[i]), i);
+
+    Range range_smp = get_smprays_range();
+    const Ray* rays_smp = get_smp_rays();
+
+    for (int i = range.first; i < range.last; i++)
+        accum_eval(type, bsdf.Eval(rays_smp[i]), i + range.last);
 }
 
 void EvalShader(Closure auto&& shader, Ray scattered_ray, View<Ray> rays, auto& result)

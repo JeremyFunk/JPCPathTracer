@@ -19,7 +19,7 @@ struct DebugBsdfClosure final : public IBsdfClosure
 
     inline Norm3 Sample2D(Vec2 rand_p) const
     {
-        return Vec3{m_color[0] * rand_p[0], m_color[1], m_color[2]};
+        return Norm3{0, 0, 1};
     }
 
     Spectrum m_color;

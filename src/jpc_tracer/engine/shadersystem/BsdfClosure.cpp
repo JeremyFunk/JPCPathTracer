@@ -153,7 +153,12 @@ Range get_smprange()
 
 Range get_evalrange()
 {
-    return {0, static_cast<int>(ctx.is_seperated ? ctx.all_bsdfs_sep.size : ctx.all_bsdfs_com.size)};
+    return {0, static_cast<int>(ctx.is_seperated ? ctx.eval_bsdfs_com.size : ctx.eval_bsdfs_com.size)};
+}
+
+Range get_smprays_range()
+{
+    return {0, static_cast<int>(ctx.is_seperated ? ctx.sampled_bsdfs_com.size : ctx.sampled_bsdfs_com.size)};
 }
 
 const Vec2* get_samples()
@@ -170,6 +175,11 @@ void set_sampled_direction(Norm3 dir, int idx)
 const Ray* get_eval_rays()
 {
     return ctx.eval_rays.data;
+}
+
+const Ray* get_smp_rays()
+{
+    return ctx.sampled_rays.data;
 }
 
 void accum_eval(MaterialType type, ShaderResult eval, int idx)

@@ -34,7 +34,7 @@ int main()
 
     std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
 
-    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4, 32);
+    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(128, 4);
 
     jpctracer::JPCRenderer renderer(std::move(sampler), std::move(camera), std::move(integrator));
     renderer.TileSize = 64;
