@@ -211,6 +211,7 @@ void accum_eval(MaterialType type, ShaderResult eval, int idx)
     }
 }
 
+
 bool should_sample()
 {
     return ctx.should_sample && ctx.state == BsdfState::SAMPLING;
