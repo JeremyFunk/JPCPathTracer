@@ -33,6 +33,8 @@ std::optional<SurfaceInteraction> Intersect(const SphereMesh& mesh, int idx, con
     if (distance > distance_temp)
         distance = distance_temp;
 
+    distance += ERROR_THICCNESS;
+
     // ray points in other direction
     if (distance <= 0)
         return std::nullopt;
@@ -41,7 +43,7 @@ std::optional<SurfaceInteraction> Intersect(const SphereMesh& mesh, int idx, con
     SurfaceInteraction interaction;
 
     interaction.Point = Vec3(ray.Direction) * distance + ray.Origin;
-    interaction.Normal = perfect_dir.normalized();
+    interaction.Normal = (interaction.Point - sp_center).normalized();
     interaction.Distance = distance;
     interaction.UV = {0, 0};
     interaction.MaterialId = materials_per_slot[mesh.MaterialSlots[idx]];

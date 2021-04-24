@@ -57,14 +57,22 @@ class Tracer
     {
         Ray world_ray = ray;
         if (m_normal_space)
+        {
             Ray world_ray = NormalToWorld(ray, *m_normal_space);
+            JPC_LOG_INFO("Worldray: Dir:{} Origin: {} ", world_ray.Direction.to_string(), world_ray.Origin.to_string());
+
+            if (world_ray.Origin[1] < 0)
+            {
+                int a = 0;
+            }
+        }
 
         const ShaderBuffer& buffer_temp = m_shader_buffer;
         const shadersys::Lights* lights = m_lights;
         shadersys::ShaderResultsStack& stack = m_shader_stack;
 
         std::optional<SurfaceInteraction> interaction = raytracing::TraceRay(
-            ray,
+            world_ray,
             // anyhit callback
             [&ray_behavior, &payload, &buffer_temp, &lights, &world_ray,
              &stack](const SurfaceInteraction& interaction) -> AnyHitResult {

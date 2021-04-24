@@ -15,7 +15,7 @@
 
 struct Material1
 {
-    jpctracer::Spectrum color = jpctracer::FromRGB({1, 1, 1});
+    jpctracer::Spectrum color = jpctracer::FromRGB({0, 0, 1});
     auto bsdf()
     {
         return [=](jpctracer::Ray scattered) {
@@ -75,9 +75,10 @@ int main()
                             // "/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/color_grid.png" /* Christian */);
                             "E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\color_grid.png" /* Peer */);
 
-    auto sphere_shader = renderer.MaterialLib.Create<Glossy>();
+    // auto sphere_shader = renderer.MaterialLib.Create<Glossy>();
+    auto sphere_shader = renderer.MaterialLib.Create<Material1>();
 
-    auto sphere = jpctracer::CreateSphere({-2, 0, -2}, 0.5);
+    auto sphere = jpctracer::CreateSphere({-2, 0, -4}, 1);
     sphere->MaterialSlots[0] = sphere_shader;
 
     // auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
@@ -87,18 +88,17 @@ int main()
     // Peer
     auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\cube.obj");
 
-    // auto cube = jpctracer::CreateTriangle({-1, -1, 1}, {-1, 1, 1}, {-1, -1, -1});
     cube->transformation = jpctracer::RotScalTrans({0, 0, -5}, 1, {0, 0, 0});
     cube->MaterialSlots[0] = cube_shader;
 
-    renderer.Draw(triangle);
+    // renderer.Draw(triangle);
     renderer.Draw(sphere);
-    renderer.Draw(cube);
-    renderer.LightsLib.AddPointLight({-4, 5, 2}, jpctracer::FromRGB({1, 1, 1}) * 500);
+    // renderer.Draw(cube);
+    renderer.LightsLib.AddPointLight({-2, 5, -4}, jpctracer::FromRGB({1, 1, 1}) * 500);
 
     // Peer
     renderer.Acceleration = {jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::NAIVE};
-    // renderer.ShouldMultiThread = false;
+    renderer.ShouldMultiThread = false;
 
     // Chris
     renderer.Render(100, 100, "");
