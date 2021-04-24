@@ -47,13 +47,14 @@ int main()
 
     // auto monkey = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
 
-    auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
+    // auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
+    auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\plain.obj");
     cube->transformation = jpctracer::RotScalTrans({0, 0, -4}, 1, {0, 0, 0});
     cube->MaterialSlots[0] = shader;
 
-    renderer.Draw(triangle);
+    // renderer.Draw(triangle);
     // renderer.Draw(sphere);
-    // renderer.Draw(cube);
+    renderer.Draw(cube);
     renderer.LightsLib.AddPointLight({0, -2, 0}, jpctracer::FromRGB({10, 10, 10}));
 
     // Peer
