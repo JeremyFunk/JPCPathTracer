@@ -39,9 +39,7 @@ struct Material2
 {
     auto bsdf()
     {
-        return [=](jpctracer::Ray scattered) {
-            return jpctracer::DiffuseBsdf(scattered, jpctracer::FromRGB({1, 1, 1}));
-        };
+        return [=](jpctracer::Ray scattered) { return jpctracer::DebugBsdf(jpctracer::FromRGB({1, 1, 1})); };
     }
 };
 
@@ -50,8 +48,9 @@ static_assert(jpctracer::JPCShader<Material1>);
 int main()
 {
     jpctracer::Logger::Init();
-    using sampler_t = decltype(jpctracer::sampler::StratifiedSampler());
-    std::unique_ptr<jpctracer::ISampler> sampler = std::make_unique<sampler_t>(jpctracer::sampler::StratifiedSampler());
+    using sampler_t = decltype(jpctracer::sampler::StratifiedSamplerFast());
+    std::unique_ptr<jpctracer::ISampler> sampler =
+        std::make_unique<sampler_t>(jpctracer::sampler::StratifiedSamplerFast());
 
     std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
 
@@ -72,36 +71,36 @@ int main()
     auto cube_shader = renderer.MaterialLib.Create<Material1>();
 
     cube_shader.BindTexture(&cube_shader->color,
-                            // "/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/color_grid.png" /* Christian */);
-                            "E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\color_grid.png" /* Peer */);
+                            "/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/color_grid.png" /* Christian */
+                            //"E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\color_grid.png" /* Peer */
+    );
 
-    // auto sphere_shader = renderer.MaterialLib.Create<Glossy>();
-    auto sphere_shader = renderer.MaterialLib.Create<Material1>();
+    auto sphere_shader = renderer.MaterialLib.Create<Glossy>();
 
     auto sphere = jpctracer::CreateSphere({-2, 0, -4}, 1);
     sphere->MaterialSlots[0] = sphere_shader;
 
-    // auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
+    auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
 
     // Christian
     // auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
     // Peer
-    auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\cube.obj");
+    // auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\cube.obj");
 
     cube->transformation = jpctracer::RotScalTrans({0, 0, -5}, 1, {0, 0, 0});
     cube->MaterialSlots[0] = cube_shader;
 
-    // renderer.Draw(triangle);
+    renderer.Draw(triangle);
     renderer.Draw(sphere);
-    // renderer.Draw(cube);
-    renderer.LightsLib.AddPointLight({-2, 5, -4}, jpctracer::FromRGB({1, 1, 1}) * 500);
+    renderer.Draw(cube);
+    // renderer.LightsLib.AddPointLight({-2, 5, -4}, jpctracer::FromRGB({1, 1, 1}) * 500);
+    renderer.LightsLib.AddPointLight({-2, 5, 1}, jpctracer::FromRGB({1, 1, 1}) * 500);
 
     // Peer
-    renderer.Acceleration = {jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::NAIVE};
-    renderer.ShouldMultiThread = false;
+    renderer.Acceleration = {jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::LBVH};
 
     // Chris
-    renderer.Render(100, 100, "");
+    renderer.Render(1920, 1080, "");
 
     return 0;
 }

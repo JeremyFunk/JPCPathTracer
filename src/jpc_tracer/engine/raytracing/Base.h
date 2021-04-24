@@ -42,7 +42,7 @@ using Mat4x4 = Eigen::Matrix<Prec, 4,4>;
 
 using AnyHitCallBack = const std::function<AnyHitResult(const SurfaceInteraction&)>&;
 
-#define ERROR_THICCNESS 0.001
+#define ERROR_THICCNESS 0.00001
 #define SAMPLE_COUNT 8
 
 } // namespace jpctracer::raytracing

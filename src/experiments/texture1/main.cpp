@@ -28,9 +28,9 @@ struct Material1
 int main()
 {
     jpctracer::Logger::Init();
-    using sampler_t = decltype(jpctracer::sampler::StratifiedSampler2());
+    using sampler_t = decltype(jpctracer::sampler::StratifiedSamplerFast());
     std::unique_ptr<jpctracer::ISampler> sampler =
-        std::make_unique<sampler_t>(jpctracer::sampler::StratifiedSampler2());
+        std::make_unique<sampler_t>(jpctracer::sampler::StratifiedSamplerFast());
 
     std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
 

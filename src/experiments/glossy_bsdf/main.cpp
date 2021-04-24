@@ -30,8 +30,8 @@ int main()
 {
     using namespace jpctracer;
     Logger::Init();
-    using sampler_t = decltype(sampler::StratifiedSampler2());
-    std::unique_ptr<ISampler> sampler = std::make_unique<sampler_t>(sampler::StratifiedSampler2());
+    using sampler_t = decltype(sampler::StratifiedSamplerFast());
+    std::unique_ptr<ISampler> sampler = std::make_unique<sampler_t>(sampler::StratifiedSamplerFast());
 
     std::unique_ptr<ICamera> camera = std::make_unique<camera::ProjectionCamera>(1);
 
