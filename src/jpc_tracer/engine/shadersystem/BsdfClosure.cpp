@@ -2,6 +2,7 @@
 #include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/engine/shadersystem/ShaderResults.h"
 #include <algorithm>
 #include <thread>
 
@@ -52,19 +53,10 @@ struct ShaderContext
     const Ray* scattered_ray;
 
     // Outputs
-    View<Ray> sampled_rays;
-    View<Prec> pdf;
     union {
-        View<Spectrum> all_bsdfs_com;
-        View<LightPasses> all_bsdfs_sep;
-    };
-    union {
-        View<Spectrum> eval_bsdfs_com;
-        View<LightPasses> eval_bsdfs_sep;
-    };
-    union {
-        View<Spectrum> sampled_bsdfs_com;
-        View<LightPasses> sampled_bsdfs_sep;
+        ShaderResultsCom result_com;
+        ShaderResultsSep result_sep;
+        ShaderResults<void*> result;
     };
 
     // Weights
@@ -106,44 +98,37 @@ void clear_bsdf_com()
     // std::fill_n(ctx.all_bsdfs_com.data, ctx.all_bsdfs_com.size, Black());
 }
 
-void init_context(SeperatedBsdfs& result, const Ray& scattered_ray, View<Ray> rays)
+void __init_context_eval(const Ray& scattered_ray, View<Ray> rays)
 {
     init_context();
     ctx.eval_rays = rays;
     ctx.should_eval = true;
     ctx.is_seperated = true;
-    ctx.all_bsdfs_sep = result.all_bsdfs;
-    ctx.eval_bsdfs_sep = result.eval_bsdfs;
-    clear_bsdf_sep();
     ctx.scattered_ray = &scattered_ray;
-    ctx.pdf = result.all_pdf;
 }
 
-void init_context(CombinedBsdfs& result, const Ray& scattered_ray, View<Ray> rays)
+void init_context(ShaderResultsSep& result, const Ray& scattered_ray, View<Ray> rays)
 {
-    init_context();
-    ctx.eval_rays = rays;
-    ctx.should_eval = true;
-    ctx.is_seperated = false;
-    ctx.all_bsdfs_com = result.all_bsdfs;
-    ctx.eval_bsdfs_com = result.eval_bsdfs;
-    clear_bsdf_com();
-    ctx.scattered_ray = &scattered_ray;
-    ctx.pdf = result.all_pdf;
+    __init_context_eval(scattered_ray, rays);
+    ctx.result_sep = result;
 }
 
-void init_context(SeperatedBsdfs& result, const Ray& scattered_ray, View<Ray> rays, View<Vec2> samples)
+void init_context(ShaderResultsCom& result, const Ray& scattered_ray, View<Ray> rays)
+{
+    __init_context_eval(scattered_ray, rays);
+    ctx.result_com = result;
+}
+
+void init_context(ShaderResultsSep& result, const Ray& scattered_ray, View<Ray> rays, View<Vec2> samples)
 {
     init_context(result, scattered_ray, rays);
-    ctx.sampled_bsdfs_sep = result.sampled_bsdfs;
-    ctx.sampled_rays = result.sampled_rays;
+    ctx.samples = samples;
 }
 
-void init_context(CombinedBsdfs& result, const Ray& scattered_ray, View<Ray> rays, View<Vec2> samples)
+void init_context(ShaderResultsCom& result, const Ray& scattered_ray, View<Ray> rays, View<Vec2> samples)
 {
     init_context(result, scattered_ray, rays);
-    ctx.sampled_bsdfs_com = result.sampled_bsdfs;
-    ctx.sampled_rays = result.sampled_rays;
+    ctx.samples = samples;
 }
 
 Range get_smprange()
@@ -153,12 +138,12 @@ Range get_smprange()
 
 Range get_evalrange()
 {
-    return {0, static_cast<int>(ctx.is_seperated ? ctx.eval_bsdfs_com.size : ctx.eval_bsdfs_com.size)};
+    return {0, static_cast<int>(ctx.result.eval_bsdf.size)};
 }
 
 Range get_smprays_range()
 {
-    return {0, static_cast<int>(ctx.is_seperated ? ctx.sampled_bsdfs_com.size : ctx.sampled_bsdfs_com.size)};
+    return {0, static_cast<int>(ctx.result.eval_bsdf.size)};
 }
 
 const Vec2* get_samples()
@@ -168,8 +153,8 @@ const Vec2* get_samples()
 
 void set_sampled_direction(Norm3 dir, int idx)
 {
-    ctx.sampled_rays[idx] = *ctx.scattered_ray;
-    ctx.sampled_rays[idx].Direction = dir;
+    ctx.result.sampled_rays[idx] = *ctx.scattered_ray;
+    ctx.result.sampled_rays[idx].Direction = dir;
 }
 
 const Ray* get_eval_rays()
@@ -179,38 +164,51 @@ const Ray* get_eval_rays()
 
 const Ray* get_smp_rays()
 {
-    return ctx.sampled_rays.data;
+    return ctx.result.sampled_rays.data;
 }
 
-void accum_eval(MaterialType type, ShaderResult eval, int idx)
+void __accum(MaterialType type, Distributed<Spectrum> eval, int idx, View<Distributed<Passes>> passes,
+             View<Distributed<Spectrum>> single)
 {
-    // JPC_LOG_INFO("Weights Size: {} BsdfIdx: {}", ctx.weights.size(), ctx.bsdf_idx);
     Prec weight = ctx.weights[ctx.bsdf_idx];
-    ctx.pdf[idx] += eval.pdf * weight;
+
     if (ctx.is_seperated)
     {
         switch (type)
         {
         case MATERIAL_DIFFUSE:
-            ctx.eval_bsdfs_sep[idx].diffuse += eval.luminance * weight;
+            passes[idx].value.diffuse += eval.value * weight;
             break;
         case MATERIAL_GLOSSY:
-            ctx.eval_bsdfs_sep[idx].glossy += eval.luminance * weight;
+            passes[idx].value.glossy += eval.value * weight;
             break;
         case MATERIAL_TRANSMISSION:
-            ctx.eval_bsdfs_sep[idx].transmission += eval.luminance * weight;
+            passes[idx].value.transmission += eval.value * weight;
             break;
         case MATERIAL_SUBSURFACE:
-            ctx.eval_bsdfs_sep[idx].subsurface += eval.luminance * weight;
+            passes[idx].value.subsurface += eval.value * weight;
             break;
         }
+        passes[idx].pdf += eval.pdf * weight;
     }
     else
     {
-        ctx.eval_bsdfs_com[idx] += eval.luminance * weight;
+        single[idx].value += eval.value * weight;
+        single[idx].pdf += eval.pdf * weight;
     }
 }
 
+void accum_eval(MaterialType type, Distributed<Spectrum> eval, int idx)
+{
+    // JPC_LOG_INFO("Weights Size: {} BsdfIdx: {}", ctx.weights.size(), ctx.bsdf_idx);
+    __accum(type, eval, idx, ctx.result_sep.eval_bsdf, ctx.result_com.eval_bsdf);
+}
+
+void accum_sampled(MaterialType type, Distributed<Spectrum> eval, int idx)
+{
+    // JPC_LOG_INFO("Weights Size: {} BsdfIdx: {}", ctx.weights.size(), ctx.bsdf_idx);
+    __accum(type, eval, idx, ctx.result_sep.sampled_bsdf, ctx.result_com.sampled_bsdf);
+}
 
 bool should_sample()
 {

@@ -2,10 +2,11 @@
 
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/core.h"
+#include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
 #include "jpc_tracer/engine/shadersystem/Lights.h"
-#include "jpc_tracer/engine/shadersystem/NormalSpace.h"
 #include "jpc_tracer/engine/shadersystem/Shader.h"
+#include "jpc_tracer/engine/shadersystem/ShaderResults.h"
 
 namespace jpctracer::shadersys
 {
@@ -14,58 +15,62 @@ class HitPoint
 {
 
   public:
-    HitPoint(const shadersys::IShader* shader, const shadersys::Lights* lights, const NormalSpace& normal_space,
+    HitPoint(const IShader* shader, const Lights* lights, const SurfaceInteraction& _interaction, const Ray& world_ray,
              ShaderResultsStack& results_stack)
-        : m_shader(shader), m_normal_space(normal_space), m_lights(lights), m_results_stack(results_stack)
+        : m_shader(shader), m_lights(lights), m_results_stack(results_stack),
+          normal_space(CreateNormalSpace(_interaction.Normal, _interaction.Point)), interaction(_interaction)
     {
         m_stack_begin_state = m_results_stack.GetCurrentState();
+        scattered_ray = TransformTo(normal_space, world_ray);
+        if (scattered_ray.Direction[2] < 0)
+            scattered_ray.Direction.flip();
     }
     // Rays should_be in normal space
-    CombinedBsdfs Shader(View<Ray> eval_rays, View<Vec2> samples) const
+    ShaderResultsCom Shader(View<Ray> eval_rays, View<Vec2> samples) const
     {
-        CombinedBsdfs result = m_results_stack.CreateCombined(eval_rays.size, samples.size);
-        m_shader->Sample(m_normal_space.Interaction, m_normal_space.ScatteringRay, eval_rays, samples, result);
+        auto result = m_results_stack.CreateCombined(eval_rays.size, samples.size);
+        m_shader->Sample(interaction, scattered_ray, eval_rays, samples, result);
         return result;
     }
 
-    CombinedBsdfs Shader(View<Ray> eval_rays) const
+    ShaderResultsCom Shader(View<Ray> eval_rays) const
     {
-        CombinedBsdfs result = m_results_stack.CreateCombined(eval_rays.size, 0);
-        m_shader->Eval(m_normal_space.Interaction, m_normal_space.ScatteringRay, eval_rays, result);
+        auto result = m_results_stack.CreateCombined(eval_rays.size, 0);
+        m_shader->Eval(interaction, scattered_ray, eval_rays, result);
         return result;
     }
 
-    SeperatedBsdfs ShaderSeperated(View<Ray> eval_rays, View<Vec2> samples) const
+    ShaderResultsSep ShaderSeperated(View<Ray> eval_rays, View<Vec2> samples) const
     {
-        SeperatedBsdfs result = m_results_stack.CreateSeperated(eval_rays.size, samples.size);
-        m_shader->Sample(m_normal_space.Interaction, m_normal_space.ScatteringRay, eval_rays, samples, result);
+        auto result = m_results_stack.CreateSeperated(eval_rays.size, samples.size);
+        m_shader->Sample(interaction, scattered_ray, eval_rays, samples, result);
         return result;
     }
 
-    SeperatedBsdfs ShaderSeperated(View<Ray> eval_rays) const
+    ShaderResultsSep ShaderSeperated(View<Ray> eval_rays) const
     {
-        SeperatedBsdfs result = m_results_stack.CreateSeperated(eval_rays.size, 0);
-        m_shader->Eval(m_normal_space.Interaction, m_normal_space.ScatteringRay, eval_rays, result);
+        auto result = m_results_stack.CreateSeperated(eval_rays.size, 0);
+        m_shader->Eval(interaction, scattered_ray, eval_rays, result);
         return result;
     }
 
     Spectrum Emission() const
     {
-        return m_shader->Emission(m_normal_space.Interaction);
+        return m_shader->Emission(interaction);
     }
 
     Prec Transparency() const
     {
-        return m_shader->Transparency(m_normal_space.Interaction);
+        return m_shader->Transparency(interaction);
     }
 
     LightResults ActiveLights(View<Vec2> samples) const
     {
         LightResults result = m_results_stack.CreateLightResults(samples.size);
 
-        m_lights->Sample(samples, m_normal_space.Interaction, result);
+        m_lights->Sample(samples, interaction, result);
         for (auto& ray : result.rays)
-            ray = WorldToNormal(ray, m_normal_space);
+            ray = TransformBack(normal_space, ray);
         return result;
     }
     ~HitPoint()
@@ -73,10 +78,15 @@ class HitPoint
         m_results_stack.SetState(m_stack_begin_state);
     }
 
+    const Transformation normal_space;
+    // in wolrd space
+    const SurfaceInteraction& interaction;
+    // in normalspace
+    Ray scattered_ray;
+
   private:
-    const shadersys::IShader* m_shader;
-    const NormalSpace& m_normal_space;
-    const shadersys::Lights* m_lights;
+    const IShader* m_shader;
+    const Lights* m_lights;
     ShaderResultsStack& m_results_stack;
     ShaderResultsStack::State m_stack_begin_state;
 };

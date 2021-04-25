@@ -18,8 +18,26 @@ struct DirectLightIntegratorSettings
     uint SubPixels;
 };
 
-Spectrum ComputeDirectLight(const ShaderResult& bsdf, const ShaderResult& light, Ray& ray, Tracer& tracer,
-                            const ShadowBehavior& shadow_behavior);
+Prec CosWeight(const Norm3& dir);
+
+template <class T1>
+T1 ComputeDirectLight(const Distributed<T1>& bsdf, const Distributed<Spectrum>& light, Ray& ray, Tracer& tracer,
+                      const ShadowBehavior& shadow_behavior)
+{
+
+    Payload shadow_test;
+    // JPC_LOG_INFO("Shadow ray dir: {},{},{} pos: {},{},{}",
+    //    ray.Direction[0], ray.Direction[1], ray.Direction[2],
+    //    ray.Origin[0],ray.Origin[1],ray.Origin[2]);
+    tracer(shadow_behavior, ray, &shadow_test);
+    if (shadow_test.IsShadow)
+        return Black();
+    auto [light_val, light_pdf] = light;
+    auto [bsdf_val, bsdf_pdf] = bsdf;
+    if (!IsDeltaDistribution(light_pdf))
+        return bsdf_val * light_val / light_pdf * CosWeight(ray.Direction);
+    return bsdf_val * light_val * CosWeight(ray.Direction);
+};
 
 struct DirectLightBehavior final : public IRayBehavior
 {

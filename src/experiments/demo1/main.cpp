@@ -54,7 +54,7 @@ int main()
 
     std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
 
-    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4, 1);
+    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4, 2);
     // std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DebugIntegrator>();
 
     jpctracer::JPCRenderer renderer(std::move(sampler), std::move(camera), std::move(integrator));
@@ -80,10 +80,10 @@ int main()
     auto sphere = jpctracer::CreateSphere({-2, 0, -4}, 1);
     sphere->MaterialSlots[0] = sphere_shader;
 
-    auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
+    // auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
 
     // Christian
-    // auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
+    auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
     // Peer
     // auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\cube.obj");
 
@@ -91,13 +91,14 @@ int main()
     cube->MaterialSlots[0] = cube_shader;
 
     renderer.Draw(triangle);
-    renderer.Draw(sphere);
+    // renderer.Draw(sphere);
     renderer.Draw(cube);
     // renderer.LightsLib.AddPointLight({-2, 5, -4}, jpctracer::FromRGB({1, 1, 1}) * 500);
     renderer.LightsLib.AddPointLight({-2, 5, 1}, jpctracer::FromRGB({1, 1, 1}) * 500);
+    renderer.LightsLib.AddPointLight({-4, 5, -4}, jpctracer::FromRGB({0.6, 0.2, 0.7}) * 10);
 
     // Peer
-    renderer.Acceleration = {jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::LBVH};
+    renderer.Acceleration = {jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::NAIVE};
 
     // Chris
     renderer.Render(1920, 1080, "");

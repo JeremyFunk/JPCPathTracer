@@ -35,7 +35,7 @@ IntersectionResult Intersect(const Scene& scene, Ray& ray, AnyHitCallBack any_hi
                                      trans);
             };
 
-            Ray mesh_ray = ApplyInverse(trans, ray);
+            Ray mesh_ray = TransformBack(trans, ray);
 
             // Intersect Mesh Tree
             switch (mesh_id.type)

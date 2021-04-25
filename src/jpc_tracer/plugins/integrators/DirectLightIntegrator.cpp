@@ -66,8 +66,7 @@ void DirectLightBehavior::ClosestHitProgram(const HitPoint& hit_point, Payload* 
     for (int i = 0; i < m_light_samples; i++)
     {
         payload->result +=
-            ComputeDirectLight({bsdfs.eval_bsdfs[i], bsdfs.eval_pdf[i]}, {lights.emission[i], lights.pdf[i]},
-                               lights.rays[i], tracer, m_shadow_behavior);
+            ComputeDirectLight(bsdfs.eval_bsdf[i], lights.emission[i], lights.rays[i], tracer, m_shadow_behavior);
     }
     payload->result /= m_light_samples;
     payload->result += bsdfs.emission;
@@ -83,21 +82,4 @@ Prec CosWeight(const Norm3& dir)
     return w > 0 ? w : -w;
 }
 
-Spectrum ComputeDirectLight(const ShaderResult& bsdf, const ShaderResult& light, Ray& ray, Tracer& tracer,
-                            const ShadowBehavior& shadow_behavior)
-{
-
-    Payload shadow_test;
-    // JPC_LOG_INFO("Shadow ray dir: {},{},{} pos: {},{},{}",
-    //    ray.Direction[0], ray.Direction[1], ray.Direction[2],
-    //    ray.Origin[0],ray.Origin[1],ray.Origin[2]);
-    tracer(shadow_behavior, ray, &shadow_test);
-    if (shadow_test.IsShadow)
-        return Black();
-    auto [light_val, light_pdf] = light;
-    auto [bsdf_val, bsdf_pdf] = bsdf;
-    if (!IsDeltaDistribution(light_pdf))
-        return bsdf_val * light_val / light_pdf * CosWeight(ray.Direction);
-    return bsdf_val * light_val * CosWeight(ray.Direction);
-};
 } // namespace jpctracer

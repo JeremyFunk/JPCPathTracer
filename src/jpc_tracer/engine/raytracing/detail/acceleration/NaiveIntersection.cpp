@@ -16,7 +16,7 @@ IntersectionResult NaiveIntersect(AnyHitCallBack any_hit_program, const T& mesh,
 
     std::optional<SurfaceInteraction> closest_interaction;
 
-    Vec3 ray_real_origin = Apply(trans, ray.Origin);
+    Vec3 ray_real_origin = TransformTo(trans, ray.Origin);
 
     for (int i = 0; i < GetSize(mesh); i++)
     {
@@ -27,8 +27,8 @@ IntersectionResult NaiveIntersect(AnyHitCallBack any_hit_program, const T& mesh,
             // JPC_LOG_INFO("Triangle id: {}", i);
             auto temp_p = interaction->Point;
             auto temp_n = interaction->Normal;
-            interaction->Point = Apply(trans, interaction->Point);
-            interaction->Normal = Apply(trans, interaction->Normal);
+            interaction->Point = TransformTo(trans, interaction->Point);
+            interaction->Normal = TransformTo(trans, interaction->Normal);
             interaction->Distance = (interaction->Point - ray_real_origin).norm();
             AnyHitResult any_hit_result = any_hit_program(*interaction);
 
@@ -57,7 +57,7 @@ IntersectionResult NaiveInstancesIntersect(AnyHitCallBack any_hit_program, const
         const int* materials_per_slot = &instance.materials_per_slot[0];
 
         IntersectionResult instance_result;
-        Ray transformed_ray = ApplyInverse(transformation, ray);
+        Ray transformed_ray = TransformBack(transformation, ray);
         // JPC_LOG_INFO("Before Trans: Dir: {} Origin: {} ", ray.Direction.to_string(), ray.Origin.to_string());
         int mesh_id = instance.mesh_id.id;
         switch (instance.mesh_id.type)
