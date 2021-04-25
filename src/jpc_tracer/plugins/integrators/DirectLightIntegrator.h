@@ -31,7 +31,11 @@ T1 ComputeDirectLight(const Distributed<T1>& bsdf, const Distributed<Spectrum>& 
     //    ray.Origin[0],ray.Origin[1],ray.Origin[2]);
     tracer(shadow_behavior, ray, &shadow_test);
     if (shadow_test.IsShadow)
+    {
+        // JPC_LOG_INFO("In shadow Dir: {} Origin: {}", ray.Direction.to_string(), ray.Origin.to_string());
+        // return FromRGB({0, 0, 1});
         return Black();
+    }
     auto [light_val, light_pdf] = light;
     auto [bsdf_val, bsdf_pdf] = bsdf;
     if (!IsDeltaDistribution(light_pdf))

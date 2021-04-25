@@ -4,12 +4,22 @@
 #include "jpc_tracer/core/core.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/core/maths/Transformation.h"
 #include "jpc_tracer/engine/shadersystem/Lights.h"
 #include "jpc_tracer/engine/shadersystem/Shader.h"
 #include "jpc_tracer/engine/shadersystem/ShaderResults.h"
 
 namespace jpctracer::shadersys
 {
+
+inline Ray create_scattered_ray(const Transformation& normal_space, Ray ray)
+{
+    ray.Direction = TransformTo(normal_space, ray.Direction);
+    ray.Origin = {0, 0, 0};
+    ray.Direction.flip();
+
+    return ray;
+}
 
 class HitPoint
 {
@@ -21,9 +31,7 @@ class HitPoint
           normal_space(CreateNormalSpace(_interaction.Normal, _interaction.Point)), interaction(_interaction)
     {
         m_stack_begin_state = m_results_stack.GetCurrentState();
-        scattered_ray = TransformTo(normal_space, world_ray);
-        if (scattered_ray.Direction[2] < 0)
-            scattered_ray.Direction.flip();
+        scattered_ray = create_scattered_ray(normal_space, world_ray);
     }
     // Rays should_be in normal space
     ShaderResultsCom Shader(View<Ray> eval_rays, View<Vec2> samples) const
@@ -70,7 +78,7 @@ class HitPoint
 
         m_lights->Sample(samples, interaction, result);
         for (auto& ray : result.rays)
-            ray = TransformBack(normal_space, ray);
+            ray = TransformTo(normal_space, ray);
         return result;
     }
     ~HitPoint()

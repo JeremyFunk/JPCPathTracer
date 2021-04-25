@@ -79,7 +79,7 @@ void DirectLightBehavior::Miss(Spectrum background_color, Payload* payload) cons
 Prec CosWeight(const Norm3& dir)
 {
     Prec w = CosTheta(dir);
-    return w > 0 ? w : -w;
+    return w > 0 ? w : 0;
 }
 
 } // namespace jpctracer

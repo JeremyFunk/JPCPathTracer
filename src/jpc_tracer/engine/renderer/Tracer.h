@@ -1,6 +1,7 @@
 #pragma once
 #include "../raytracing/SceneBuilder.h"
 #include "jpc_tracer/core/Concepts.h"
+#include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
 #include "jpc_tracer/core/maths/Transformation.h"
@@ -58,6 +59,7 @@ class Tracer
         if (m_normal_space)
         {
             world_ray = TransformBack(*m_normal_space, ray);
+            // JPC_LOG_INFO("Worldray: Direction: {} Origin: {}", ray.Direction.to_string(), ray.Origin.to_string());
         }
 
         const ShaderBuffer& buffer_temp = m_shader_buffer;

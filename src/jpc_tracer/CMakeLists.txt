@@ -115,6 +115,10 @@ openimageio
 
 jpctr_add_library(jpc_tracer "${AUTOSRC}" "${INC}" "${LIBS}" STATIC)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set_target_properties(jpc_tracer PROPERTIES COMPILE_FLAGS "-ffast-math") 
+endif()
+
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(jpc_tracer OpenMP::OpenMP_CXX)
