@@ -58,13 +58,7 @@ class Tracer
         Ray world_ray = ray;
         if (m_normal_space)
         {
-            Ray world_ray = NormalToWorld(ray, *m_normal_space);
-            JPC_LOG_INFO("Worldray: Dir:{} Origin: {} ", world_ray.Direction.to_string(), world_ray.Origin.to_string());
-
-            if (world_ray.Origin[1] < 0)
-            {
-                int a = 0;
-            }
+            world_ray = NormalToWorld(ray, *m_normal_space);
         }
 
         const ShaderBuffer& buffer_temp = m_shader_buffer;
