@@ -91,9 +91,9 @@ int main()
     cube->transformation = jpctracer::RotScalTrans({0, 0, -5}, 1, {0, 0, 0});
     cube->MaterialSlots[0] = cube_shader;
 
-    // renderer.Draw(triangle);
-    renderer.Draw(sphere);
-    // renderer.Draw(cube);
+    renderer.Draw(triangle);
+    // renderer.Draw(sphere);
+    renderer.Draw(cube);
     renderer.LightsLib.AddPointLight({-2, 5, -4}, jpctracer::FromRGB({1, 1, 1}) * 500);
 
     // Peer
