@@ -9,10 +9,10 @@ IntersectionResult IntersectMesh(const Ray& ray, const MeshT& mesh, const int& i
 {
     auto interaction = Intersect(mesh, idx, ray, material_per_slot);
 
-    Vec3 ray_real_origin = Apply(trans, ray.Origin);
-
     if (interaction)
     {
+        Vec3 ray_real_origin = Apply(trans, ray.Origin);
+
         auto temp_p = interaction->Point;
         auto temp_n = interaction->Normal;
         interaction->Point = Apply(trans, interaction->Point);

@@ -58,7 +58,7 @@ int main()
     // std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DebugIntegrator>();
 
     jpctracer::JPCRenderer renderer(std::move(sampler), std::move(camera), std::move(integrator));
-    renderer.ShouldMultiThread = true;
+    renderer.ShouldMultiThread = false;
 
     auto shader = renderer.MaterialLib.Create<Material1>();
 
