@@ -46,10 +46,16 @@ M_inv = np.array([
 ])
 
 def lrgb_to_xyz(lrgb):
-    return M.dot(lrgb)
+    print("lrgb: ",lrgb)
+    r = M.dot(lrgb)
+    print("r:",r)
+    return r
 
 def xyz_to_lrgb(xyz):
-    return M_inv.dot(xyz)
+    print("xyz: ",xyz)
+    r = M_inv.dot(xyz)
+    print("r: ",r)
+    return r
 
 
 def xyz_to_srgb(xyz):
@@ -59,11 +65,11 @@ def srgb_to_xyz(srgb):
     return lrgb_to_xyz(srgb_to_lrgb(srgb))
 
 def tester(srgb,exp):
-    ac  = lrgb_to_xyz(srgb)
+    ac  = srgb_to_xyz(srgb)
     print("sRgb: ", srgb)
     print("Expected xyz: ",exp)
     print("Acctual xyz: ",ac)
-    print("Converted Back: ", xyz_to_lrgb(ac))
+    print("Converted Back: ", xyz_to_srgb(ac))
 
 #red
 rgb = [1,0,0]
@@ -78,4 +84,14 @@ tester(rgb,exp_xyz)
 #red
 rgb = [0,0,1]
 exp_xyz = [0.15,0.06,0.79]
+tester(rgb,exp_xyz)
+
+#white
+rgb = [1,1,1]
+exp_xyz = [1,1,1]
+tester(rgb,exp_xyz)
+
+#white
+rgb = [2,3,2]
+exp_xyz = [1,1,1]
 tester(rgb,exp_xyz)

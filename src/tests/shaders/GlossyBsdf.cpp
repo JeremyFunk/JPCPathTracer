@@ -14,7 +14,7 @@ TEST(shaders, GlossyBsdfTest1)
     Vec3 scattered_dir = {-1, 1, -1};
     scattered_dir *= -1;
     Vec3 incident_dir = {1, 1, 1};
-    Spectrum color = FromRGB({1, 1, 1});
+    Spectrum color = FromValue(1);
 
     scattered_dir = scattered_dir.normalized();
     incident_dir = incident_dir.normalized();
@@ -39,7 +39,7 @@ TEST(shaders, GlossyBsdfTest1)
 
     Prec cos = Vec3{1, 1, 1}.normalized().dot(normal);
 
-    Vec3 rgb = ToRGB(result.value);
+    Vec3 rgb = srgb::ToRGB(result.value);
     Prec pdf = result.pdf;
     Prec test_val = (rgb[0] / pdf) * cos;
 

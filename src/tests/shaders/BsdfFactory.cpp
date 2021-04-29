@@ -13,8 +13,8 @@ namespace jpctracer
 TEST(shaders, factor_debugbsdf)
 {
     auto f = [](Ray scattered) {
-        BsdfNode node1 = DebugBsdf(FromRGB({0, 0, 1}));
-        BsdfNode node2 = DebugBsdf(FromRGB({1, 0, 0}));
+        BsdfNode node1 = DebugBsdf(srgb::FromRGB({0, 0, 1}));
+        BsdfNode node2 = DebugBsdf(srgb::FromRGB({1, 0, 0}));
         return Mix(node1, node2, 0.5);
     };
     Ray rays[2] = {Ray{}, Ray{}};
@@ -22,16 +22,16 @@ TEST(shaders, factor_debugbsdf)
     shadersys::ShaderResultsStack stack;
     auto result = stack.CreateCombined(2, 0);
     shadersys::EvalShader(f, Ray{}, {rays, 2}, result);
-    TestSpectrum(result.eval_bsdf[0].value, FromRGB({0.5, 0, 0.5}));
+    TestSpectrum(result.eval_bsdf[0].value, srgb::FromRGB({0.5, 0, 0.5}));
 }
 
 TEST(shaders, factor_debugbsdf2)
 {
     Logger::Init();
     auto f = [](Ray scattered) {
-        BsdfNode node1 = DebugBsdf(FromRGB({0, 0, 1}));
-        BsdfNode node2 = DebugBsdf(FromRGB({1, 0, 0}));
-        BsdfNode node3 = DebugBsdf(FromRGB({0, 1, 0}));
+        BsdfNode node1 = DebugBsdf(srgb::FromRGB({0, 0, 1}));
+        BsdfNode node2 = DebugBsdf(srgb::FromRGB({1, 0, 0}));
+        BsdfNode node3 = DebugBsdf(srgb::FromRGB({0, 1, 0}));
         BsdfNode mix1 = Mix(node1, node2, 0.5);
         return Mix(node3, mix1, 0.5);
     };
@@ -39,7 +39,7 @@ TEST(shaders, factor_debugbsdf2)
     Ray rays[2] = {Ray{}, Ray{}};
     auto result = stack.CreateCombined(2, 0);
     shadersys::EvalShader(f, Ray{}, {rays, 2}, result);
-    TestSpectrum(result.eval_bsdf[0].value, FromRGB({0.25, 0.5, 0.25}));
+    TestSpectrum(result.eval_bsdf[0].value, srgb::FromRGB({0.25, 0.5, 0.25}));
 }
 /*
 TEST(shaders,dist_factory)

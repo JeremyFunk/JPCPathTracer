@@ -103,25 +103,27 @@ void __init_context_eval(const Ray& scattered_ray, View<Ray> rays)
     init_context();
     ctx.eval_rays = rays;
     ctx.should_eval = true;
-    ctx.is_seperated = true;
     ctx.scattered_ray = &scattered_ray;
 }
 
 void init_context(ShaderResultsSep& result, const Ray& scattered_ray, View<Ray> rays)
 {
     __init_context_eval(scattered_ray, rays);
+    ctx.is_seperated = true;
     ctx.result_sep = result;
 }
 
 void init_context(ShaderResultsCom& result, const Ray& scattered_ray, View<Ray> rays)
 {
     __init_context_eval(scattered_ray, rays);
+    ctx.is_seperated = false;
     ctx.result_com = result;
 }
 
 void init_context(ShaderResultsSep& result, const Ray& scattered_ray, View<Ray> rays, View<Vec2> samples)
 {
     init_context(result, scattered_ray, rays);
+    ctx.is_seperated = true;
     ctx.samples = samples;
 }
 
@@ -129,6 +131,7 @@ void init_context(ShaderResultsCom& result, const Ray& scattered_ray, View<Ray> 
 {
     init_context(result, scattered_ray, rays);
     ctx.samples = samples;
+    ctx.is_seperated = false;
 }
 
 Range get_smprange()
