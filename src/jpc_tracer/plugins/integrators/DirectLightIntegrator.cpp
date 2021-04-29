@@ -62,13 +62,13 @@ void DirectLightBehavior::ClosestHitProgram(const HitPoint& hit_point, Payload* 
 
     auto bsdfs = hit_point.Shader(lights.rays);
     // payload->samples+=1;
-
-    for (int i = 0; i < m_light_samples; i++)
+    // JPC_LOG_INFO("Size: {}", lights.rays.size);
+    for (int i = 0; i < lights.rays.size; i++)
     {
         payload->result +=
             ComputeDirectLight(bsdfs.eval_bsdf[i], lights.emission[i], lights.rays[i], tracer, m_shadow_behavior);
     }
-    payload->result /= m_light_samples;
+
     payload->result += bsdfs.emission;
 }
 void DirectLightBehavior::Miss(Spectrum background_color, Payload* payload) const

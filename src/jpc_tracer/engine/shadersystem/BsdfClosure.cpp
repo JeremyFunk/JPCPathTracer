@@ -2,6 +2,7 @@
 #include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/engine/shadersystem/DiscreteSampler.h"
 #include "jpc_tracer/engine/shadersystem/ShaderResults.h"
 #include <algorithm>
 #include <thread>
@@ -262,25 +263,10 @@ void compute_weights(BsdfNode root_node)
 
 void compute_ranges(View<Vec2> samples)
 {
-    std::sort(samples.begin(), samples.end(), [](const Vec2& v1, const Vec2& v2) { return v1[0] < v2[0]; });
-    Prec last_sum = 0;
-    Prec next_sum = 0;
+    while (ctx.ranges.size() <= ctx.bsdf_count)
+        ctx.ranges.push_back(Range{});
 
-    int samples_idx = 0;
-    for (int bsdf_idx = 0; bsdf_idx < ctx.bsdf_count; bsdf_idx++)
-    {
-        next_sum += ctx.weights[bsdf_idx];
-        int last_samples_idx = samples_idx;
-        while (next_sum >= samples[samples_idx][0] && samples_idx < samples.size)
-        {
-            samples[samples_idx][0] -= last_sum;
-            samples[samples_idx][0] /= next_sum - last_sum;
-            samples_idx++;
-        }
-        ctx.ranges[last_samples_idx].first = last_samples_idx;
-        ctx.ranges[last_samples_idx].last = samples_idx;
-        last_sum = next_sum;
-    }
+    PartitionedSamples(samples, {&ctx.weights[0], ctx.weights.size()}, {&ctx.ranges[0], ctx.ranges.size()});
 }
 
 void finish_context()

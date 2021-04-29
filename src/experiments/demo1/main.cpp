@@ -59,7 +59,7 @@ int main()
 
     std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
 
-    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4, 2);
+    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4, 32);
     // std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DebugIntegrator>();
 
     jpctracer::JPCRenderer renderer(std::move(sampler), std::move(camera), std::move(integrator));
@@ -98,8 +98,9 @@ int main()
     renderer.Draw(triangle);
     renderer.Draw(sphere);
     renderer.Draw(cube);
-    // renderer.LightsLib.AddPointLight({-2, 5, -4}, jpctracer::FromRGB({1, 1, 1}) * 500);
-    renderer.LightsLib.AddPointLight({-2, 5, 1}, jpctracer::FromValue(1) * 50);
+    renderer.LightsLib.AddPointLight({-2, 5, -4}, jpctracer::FromRGB({0.2, 0.1, 0.7}) * 500);
+    // renderer.LightsLib.AddPointLight({-2, 5, 1}, jpctracer::FromValue(1) * 50);
+    renderer.LightsLib.AddDistanceLight({0, -1, -1}, jpctracer::FromValue(1) * 5);
     // renderer.LightsLib.AddPointLight({-4, 5, -4}, jpctracer::FromRGB({0.6, 0.2, 0.7}) * 10);
 
     // Peer
