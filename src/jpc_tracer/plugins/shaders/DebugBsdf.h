@@ -12,7 +12,7 @@ struct DebugBsdfClosure final : public IBsdfClosure
     DebugBsdfClosure(Spectrum color = Black()) : m_color(color)
     {
     }
-    inline ShaderResult Eval(Ray incident_ray) const
+    inline Distributed<Spectrum> Eval(Ray incident_ray) const
     {
         return {m_color, 1};
     }

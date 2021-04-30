@@ -12,7 +12,6 @@ const void PointLights::Sample(LightResults& out_values, View<Vec2> samples,
     {
         out_values.rays.size = 0;
         out_values.emission.size = 0;
-        out_values.pdf.size = 0;
     }
     for (int i = 0; i < samples.size; i++)
     {
@@ -27,9 +26,9 @@ const void PointLights::Sample(LightResults& out_values, View<Vec2> samples,
         out_incident_ray.LensPosition = {0, 0};
         out_incident_ray.Origin = interaction.Point;
 
-        out_values.emission[i] = m_colors[sampled_idx] / (out_incident_ray.ClipEnd * out_incident_ray.ClipEnd);
-        Transparency(out_values.emission[i]) = 1;
-        out_values.pdf[i] = 0;
+        out_values.emission[i].value = m_colors[sampled_idx] / (out_incident_ray.ClipEnd * out_incident_ray.ClipEnd);
+        Transparency(out_values.emission[i].value) = 1;
+        out_values.emission[i].pdf = 0;
     }
 }
 

@@ -70,9 +70,10 @@ inline Vec3 BeckmannSample(Prec alpha2, Vec2 random_point)
     return {x, y, z};
 }
 
-inline ShaderResult CookTorranceReflection(Vec3 incident_dir, Vec3 scattered_dir, Spectrum reflectance, Prec alpha)
+inline Distributed<Spectrum> CookTorranceReflection(Vec3 incident_dir, Vec3 scattered_dir, Spectrum reflectance,
+                                                    Prec alpha)
 {
-    ShaderResult result;
+    Distributed<Spectrum> result;
 
     Prec alpha2 = alpha * alpha;
 
@@ -82,7 +83,7 @@ inline ShaderResult CookTorranceReflection(Vec3 incident_dir, Vec3 scattered_dir
     Prec F = frenel_noop();
 
     result.pdf = D * std::abs(microfacet_normal[2]) / (4 * microfacet_normal.dot(scattered_dir));
-    result.luminance = reflectance * F * G * D / (4 * incident_dir[2] * scattered_dir[2]);
+    result.value = reflectance * F * G * D / (4 * incident_dir[2] * scattered_dir[2]);
 
     return result;
 }
@@ -120,7 +121,7 @@ struct GlossyBsdfClosure final : public IBsdfClosure
           m_time(scattering_ray.Time)
     {
     }
-    inline ShaderResult Eval(Ray incident_ray) const
+    inline Distributed<Spectrum> Eval(Ray incident_ray) const
     {
         return CookTorranceReflection(incident_ray.Direction, m_scattering_dir, m_color, m_alpha);
     }

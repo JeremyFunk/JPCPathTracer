@@ -4,6 +4,7 @@
 #include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/engine/shadersystem/ShaderResults.h"
 #include "jpc_tracer/engine/shadersystem/TextureBuffer.h"
 #include <concepts>
 #include <cstdint>
@@ -24,13 +25,13 @@ template <class T> concept ShaderFunc = requires(T f, Ray scattered)
 struct IShader
 {
     virtual void Eval(const SurfaceInteraction& interaction, Ray scattered_ray, View<Ray> rays,
-                      SeperatedBsdfs& result) const = 0;
+                      ShaderResultsSep& result) const = 0;
     virtual void Eval(const SurfaceInteraction& interaction, Ray scattered_ray, View<Ray> rays,
-                      CombinedBsdfs& result) const = 0;
+                      ShaderResultsCom& result) const = 0;
     virtual void Sample(const SurfaceInteraction& interaction, Ray scattered_ray, View<Ray> rays, View<Vec2> samples,
-                        SeperatedBsdfs& result) const = 0;
+                        ShaderResultsSep& result) const = 0;
     virtual void Sample(const SurfaceInteraction& interaction, Ray scattered_ray, View<Ray> rays, View<Vec2> samples,
-                        CombinedBsdfs& result) const = 0;
+                        ShaderResultsCom& result) const = 0;
     virtual Spectrum Emission(const SurfaceInteraction& interaction) const = 0;
     virtual Prec Transparency(const SurfaceInteraction& interaction) const = 0;
     virtual ~IShader()
@@ -56,13 +57,13 @@ template <ShaderFunc T> struct Shader final : public IShader
             *((Norm3*)shader + binding.second) = binding.first(interaction.UV);*/
     }
 
-    void Eval(const SurfaceInteraction& interaction, Ray scattered_ray, View<Ray> rays, SeperatedBsdfs& result) const
+    void Eval(const SurfaceInteraction& interaction, Ray scattered_ray, View<Ray> rays, ShaderResultsSep& result) const
     {
         T shader = default_shader;
         init_shader_func(&shader, interaction);
         EvalShader(shader.bsdf(), scattered_ray, rays, result);
     }
-    void Eval(const SurfaceInteraction& interaction, Ray scattered_ray, View<Ray> rays, CombinedBsdfs& result) const
+    void Eval(const SurfaceInteraction& interaction, Ray scattered_ray, View<Ray> rays, ShaderResultsCom& result) const
     {
         T shader = default_shader;
         init_shader_func(&shader, interaction);
@@ -70,14 +71,14 @@ template <ShaderFunc T> struct Shader final : public IShader
     }
 
     void Sample(const SurfaceInteraction& interaction, Ray scattered_ray, View<Ray> rays, View<Vec2> samples,
-                SeperatedBsdfs& result) const
+                ShaderResultsSep& result) const
     {
         T shader = default_shader;
         init_shader_func(&shader, interaction);
         SampleShader(shader.bsdf(), scattered_ray, rays, samples, result);
     }
     void Sample(const SurfaceInteraction& interaction, Ray scattered_ray, View<Ray> rays, View<Vec2> samples,
-                CombinedBsdfs& result) const
+                ShaderResultsCom& result) const
     {
         T shader = default_shader;
         init_shader_func(&shader, interaction);

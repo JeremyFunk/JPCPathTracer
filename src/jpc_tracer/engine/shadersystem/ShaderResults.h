@@ -6,50 +6,36 @@
 namespace jpctracer::shadersys
 {
 
-struct LightPasses
+struct Passes
 {
     Spectrum diffuse = FromValue(0);
     Spectrum glossy = FromValue(0);
     Spectrum transmission = FromValue(0);
-    Spectrum transparent = FromValue(0);
     Spectrum subsurface = FromValue(0);
-    Spectrum scatter = FromValue(0);
 };
 
-struct SeperatedBsdfs
+template <class T> struct Distributed
+{
+    T value;
+    Prec pdf;
+};
+
+template <class T> struct ShaderResults
 {
     Spectrum emission;
     Prec transparency;
 
-    View<LightPasses> eval_bsdfs;
-    View<LightPasses> sampled_bsdfs;
-    View<LightPasses> all_bsdfs;
     View<Ray> sampled_rays;
-
-    View<Prec> eval_pdf;
-    View<Prec> sampled_pdf;
-    View<Prec> all_pdf;
+    View<Distributed<T>> eval_bsdf;
+    View<Distributed<T>> sampled_bsdf;
 };
 
-struct CombinedBsdfs
-{
-    Spectrum emission;
-    Prec transparency;
-
-    View<Spectrum> eval_bsdfs;
-    View<Spectrum> sampled_bsdfs;
-    View<Spectrum> all_bsdfs;
-    View<Ray> sampled_rays;
-
-    View<Prec> eval_pdf;
-    View<Prec> sampled_pdf;
-    View<Prec> all_pdf;
-};
+using ShaderResultsCom = ShaderResults<Spectrum>;
+using ShaderResultsSep = ShaderResults<Passes>;
 
 struct LightResults
 {
-    View<Prec> pdf;
-    View<Spectrum> emission;
+    View<Distributed<Spectrum>> emission;
     View<Ray> rays;
 };
 
@@ -62,7 +48,6 @@ class ShaderResultsStack
     {
         size_t bsdf_sep_size;
         size_t bsdf_com_size;
-        size_t pdf_size;
         size_t ray_size;
     };
 
@@ -70,16 +55,97 @@ class ShaderResultsStack
     void SetState(State state);
     bool IsEmpty();
 
-    CombinedBsdfs CreateCombined(uint eval_count, uint samples_count);
-    SeperatedBsdfs CreateSeperated(uint eval_count, uint samples_count);
+    ShaderResults<Spectrum> CreateCombined(uint eval_count, uint samples_count);
+    ShaderResults<Passes> CreateSeperated(uint eval_count, uint samples_count);
     LightResults CreateLightResults(uint count);
 
   private:
-    template <class T> void Setup(uint eval_count, uint samples_count, T& result);
-    std::vector<LightPasses> m_bsdf_sep;
-    std::vector<Spectrum> m_bsdf_com;
-    std::vector<Prec> m_pdfs;
+    template <class T>
+    ShaderResults<T> Setup(uint eval_count, uint samples_count, std::vector<Distributed<T>>& bsdf_mem, T default_val);
+    std::vector<Distributed<Passes>> m_dists_passes;
+    std::vector<Distributed<Spectrum>> m_dists_spec;
     std::vector<Ray> m_rays;
 };
+
+/******************************************************************************/
+/*                        Operators                                           */
+/******************************************************************************/
+
+// clang-format off
+
+inline Passes operator+(const Passes& a, const Passes& b){
+    return
+    {
+        a.diffuse       + b.diffuse,
+        a.glossy        + b.glossy,
+        a.transmission  + b.transmission,
+        a.subsurface    + b.subsurface
+    };
+}
+inline Passes operator-(const Passes& a, const Passes& b){
+    return
+    {
+        a.diffuse       - b.diffuse,
+        a.glossy        - b.glossy,
+        a.transmission  - b.transmission,
+        a.subsurface    - b.subsurface
+    };
+}
+inline Passes operator*(const Passes& a, const Passes& b){
+    return
+    {
+        a.diffuse       * b.diffuse,
+        a.glossy        * b.glossy,
+        a.transmission  * b.transmission,
+        a.subsurface    * b.subsurface
+    };
+}
+template<std::convertible_to<Prec> T>
+inline Passes operator*(const Passes& a, const T& b){
+    return
+    {
+        a.diffuse       * b,
+        a.glossy        * b,
+        a.transmission  * b,
+        a.subsurface    * b
+    };
+}
+
+inline Passes operator*(const Passes& a, const Spectrum& b){
+    return
+    {
+        a.diffuse       * b,
+        a.glossy        * b,
+        a.transmission  * b,
+        a.subsurface    * b
+    };
+}
+
+
+inline void operator+=(Passes& a, const Passes& b){
+
+    a.diffuse       += b.diffuse;
+    a.glossy        += b.glossy;
+    a.transmission  += b.transmission;
+    a.subsurface    += b.subsurface;
+}
+
+inline void operator-=(Passes& a, const Passes& b){
+
+    a.diffuse       -= b.diffuse;
+    a.glossy        -= b.glossy;
+    a.transmission  -= b.transmission;
+    a.subsurface    -= b.subsurface;
+}
+
+inline void operator*=(Passes& a, const Passes& b){
+
+    a.diffuse       *= b.diffuse;
+    a.glossy        *= b.glossy;
+    a.transmission  *= b.transmission;
+    a.subsurface    *= b.subsurface;
+}
+
+// clang-format on
 
 } // namespace jpctracer::shadersys

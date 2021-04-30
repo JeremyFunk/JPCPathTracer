@@ -25,7 +25,9 @@ struct Scene
     std::vector<SphereMesh> sphere_meshs;
 
     // BVH Data
+    // Triangle + Sphere
     std::vector<BVHTree> static_mesh_trees;
+
     BVHTree static_instance_tree;
 };
 } // namespace jpctracer::raytracing

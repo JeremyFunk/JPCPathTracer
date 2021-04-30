@@ -13,7 +13,7 @@ struct MirrorBsdfClosure final : public IBsdfClosure
         m_mirror_ray.Direction.flip(0);
         m_mirror_ray.Direction.flip(1);
     }
-    inline ShaderResult Eval(Ray incident_ray) const
+    inline Distributed<Spectrum> Eval(Ray incident_ray) const
     {
         if (incident_ray.Direction.IsNear(m_mirror_ray.Direction))
             return {FromValue(1), 0};

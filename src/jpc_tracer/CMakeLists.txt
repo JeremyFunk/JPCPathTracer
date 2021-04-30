@@ -62,14 +62,12 @@ set(AUTOSRC
 "engine/shadersystem/BsdfClosure.cpp"
 "engine/shadersystem/DiscreteSampler.cpp"
 "engine/shadersystem/Lights.cpp"
-"engine/shadersystem/NormalSpace.cpp"
 "engine/shadersystem/ShaderResults.cpp"
 "engine/shadersystem/TextureBuffer.cpp"
 "engine/shadersystem/BsdfClosure.h"
 "engine/shadersystem/DiscreteSampler.h"
 "engine/shadersystem/HitPoint.h"
 "engine/shadersystem/Lights.h"
-"engine/shadersystem/NormalSpace.h"
 "engine/shadersystem/Shader.h"
 "engine/shadersystem/ShaderResults.h"
 "engine/shadersystem/shadersystem.h"
@@ -119,6 +117,10 @@ openimageio
 
 
 jpctr_add_library(jpc_tracer "${AUTOSRC}" "${INC}" "${LIBS}" STATIC)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set_target_properties(jpc_tracer PROPERTIES COMPILE_FLAGS "-ffast-math") 
+endif()
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)

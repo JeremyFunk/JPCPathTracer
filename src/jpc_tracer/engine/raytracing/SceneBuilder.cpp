@@ -9,7 +9,6 @@
 #include <memory>
 #include <stdint.h>
 
-
 namespace jpctracer::raytracing
 {
 SceneBuilder::SceneBuilder() : m_scene_data(std::make_unique<Scene>())
@@ -94,9 +93,9 @@ void SceneBuilder::__BuildLBVH()
 
         Bounds3D bound;
         if (m_scene_data->static_mesh_trees[idx].internal_nodes.size() == 0)
-            bound = Apply(instance.second, m_scene_data->static_mesh_trees[idx].shape_bounds[0]);
+            bound = TransformTo(instance.second, m_scene_data->static_mesh_trees[idx].shape_bounds[0]);
         else
-            bound = Apply(instance.second, m_scene_data->static_mesh_trees[idx].internal_nodes[0].bound);
+            bound = TransformTo(instance.second, m_scene_data->static_mesh_trees[idx].internal_nodes[0].bound);
 
         instance_bounds.emplace_back(bound);
         instance_morton_codes.emplace_back(GetBoxMortonCode(bound));

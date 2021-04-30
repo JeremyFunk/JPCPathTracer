@@ -16,15 +16,9 @@
 namespace jpctracer::shadersys
 {
 
-struct ShaderResult
-{
-    Spectrum luminance;
-    Prec pdf;
-};
-
 struct IBsdfClosure
 {
-    virtual ShaderResult Eval(Ray incident_ray) const = 0;
+    virtual Distributed<Spectrum> Eval(Ray incident_ray) const = 0;
     virtual Norm3 Sample2D(Vec2 rand_p) const
     {
         return Norm3{};
@@ -58,13 +52,13 @@ template <std::derived_from<IBsdfClosure> T> BsdfNode __CreateBsdf(MaterialType 
 
 BsdfNode MixBsdf(BsdfNode node1, BsdfNode node2, Prec weight);
 
-void EvalShader(const Closure auto& shader, Ray scattered_ray, View<Ray> rays, SeperatedBsdfs& result);
-void EvalShader(const Closure auto& shader, Ray scattered_ray, View<Ray> rays, CombinedBsdfs& result);
+void EvalShader(const Closure auto& shader, Ray scattered_ray, View<Ray> rays, ShaderResultsSep& result);
+void EvalShader(const Closure auto& shader, Ray scattered_ray, View<Ray> rays, ShaderResultsCom& result);
 
 void SampleShader(const Closure auto& shader, Ray scattered_ray, View<Ray> rays, View<Vec2> samples,
-                  SeperatedBsdfs& result);
+                  ShaderResultsSep& result);
 void SampleShader(const Closure auto& shader, Ray scattered_ray, View<Ray> rays, View<Vec2> samples,
-                  CombinedBsdfs& result);
+                  ShaderResultsCom& result);
 
 Spectrum EmissionShader(const Closure auto& shader);
 Prec TransparencyShader(const Closure auto& shader);
@@ -92,10 +86,10 @@ enum class BsdfState
 };
 
 void init_context();
-void init_context(SeperatedBsdfs& result, const Ray& scattered_ray, View<Ray> rays);
-void init_context(CombinedBsdfs& result, const Ray& scattered_ray, View<Ray> rays);
-void init_context(SeperatedBsdfs& result, const Ray& scattered_ray, View<Ray> rays, View<Vec2> samples);
-void init_context(CombinedBsdfs& result, const Ray& scattered_ray, View<Ray> rays, View<Vec2> samples);
+void init_context(ShaderResultsSep& result, const Ray& scattered_ray, View<Ray> rays);
+void init_context(ShaderResultsCom& result, const Ray& scattered_ray, View<Ray> rays);
+void init_context(ShaderResultsSep& result, const Ray& scattered_ray, View<Ray> rays, View<Vec2> samples);
+void init_context(ShaderResultsCom& result, const Ray& scattered_ray, View<Ray> rays, View<Vec2> samples);
 
 Range get_smprange();
 Range get_evalrange();
@@ -106,7 +100,8 @@ const Vec2* get_samples();
 void set_sampled_direction(Norm3 dir, int idx);
 const Ray* get_eval_rays();
 const Ray* get_smp_rays();
-void accum_eval(MaterialType type, ShaderResult eval, int idx);
+void accum_eval(MaterialType type, Distributed<Spectrum> eval, int idx);
+void accum_sampled(MaterialType type, Distributed<Spectrum> eval, int idx);
 
 bool should_sample();
 bool should_eval();
@@ -142,7 +137,7 @@ template <class T> void eval_bsdf(MaterialType type, const T& bsdf)
     const Ray* rays_smp = get_smp_rays();
 
     for (int i = range_smp.first; i < range_smp.last; i++)
-        accum_eval(type, bsdf.Eval(rays_smp[i]), i + range.last);
+        accum_sampled(type, bsdf.Eval(rays_smp[i]), i);
 }
 
 template <Closure S, class R> void EvalShader(S&& shader, Ray scattered_ray, View<Ray> rays, R& result)
@@ -187,21 +182,22 @@ template <std::derived_from<IBsdfClosure> T> BsdfNode __CreateBsdf(MaterialType 
         detail::eval_bsdf(type, bsdf);
     return detail::finalize_bsdf(bsdf.Emission(), bsdf.Transparency());
 }
-template <Closure S> void EvalShader(S&& shader, Ray scattered_ray, View<Ray> rays, SeperatedBsdfs& result)
+
+template <Closure S> void EvalShader(S&& shader, Ray scattered_ray, View<Ray> rays, ShaderResultsSep& result)
 {
     detail::EvalShader(shader, scattered_ray, rays, result);
 }
-template <Closure S> void EvalShader(S&& shader, Ray scattered_ray, View<Ray> rays, CombinedBsdfs& result)
+template <Closure S> void EvalShader(S&& shader, Ray scattered_ray, View<Ray> rays, ShaderResultsCom& result)
 {
     detail::EvalShader(shader, scattered_ray, rays, result);
 }
 template <Closure S>
-void SampleShader(S&& shader, Ray scattered_ray, View<Ray> rays, View<Vec2> samples, SeperatedBsdfs& result)
+void SampleShader(S&& shader, Ray scattered_ray, View<Ray> rays, View<Vec2> samples, ShaderResultsSep& result)
 {
     detail::SampleShader(shader, scattered_ray, rays, samples, result);
 }
 template <Closure S>
-void SampleShader(S&& shader, Ray scattered_ray, View<Ray> rays, View<Vec2> samples, CombinedBsdfs& result)
+void SampleShader(S&& shader, Ray scattered_ray, View<Ray> rays, View<Vec2> samples, ShaderResultsCom& result)
 {
     detail::SampleShader(shader, scattered_ray, rays, samples, result);
 }

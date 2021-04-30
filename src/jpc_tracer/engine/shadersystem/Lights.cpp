@@ -1,5 +1,4 @@
 #include "Lights.h"
-#include "jpc_tracer/engine/shadersystem/NormalSpace.h"
 namespace jpctracer::shadersys
 {
 void Lights::AddPointLight(const Vec3& position, Spectrum color)

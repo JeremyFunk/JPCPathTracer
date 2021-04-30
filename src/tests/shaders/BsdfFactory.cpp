@@ -22,7 +22,7 @@ TEST(shaders, factor_debugbsdf)
     shadersys::ShaderResultsStack stack;
     auto result = stack.CreateCombined(2, 0);
     shadersys::EvalShader(f, Ray{}, {rays, 2}, result);
-    TestSpectrum(result.eval_bsdfs[0], FromRGB({0.5, 0, 0.5}));
+    TestSpectrum(result.eval_bsdf[0].value, FromRGB({0.5, 0, 0.5}));
 }
 
 TEST(shaders, factor_debugbsdf2)
@@ -39,7 +39,7 @@ TEST(shaders, factor_debugbsdf2)
     Ray rays[2] = {Ray{}, Ray{}};
     auto result = stack.CreateCombined(2, 0);
     shadersys::EvalShader(f, Ray{}, {rays, 2}, result);
-    TestSpectrum(result.eval_bsdfs[0], FromRGB({0.25, 0.5, 0.25}));
+    TestSpectrum(result.eval_bsdf[0].value, FromRGB({0.25, 0.5, 0.25}));
 }
 /*
 TEST(shaders,dist_factory)

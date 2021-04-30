@@ -1,8 +1,8 @@
 set(AUTOSRC
 "test_utils.h"
+"acceleration/BoundsTest.cpp"
 "acceleration/LBVHTest.cpp"
 "acceleration/SortTest.cpp"
-"acceleration/testing.cpp"
 "cameras/ProjectionCamera.cpp"
 "math/MatTest.cpp"
 "math/SpectrumTest.cpp"

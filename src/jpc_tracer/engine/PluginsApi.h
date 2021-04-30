@@ -2,6 +2,7 @@
 #include "jpc_tracer/engine/films/Film.h"
 #include "jpc_tracer/engine/renderer/RenderInterfaces.h"
 #include "jpc_tracer/engine/renderer/Tracer.h"
+#include "jpc_tracer/engine/shadersystem/ShaderResults.h"
 #include "jpc_tracer/engine/utilities/SamplingRoutins.h"
 #include "jpc_tracer/engine/utilities/SphericalCoordinates.h"
 #include "shadersystem/shadersystem.h"
@@ -14,7 +15,10 @@ namespace jpctracer
 
 using IBsdfClosure = shadersys::IBsdfClosure;
 using BsdfNode = shadersys::BsdfNode;
-using ShaderResult = shadersys::ShaderResult;
+using LightResults = shadersys::LightResults;
+template <class T> using Distributed = shadersys::Distributed<T>;
+
+template <class T> using ShaderResults = shadersys::ShaderResults<T>;
 template <class T> concept JPCShader = shadersys::ShaderFunc<T>;
 
 template <std::derived_from<IBsdfClosure> T> inline BsdfNode CreateBsdf(MaterialType type, const T& bsdf)

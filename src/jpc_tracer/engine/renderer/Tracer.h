@@ -1,8 +1,10 @@
 #pragma once
 #include "../raytracing/SceneBuilder.h"
 #include "jpc_tracer/core/Concepts.h"
+#include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/core/maths/Transformation.h"
 #include "jpc_tracer/core/maths/maths.h"
 #include "jpc_tracer/engine/raytracing/Base.h"
 #include "jpc_tracer/engine/raytracing/TraceRay.h"
@@ -10,14 +12,12 @@
 #include "jpc_tracer/engine/renderer/ShaderBuffer.h"
 #include "jpc_tracer/engine/shadersystem/HitPoint.h"
 #include "jpc_tracer/engine/shadersystem/Lights.h"
-#include "jpc_tracer/engine/shadersystem/NormalSpace.h"
 #include <memory>
 #include <optional>
 
 namespace jpctracer::renderer
 {
 using HitPoint = shadersys::HitPoint;
-using NormalSpace = shadersys::NormalSpace;
 struct Tracer;
 struct IRayBehavior
 {
@@ -42,8 +42,8 @@ class Tracer
 
   public:
     inline Tracer(const ShaderBuffer& shader_buffer, const raytracing::Scene* scene, const shadersys::Lights* lights,
-                  shadersys::ShaderResultsStack& shader_stack, const NormalSpace& normal_space)
-        : m_shader_buffer(shader_buffer), m_scene(scene), m_normal_space(&normal_space), m_lights(lights),
+                  shadersys::ShaderResultsStack& shader_stack, const Transformation* normal_space)
+        : m_shader_buffer(shader_buffer), m_scene(scene), m_normal_space(normal_space), m_lights(lights),
           m_shader_stack(shader_stack)
     {
     }
@@ -58,7 +58,8 @@ class Tracer
         Ray world_ray = ray;
         if (m_normal_space)
         {
-            world_ray = NormalToWorld(ray, *m_normal_space);
+            world_ray = TransformBack(*m_normal_space, ray);
+            // JPC_LOG_INFO("Worldray: Direction: {} Origin: {}", ray.Direction.to_string(), ray.Origin.to_string());
         }
 
         const ShaderBuffer& buffer_temp = m_shader_buffer;
@@ -72,7 +73,7 @@ class Tracer
              &stack](const SurfaceInteraction& interaction) -> AnyHitResult {
                 const shadersys::IShader* shader = buffer_temp.GetShader(interaction.MaterialId);
 
-                HitPoint hit_point(shader, lights, shadersys::CreateNormalSpace(world_ray, interaction), stack);
+                HitPoint hit_point(shader, lights, interaction, world_ray, stack);
                 return ray_behavior.AnyHitProgram(hit_point, payload);
             },
             m_scene);
@@ -80,9 +81,8 @@ class Tracer
         if (interaction)
         {
             const shadersys::IShader* shader = buffer_temp.GetShader(interaction->MaterialId);
-            auto new_normal_space = shadersys::CreateNormalSpace(world_ray, *interaction);
-            HitPoint hit_point(shader, lights, new_normal_space, stack);
-            Tracer tracer(m_shader_buffer, m_scene, m_lights, stack, new_normal_space);
+            HitPoint hit_point(shader, lights, *interaction, world_ray, stack);
+            Tracer tracer(m_shader_buffer, m_scene, m_lights, stack, &hit_point.normal_space);
             return ray_behavior.ClosestHitProgram(hit_point, payload, tracer);
         }
         else
@@ -94,7 +94,7 @@ class Tracer
   private:
     const ShaderBuffer& m_shader_buffer;
     const raytracing::Scene* m_scene;
-    const NormalSpace* m_normal_space = nullptr;
+    const Transformation* m_normal_space = nullptr;
     const shadersys::Lights* m_lights;
     shadersys::ShaderResultsStack& m_shader_stack;
 };

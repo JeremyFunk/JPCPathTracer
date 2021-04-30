@@ -12,7 +12,7 @@ struct LambertianBsdfClosure final : public IBsdfClosure
         : m_color(color), m_scatered_dir(scattered_ray.Direction), m_time(scattered_ray.Time)
     {
     }
-    inline ShaderResult Eval(Ray incident_ray) const
+    inline Distributed<Spectrum> Eval(Ray incident_ray) const
     {
         Spectrum luminance = m_color / M_PI;
         Prec pdf = SameHemiSphereNormalSpace(m_scatered_dir, incident_ray.Direction)

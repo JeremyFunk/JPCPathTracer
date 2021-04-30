@@ -44,10 +44,10 @@ void DebugBehavior::ClosestHitProgram(const HitPoint& hit_point, Payload* payloa
 
     d_payload->light_dir = light_res.rays[0].Direction;
     d_payload->scattering_dir = results.sampled_rays[1].Direction;
-    d_payload->bsdf_color = results.eval_bsdfs[0];
-    d_payload->bsdf_pdf = results.eval_pdf[0];
+    d_payload->bsdf_color = results.eval_bsdf[0].value;
+    d_payload->bsdf_pdf = results.eval_bsdf[0].pdf;
     d_payload->light_distance = light_res.rays[0].ClipEnd;
-    d_payload->light_color = light_res.emission[0];
+    d_payload->light_color = light_res.emission[0].value;
 }
 
 void DebugBehavior::Miss(const Spectrum& background_color, Payload* payload) const

@@ -11,12 +11,12 @@ IntersectionResult IntersectMesh(const Ray& ray, const MeshT& mesh, const int& i
 
     if (interaction)
     {
-        Vec3 ray_real_origin = Apply(trans, ray.Origin);
+        Vec3 ray_real_origin = TransformTo(trans, ray.Origin);
 
         auto temp_p = interaction->Point;
         auto temp_n = interaction->Normal;
-        interaction->Point = Apply(trans, interaction->Point);
-        interaction->Normal = Apply(trans, interaction->Normal);
+        interaction->Point = TransformTo(trans, interaction->Point);
+        interaction->Normal = TransformTo(trans, interaction->Normal);
         interaction->Distance = (interaction->Point - ray_real_origin).norm();
         AnyHitResult any_hit_result = any_hit_program(*interaction);
 
@@ -127,7 +127,7 @@ IntersectionResult MeshBVHIntersect(const Scene& scene, Ray& ray, const int& ins
     auto& trans = instance.second;
 
     // transform ray to instance object space
-    Ray mesh_ray = ApplyInverse(trans, ray);
+    Ray mesh_ray = TransformBack(trans, ray);
 
     // intersect mesh geometry
     auto mesh_intesect_tri = [&scene, &mesh_id, material_per_slot, &trans](const Ray& ray, const int& mesh_idx,
