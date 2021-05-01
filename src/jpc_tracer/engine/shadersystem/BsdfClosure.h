@@ -4,6 +4,7 @@
 #include "jpc_tracer/core/core.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/engine/shadersystem/DiscreteSampler.h"
 #include "jpc_tracer/engine/shadersystem/ShaderResults.h"
 #include <functional>
 #include <iostream>
@@ -69,12 +70,6 @@ Prec TransparencyShader(const Closure auto& shader);
 
 namespace detail
 {
-
-struct Range
-{
-    int first;
-    int last;
-};
 
 enum class BsdfState
 {

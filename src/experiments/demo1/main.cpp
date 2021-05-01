@@ -15,7 +15,7 @@
 
 struct Material1
 {
-    jpctracer::Spectrum color = jpctracer::FromRGB({0, 0, 1});
+    jpctracer::Spectrum color = jpctracer::FromRGB({1, 1, 1});
     auto bsdf()
     {
         return [=](jpctracer::Ray scattered) {
@@ -32,7 +32,7 @@ struct Glossy
     auto bsdf()
     {
         return [=](jpctracer::Ray scattered) {
-            auto b1 = jpctracer::GlossyBsdf(scattered, color, 0.1);
+            auto b1 = jpctracer::GlossyBsdf(scattered, color, 0);
             auto b2 = jpctracer::DiffuseBsdf(scattered, color);
             return jpctracer::Mix(b1, b2, 0.2);
         };
@@ -41,9 +41,10 @@ struct Glossy
 
 struct Material2
 {
+    jpctracer::Spectrum color = jpctracer::FromRGB({1, 1, 1});
     auto bsdf()
     {
-        return [=](jpctracer::Ray scattered) { return jpctracer::DebugBsdf(jpctracer::FromRGB({1, 1, 1})); };
+        return [=](jpctracer::Ray scattered) { return jpctracer::DebugBsdf(color); };
     }
 };
 
@@ -58,7 +59,7 @@ int main()
 
     std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
 
-    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4, 2);
+    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4, 32);
     // std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DebugIntegrator>();
 
     jpctracer::JPCRenderer renderer(std::move(sampler), std::move(camera), std::move(integrator));
@@ -66,7 +67,7 @@ int main()
 
     auto shader = renderer.MaterialLib.Create<Material1>();
 
-    shader->color = jpctracer::FromRGB({0.4, 0.6, 1});
+    shader->color = jpctracer::FromRGB({1, 1, 1});
 
     auto triangle = jpctracer::CreateTriangle({-5, 5, -5}, {5, -5, -5}, {5, 5, -5});
 
@@ -91,14 +92,15 @@ int main()
     // Peer
     auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\Susan.obj");
 
-    cube->transformation = jpctracer::RotScalTrans({0, 0, -3}, 1, {0, 0, 0});
+    cube->transformation = jpctracer::RotScalTrans({0, -2, -3}, 1, {0, 0, 0});
     cube->MaterialSlots[0] = cube_shader;
 
-    // renderer.Draw(triangle);
-    // renderer.Draw(sphere);
+    renderer.Draw(triangle);
+    renderer.Draw(sphere);
     renderer.Draw(cube);
-    // renderer.LightsLib.AddPointLight({-2, 5, -4}, jpctracer::FromRGB({1, 1, 1}) * 500);
-    renderer.LightsLib.AddPointLight({-2, 5, 1}, jpctracer::FromRGB({1, 1, 1}) * 500);
+    renderer.LightsLib.AddPointLight({-2, 5, -4}, jpctracer::FromRGB({0.2, 0.1, 0.7}) * 500);
+    // renderer.LightsLib.AddPointLight({-2, 5, 1}, jpctracer::FromValue(1) * 50);
+    renderer.LightsLib.AddDistanceLight({0, -1, -1}, jpctracer::FromValue(1) * 5);
     // renderer.LightsLib.AddPointLight({-4, 5, -4}, jpctracer::FromRGB({0.6, 0.2, 0.7}) * 10);
 
     // Peer

@@ -1,6 +1,7 @@
 #pragma once
 #include "jpc_tracer/core/core.h"
 #include "jpc_tracer/engine/PluginsApi.h"
+// #include <bits/stdint-uintn.h>
 #include <limits>
 #include <random>
 
@@ -35,8 +36,10 @@ template <RandFunc R> class GridSampler final : public ISampler
         {
             for (int x = 0; x < count[0]; x++)
             {
-                Prec sample_x = ((Prec)x + m_rand()) * inv_width;
-                Prec sample_y = ((Prec)y + m_rand()) * inv_height;
+                Prec rx = m_rand();
+                Prec ry = m_rand();
+                Prec sample_x = ((Prec)x + rx) * inv_width;
+                Prec sample_y = ((Prec)y + ry) * inv_height;
                 *result_it = {sample_x, sample_y};
                 result_it++;
             }
@@ -110,7 +113,15 @@ inline auto StratifiedSampler()
 };
 inline auto StratifiedSamplerFast()
 {
-    return detail::GridSampler(detail::RandOpXoroshiro128());
+    std::random_device seed;
+    detail::RandOp rand(seed);
+    uint64_t max = std::numeric_limits<uint64_t>::max();
+    detail::RandOpXoroshiro128 xoro128;
+    xoro128.shuffle_table[0] = max * rand();
+    xoro128.shuffle_table[1] = max * rand();
+    xoro128.shuffle_table[2] = max * rand();
+    xoro128.shuffle_table[3] = max * rand();
+    return detail::GridSampler(xoro128);
 };
 inline auto DebugSampler()
 {
