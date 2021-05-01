@@ -33,7 +33,7 @@ namespace jpctracer::raytracing
 
             uint split_idx = calc_split_idx(morton, min_idx, max_idx, direction, number_nodes);
 
-            const Bounds3D bound = calc_bounds(&tree.shape_bounds[min_idx], &tree.shape_bounds[max_idx]);
+            const Bounds3D bound = calc_bounds(tree.shape_bounds.data(), min_idx, max_idx);
 
             tree.internal_nodes[idx] = {bound, min_idx, max_idx, split_idx};
         }

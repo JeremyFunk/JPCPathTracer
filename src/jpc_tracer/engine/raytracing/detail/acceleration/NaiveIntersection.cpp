@@ -24,7 +24,6 @@ IntersectionResult NaiveIntersect(AnyHitCallBack any_hit_program, const T& mesh,
 
         if (interaction)
         {
-            // JPC_LOG_INFO("Triangle id: {}", i);
             auto temp_p = interaction->Point;
             auto temp_n = interaction->Normal;
             interaction->Point = TransformTo(trans, interaction->Point);
@@ -40,6 +39,8 @@ IntersectionResult NaiveIntersect(AnyHitCallBack any_hit_program, const T& mesh,
                     ClosestInteraction(closest_interaction, interaction);
                 closest_interaction = new_interaction;
             }
+
+            // JPC_LOG_WARN("Naive Intersect idx: {}  with distance: {}\n", i, interaction->Distance);
         }
     }
     return {closest_interaction, false};

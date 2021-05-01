@@ -62,7 +62,7 @@ int main()
     // std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DebugIntegrator>();
 
     jpctracer::JPCRenderer renderer(std::move(sampler), std::move(camera), std::move(integrator));
-    renderer.ShouldMultiThread = false;
+    renderer.ShouldMultiThread = true;
 
     auto shader = renderer.MaterialLib.Create<Material1>();
 
@@ -91,7 +91,7 @@ int main()
     // Peer
     auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\Susan.obj");
 
-    cube->transformation = jpctracer::RotScalTrans({0, -2, -3}, 1, {0, 0, 0});
+    cube->transformation = jpctracer::RotScalTrans({0, 0, -3}, 1, {0, 0, 0});
     cube->MaterialSlots[0] = cube_shader;
 
     // renderer.Draw(triangle);

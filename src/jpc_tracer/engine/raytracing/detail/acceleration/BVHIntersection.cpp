@@ -7,10 +7,12 @@ template <class MeshT> // SphereMesh || TriangleMesh
 IntersectionResult IntersectMesh(const Ray& ray, const MeshT& mesh, const int& idx, const int* material_per_slot,
                                  AnyHitCallBack any_hit_program, const Transformation& trans)
 {
+    // intersect mesh
     auto interaction = Intersect(mesh, idx, ray, material_per_slot);
 
     if (interaction)
     {
+        // transform interaction back
         Vec3 ray_real_origin = TransformTo(trans, ray.Origin);
 
         auto temp_p = interaction->Point;
@@ -18,10 +20,14 @@ IntersectionResult IntersectMesh(const Ray& ray, const MeshT& mesh, const int& i
         interaction->Point = TransformTo(trans, interaction->Point);
         interaction->Normal = TransformTo(trans, interaction->Normal);
         interaction->Distance = (interaction->Point - ray_real_origin).norm();
+
+        // test AnyHitFunc
         AnyHitResult any_hit_result = any_hit_program(*interaction);
 
-        if (any_hit_result.ShouldTerminate)
+        if (any_hit_result.ShouldTerminate || any_hit_result.IsHit == false)
             return IntersectionResult{std::nullopt, true};
+
+        // JPC_LOG_WARN("LBVH Intersect idx: {}, with distance: {}", idx, interaction->Distance);
     }
 
     return {interaction, false};
@@ -31,6 +37,7 @@ template <class IntersectFunc>
 IntersectionResult BVHTraversal(Ray& ray, const BVHTree& tree, AnyHitCallBack any_hit_program,
                                 IntersectFunc intersect_func)
 {
+    // empty tree
     if (tree.internal_nodes.size() == 0)
     {
         IntersectionResult interaction = intersect_func(ray, 0, any_hit_program);
@@ -41,11 +48,13 @@ IntersectionResult BVHTraversal(Ray& ray, const BVHTree& tree, AnyHitCallBack an
         return interaction;
     }
 
-    const Vec3 inv_dir{1 / ray.Direction[0], 1 / ray.Direction[1], 1 / ray.Direction[2]};
+    // bound intersect acceleration
+    const Vec3 inv_dir = {1 / ray.Direction[0], 1 / ray.Direction[1], 1 / ray.Direction[2]};
     const Int3 dir_is_negative = {inv_dir[0] < 0, inv_dir[1] < 0, inv_dir[2] < 0};
 
     std::optional<SurfaceInteraction> closest_interaction;
 
+    // stack design to iterate
     int to_visit = 0;
     int current_idx = 0;
     std::array<int, 64> nodes_to_visit;
@@ -109,16 +118,18 @@ IntersectionResult BVHTraversal(Ray& ray, const BVHTree& tree, AnyHitCallBack an
             }
         }
 
+        // stack empty
         if (to_visit == 0)
             break;
 
+        // advance
         current_idx = nodes_to_visit[--to_visit];
     }
 
     return {closest_interaction, false};
 }
 
-IntersectionResult MeshBVHIntersect(const Scene& scene, Ray& ray, const int& instance_idx,
+IntersectionResult MeshBVHIntersect(const Scene& scene, const Ray& ray, const int& instance_idx,
                                     AnyHitCallBack any_hit_program)
 {
     auto& instance = scene.static_instances[instance_idx];
@@ -157,7 +168,7 @@ IntersectionResult MeshBVHIntersect(const Scene& scene, Ray& ray, const int& ins
 
 IntersectionResult BVHIntersect(Ray& ray, const Scene& scene, AnyHitCallBack any_hit_program)
 {
-    // LBVH TREE
+    // Intstance Tree intersect function
     auto mesh_tree_intersect = [&scene](Ray& ray, const int& instance_idx, AnyHitCallBack any_hit_program) {
         return MeshBVHIntersect(scene, ray, instance_idx, any_hit_program);
     };

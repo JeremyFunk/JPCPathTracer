@@ -1,6 +1,8 @@
 #include "BoundingBoxIntersection.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/Transformation.h"
+#include <cmath>
+#include <corecrt_math.h>
 #include <optional>
 
 namespace jpctracer::raytracing
@@ -15,32 +17,12 @@ bool BoundsIntersect(const Bounds3D& bound, const Ray& ray, const Vec3& inverse_
 
     Prec z_min = (bound[dir_is_negative[2]][2] - ray.Origin[2]) * inverse_direction[2];
     Prec z_max = (bound[1 - dir_is_negative[2]][2] - ray.Origin[2]) * inverse_direction[2];
-    /*
-    x_min = std::max({y_min, x_min, z_min});
 
-    x_max = std::min({y_max, x_max, z_max});
+    Prec min_distance = std::max({x_min, y_min, z_min});
 
-    if (x_min > y_max || x_min > z_max || y_min > x_max || y_min > z_max || z_min > x_max || z_min > y_max ||
-        x_max <= 0 || ray.ClipEnd <= x_min)
-        return false;
+    Prec max_distance = std::min({x_max, y_max, z_max});
 
-    return true;*/
-    if (x_min > y_max || x_min > z_max || y_min > x_max || y_min > z_max || z_min > x_max || z_min > y_max)
-        return false;
-
-    if (y_min > x_min)
-        x_min = y_min;
-
-    if (y_max < x_max)
-        x_max = y_max;
-
-    if (z_min > x_min)
-        x_min = z_min;
-
-    if (z_max < x_max)
-        x_max = z_max;
-
-    if (x_max <= 0 || ray.ClipEnd <= x_min)
+    if (min_distance > max_distance || max_distance <= 0 || ray.ClipEnd <= min_distance)
         return false;
 
     return true;
