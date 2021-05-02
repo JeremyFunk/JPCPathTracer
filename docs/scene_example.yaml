@@ -1,0 +1,35 @@
+Meshes:
+  cube:
+    path : "..."
+  fancy_tris:
+    tris : [ [0,0,0] , [0,0,1] ,[0,1,0]]
+Materials:
+  mat1:
+    type: "Material1"
+    color : [0,1,0]
+    roughness : 0.1
+Instances:
+  cube:
+    rot : [0,0,0]
+    scl : [1,1,1]
+    trans : [-1,2,3]
+    mat0: mat1
+    mat1: mat1
+  cube:
+    rot : [0,0,0]
+    scl : 2
+    trans : [-1,2,3]
+    mat0: mat1
+    mat1: mat1
+
+Lights:
+  PointLight:
+    Pos: []
+    Color: []
+    Intensity: 2
+
+Renderer:
+  should_multithread : true
+  tile_size : 64
+  static_acceleration : LBVH
+  dynamic_acceleration : NAIVE
