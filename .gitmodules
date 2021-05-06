@@ -3,3 +3,7 @@
 [submodule "src/libs/google-test/googletest"]
 	path = src/libs/google-test/googletest
 	url = https://github.com/google/googletest.git
+	
+[submodule "src/libs/google-benchmark"]
+	path = src/libs/google-benchmark
+	url = https://github.com/google/benchmark.git
