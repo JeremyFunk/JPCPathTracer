@@ -4,6 +4,6 @@
 	path = src/libs/google-test/googletest
 	url = https://github.com/google/googletest.git
 	
-[submodule "src/libs/google-benchmark"]
-	path = src/libs/google-benchmark
+[submodule "src/libs/google-benchmark/googlebenchmark"]
+	path = src/libs/google-benchmark/googlebenchmark
 	url = https://github.com/google/benchmark.git
