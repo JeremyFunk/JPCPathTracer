@@ -51,8 +51,8 @@ Transformation Scale(Vec3 scales);
 Transformation Translation(Prec x, Prec y, Prec z);
 Transformation Translation(Vec3 translation);
 
-Transformation RotScalTrans(Vec3 translation, Vec3 scale, Vec3 rotation);
-Transformation RotScalTrans(Vec3 translation, Prec scale, Vec3 rotation);
+Transformation TransScalRot(Vec3 translation, Vec3 scale, Vec3 rotation);
+Transformation TransScalRot(Vec3 translation, Prec scale, Vec3 rotation);
 
 Vec3 TransformTo(const Transformation& trans, const Vec3& vec);
 Vec3 TransformBack(const Transformation& trans, const Vec3& vec);

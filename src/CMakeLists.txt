@@ -1,4 +1,5 @@
 add_subdirectory(libs)
 add_subdirectory(jpc_tracer)
+add_subdirectory(app)
 add_subdirectory(tests)
 add_subdirectory(experiments)

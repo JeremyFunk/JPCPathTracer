@@ -13,6 +13,10 @@ struct RGB
     {
         return FromRGB(data);
     }
+    operator Norm3() const
+    {
+        return data;
+    }
     operator Vec3() const
     {
         return data;

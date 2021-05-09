@@ -2,7 +2,6 @@
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/Transformation.h"
 #include <cmath>
-#include <corecrt_math.h>
 #include <optional>
 
 namespace jpctracer::raytracing
