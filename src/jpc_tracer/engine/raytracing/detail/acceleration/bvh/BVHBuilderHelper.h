@@ -65,4 +65,5 @@ namespace jpctracer::raytracing
     uint calc_last_idx(uint32_t* morton, const int& idx, const int& dir, const size_t& number_nodes);
     uint calc_split_idx(uint32_t* morton, const int& min_idx, const int& max_idx, const int& dir, const size_t& number_nodes);
     Bounds3D calc_bounds(Bounds3D* bound_begin, const Bounds3D* bound_end);
-}
+    Bounds3D calc_bounds(Bounds3D* bounds, const uint& min_idx, const uint& max_idx);
+    }

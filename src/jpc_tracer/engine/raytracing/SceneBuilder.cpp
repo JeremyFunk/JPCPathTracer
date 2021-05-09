@@ -52,7 +52,7 @@ void SceneBuilder::__BuildLBVH()
     JPC_LOG_INFO("Start building LBVH Trees");
 
     // build mesh bvhs
-    m_scene_data->static_mesh_tree.reserve(m_scene_data->triangle_meshs.size() + m_scene_data->sphere_meshs.size());
+    m_scene_data->static_mesh_trees.reserve(m_scene_data->triangle_meshs.size() + m_scene_data->sphere_meshs.size());
 
     // all triangle trees
     for (auto& triangle : m_scene_data->triangle_meshs)
@@ -63,7 +63,7 @@ void SceneBuilder::__BuildLBVH()
 
         auto bounds = GenerateTriangleBounds(triangle);
 
-        m_scene_data->static_mesh_tree.emplace_back(BuildLBVH(std::move(bounds), std::move(morton_codes)));
+        m_scene_data->static_mesh_trees.emplace_back(BuildLBVH(std::move(bounds), std::move(morton_codes)));
     }
 
     // all sphere trees
@@ -75,7 +75,7 @@ void SceneBuilder::__BuildLBVH()
 
         auto bounds = GenerateSphereBounds(sphere);
 
-        m_scene_data->static_mesh_tree.emplace_back(BuildLBVH(std::move(bounds), std::move(morton_codes)));
+        m_scene_data->static_mesh_trees.emplace_back(BuildLBVH(std::move(bounds), std::move(morton_codes)));
     }
 
     JPC_LOG_INFO("Finished building Mesh LBVH Trees");
@@ -92,10 +92,10 @@ void SceneBuilder::__BuildLBVH()
         const auto& idx = instance.first.mesh_id.id;
 
         Bounds3D bound;
-        if (m_scene_data->static_mesh_tree[idx].internal_nodes.size() == 0)
-            bound = TransformTo(instance.second, m_scene_data->static_mesh_tree[idx].shape_bounds[0]);
+        if (m_scene_data->static_mesh_trees[idx].internal_nodes.size() == 0)
+            bound = TransformTo(instance.second, m_scene_data->static_mesh_trees[idx].shape_bounds[0]);
         else
-            bound = TransformTo(instance.second, m_scene_data->static_mesh_tree[idx].internal_nodes[0].bound);
+            bound = TransformTo(instance.second, m_scene_data->static_mesh_trees[idx].internal_nodes[0].bound);
 
         instance_bounds.emplace_back(bound);
         instance_morton_codes.emplace_back(GetBoxMortonCode(bound));

@@ -76,8 +76,8 @@ int main()
     auto cube_shader = renderer.MaterialLib.Create<Material1>();
 
     cube_shader.BindTexture(&cube_shader->color,
-                            "/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/color_grid.png" /* Christian */
-                            //"E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\color_grid.png" /* Peer */
+                            // "/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/color_grid.png" /* Christian */
+                            "E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\color_grid.png" /* Peer */
     );
 
     auto sphere_shader = renderer.MaterialLib.Create<Glossy>();
@@ -88,9 +88,9 @@ int main()
     // auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/Susan.obj");
 
     // Christian
-    auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
+    // auto cube = jpctracer::LoadMesh("/home/chris/Dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
     // Peer
-    // auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\cube.obj");
+    auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\Susan.obj");
 
     cube->transformation = jpctracer::RotScalTrans({0, -2, -3}, 1, {0, 0, 0});
     cube->MaterialSlots[0] = cube_shader;
@@ -104,7 +104,7 @@ int main()
     // renderer.LightsLib.AddPointLight({-4, 5, -4}, jpctracer::FromRGB({0.6, 0.2, 0.7}) * 10);
 
     // Peer
-    renderer.Acceleration = {jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::NAIVE};
+    renderer.Acceleration = {jpctracer::raytracing::DynamicBVHType::NAIVE, jpctracer::raytracing::StaticBVHType::LBVH};
 
     // Chris
     renderer.Render(1920, 1080, "");

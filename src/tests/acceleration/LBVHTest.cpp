@@ -16,6 +16,12 @@
 #include "jpc_tracer/core/maths/Spectrum.h"
 #include "jpc_tracer/engine/JPCTracerApi.h"
 #include "jpc_tracer/engine/PluginsApi.h"
+#include "jpc_tracer/engine/raytracing/detail/acceleration/BoundingBoxIntersection.h"
+#include "jpc_tracer/engine/raytracing/detail/acceleration/IntersectionInfo.h"
+#include "jpc_tracer/engine/raytracing/detail/acceleration/SphereMesh.h"
+#include "jpc_tracer/engine/raytracing/detail/acceleration/TriangleMesh.h"
+#include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVHBuilderHelper.h"
+#include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVHConstructionHelper.h"
 #include "jpc_tracer/engine/utilities/MeshIO.h"
 #include "jpc_tracer/plugins/Plugins.h"
 #include "jpc_tracer/plugins/cameras/ProjectionCamera.h"
@@ -25,47 +31,80 @@
 
 namespace jpctracer::raytracing
 {
-
-TEST(LBVH, LBVHBuildTest)
+std::unique_ptr<Scene> build_scene(StaticBVHType type, std::string triangle_mesh_path)
 {
     SceneBuilder builder;
 
-    auto mesh =
-        std::get<TriangleMesh>(jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\cube.obj")->mesh);
+    auto mesh = std::get<TriangleMesh>(jpctracer::LoadMesh(triangle_mesh_path)->mesh);
 
     std::cout << mesh.Vertices.size() << ' ' << mesh.TriangleGeometries.size() << '\n';
 
     auto id = builder.AddMesh(std::move(mesh));
 
-    builder.AddInstance(id);
+    auto instance_id = builder.AddInstance(id, RotScalTrans({0, 0, -3}, 1, {0, 0, 0}));
 
-    AccelerationSettings settings = {raytracing::DynamicBVHType::NAIVE, raytracing::StaticBVHType::LBVH};
+    builder.MaterialBind(instance_id, 0, 0);
 
+    AccelerationSettings settings = {raytracing::DynamicBVHType::NAIVE, type};
     auto scene = builder.Build(settings);
+
+    return scene;
+}
+TEST(LBVH, LBVHBuildTest)
+{
+    std::string path_triangle_mesh = "E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\cube.obj";
+
+    auto scene_lbvh = build_scene(StaticBVHType::LBVH, path_triangle_mesh);
+
+    auto scene_naive = build_scene(StaticBVHType::NAIVE, path_triangle_mesh);
+    // sort NAIVE by morton code
+    auto& triangle = scene_naive->triangle_meshs[0];
+    auto morton_codes = GenerateTriangleMortonCodes(triangle);
+    SortTriangleByMortonCode(triangle, morton_codes);
+
+    Ray ray;
+
+    ray.Origin = {0, 0, 0};
+    ray.Direction = {0, 0, -0.8};
+
+    auto any_hit_func = [](const SurfaceInteraction& interaction) -> AnyHitResult { return {true, false}; };
+
+    auto intersect_result_lbvh = Intersect(*scene_lbvh, ray, any_hit_func);
+
+    auto intersect_result_naive = Intersect(*scene_naive, ray, any_hit_func);
+
+    EXPECT_EQ(intersect_result_lbvh.interaction.has_value(), intersect_result_naive.interaction.has_value());
+
+    for (int i = 0; i < 3; i++)
+        EXPECT_EQ(intersect_result_lbvh.interaction->Point[i], intersect_result_naive.interaction->Point[i]);
 }
 
 TEST(LBVH, LBVHIntersectTest)
 {
-    jpctracer::Logger::Init();
-    using sampler_t = decltype(jpctracer::sampler::StratifiedSampler());
-    std::unique_ptr<jpctracer::ISampler> sampler = std::make_unique<sampler_t>(jpctracer::sampler::StratifiedSampler());
+    std::string path_triangle_mesh = "E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\Susan.obj";
 
-    std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
+    auto scene_lbvh = build_scene(StaticBVHType::LBVH, path_triangle_mesh);
 
-    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DirectLightIntegrator>(4, 1);
+    auto scene_naive = build_scene(StaticBVHType::NAIVE, path_triangle_mesh);
+    // sort NAIVE by morton code
+    auto& triangle = scene_naive->triangle_meshs[0];
+    auto morton_codes = GenerateTriangleMortonCodes(triangle);
+    SortTriangleByMortonCode(triangle, morton_codes);
 
-    jpctracer::JPCRenderer renderer(std::move(sampler), std::move(camera), std::move(integrator));
+    Ray ray;
 
-    auto shader = renderer.MaterialLib.Create<DebugMaterial>();
-    shader->color = FromRGB({1, 0, 1});
-    auto triangle = jpctracer::CreateTriangle({-1, 1, -2}, {1, -1, -2}, {1, 1, -2});
+    ray.Origin = {0, 0, 0};
+    ray.Direction = {0, 0, -0.8};
 
-    triangle->MaterialSlots[0] = shader;
+    auto any_hit_func = [](const SurfaceInteraction& interaction) -> AnyHitResult { return {true, false}; };
 
-    renderer.Draw(triangle);
-    renderer.LightsLib.AddPointLight({0, 0, 0}, jpctracer::FromRGB({1, 1, 1}));
+    auto intersect_result_lbvh = Intersect(*scene_lbvh, ray, any_hit_func);
 
-    // Chris
-    renderer.Render(300, 300, "");
+    auto intersect_result_naive = Intersect(*scene_naive, ray, any_hit_func);
+
+    EXPECT_EQ(intersect_result_lbvh.interaction.has_value(), intersect_result_naive.interaction.has_value());
+
+    for (int i = 0; i < 3; i++)
+        EXPECT_EQ(intersect_result_lbvh.interaction->Point[i], intersect_result_naive.interaction->Point[i]);
 }
 } // namespace jpctracer::raytracing
