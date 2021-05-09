@@ -3,7 +3,6 @@ set(SRC
 "Archive.cpp"
 "ParseGeometry.cpp"
 "ParseRenderer.cpp"
-"main.cpp"
 "Archive.h"
 "ParseScene.h"
 )

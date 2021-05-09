@@ -167,3 +167,15 @@ macro(jpctr_add_gmock_lib target sources includes library_deps)
   __jpctr_target_setup(${target} "${sources}" "${includes}" "${library_deps_edit}" PUBLIC)
   
 endmacro()
+
+macro(jpctr_add_gbenchmark target sources includes library_deps)
+  add_executable(${target} ${sources})
+  add_test("${target}" ${target})
+  set(library_deps_edit "${library_deps}"  benchmark)
+  #message("gbenchmark library_deps_edit ${gbenchmark_libs}")
+  __jpctr_target_setup(${target} "${sources}" "${includes}" "${library_deps_edit}" PRIVATE)
+  #foreach(gbenchmark_lib ${gbenchmark_libs})
+  #  target_link_libraries(${target} PRIVATE ${gbenchmark_lib})
+  #endforeach()
+  
+endmacro()

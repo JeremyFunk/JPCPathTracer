@@ -1,4 +1,5 @@
 add_subdirectory(google-test)
+add_subdirectory(google-benchmark)
 add_subdirectory(spdlog)
 #add_subdirectory(boost)
 #add_subdirectory(range-v3)
