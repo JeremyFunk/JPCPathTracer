@@ -92,7 +92,7 @@ int main()
     // Peer
     auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\Susan.obj");
 
-    cube->transformation = jpctracer::RotScalTrans({0, -2, -3}, 1, {0, 0, 0});
+    cube->transformation = jpctracer::TransScalRot({0, -2, -3}, 1, {0, 0, 0});
     cube->MaterialSlots[0] = cube_shader;
 
     renderer.Draw(triangle);

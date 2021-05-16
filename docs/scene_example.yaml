@@ -1,0 +1,38 @@
+Meshes:                                    
+  cube:                                    
+    path : "resource/cube.obj"                         
+  fancy_tris:                              
+    tris : [ [-5, 5, -5] , [5, -5, -5] ,[5, 5, -5]]   
+Materials:                                 
+  glossy:                                    
+    type: "GlossyDiff"                    
+    color : "resource/color_grid.png"                        
+    roughness : 0.1  
+  debug_mat:
+    type: "DebugShader"
+    color : [0.1,0.2,0.3]                      
+Instances:                                 
+  cube:                                    
+    rot : [0,0,0]                          
+    scl : 1                          
+    trans : [0, -2, -3]                       
+    mat0: glossy 
+  fancy_tris:
+    scl : 1
+    mat0 : debug_mat                                                     
+                                           
+Lights:                                    
+  PointLight:                              
+    Pos: [0,2,4]                                
+    Color: [1,1,1]                              
+    Intensity: 500                          
+                                           
+Renderer:                                  
+  should_multithread : true                
+  tile_size : 32                          
+  static_acceleration : LBVH               
+  dynamic_acceleration : NAIVE             
+                                           
+width : 1920                               
+height : 1080                              
+result_dir : ""                          

@@ -117,14 +117,14 @@ Transformation XYZRotation(Prec x_deg, Prec y_deg, Prec z_deg)
 
 
 
-Transformation RotScalTrans(Vec3 translation, Vec3 scale, Vec3 rotation) 
+Transformation TransScalRot(Vec3 translation, Vec3 scale, Vec3 rotation) 
 {
     return Translation(translation).dot(Scale(scale)).dot(XYZRotation(rotation));
 }
 
-Transformation RotScalTrans(Vec3 translation, Prec scale, Vec3 rotation) 
+Transformation TransScalRot(Vec3 translation, Prec scale, Vec3 rotation) 
 {
-    return RotScalTrans(translation,Vec3{scale,scale,scale},rotation);
+    return TransScalRot(translation,Vec3{scale,scale,scale},rotation);
 }
 
 

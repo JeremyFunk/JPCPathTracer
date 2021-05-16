@@ -41,7 +41,7 @@ std::unique_ptr<Scene> build_scene(StaticBVHType type, std::string triangle_mesh
 
     auto id = builder.AddMesh(std::move(mesh));
 
-    auto instance_id = builder.AddInstance(id, RotScalTrans({0, 0, -3}, 1, {0, 0, 0}));
+    auto instance_id = builder.AddInstance(id, TransScalRot({0, 0, -3}, 1, {0, 0, 0}));
 
     builder.MaterialBind(instance_id, 0, 0);
 

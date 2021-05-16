@@ -7,4 +7,4 @@ A path tracer based on pbrt.
 
 ## packages
 
-spdlog, eigen3, openimageio, boost, range-v3
+spdlog, openimageio, yaml-cpp

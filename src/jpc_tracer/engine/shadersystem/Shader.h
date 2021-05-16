@@ -45,16 +45,22 @@ template <ShaderFunc T> struct Shader final : public IShader
     std::vector<std::pair<Texture, std::uintptr_t>> color_bindings;
     std::vector<std::pair<Texture, std::uintptr_t>> value_bindings;
     std::vector<std::pair<Texture, std::uintptr_t>> normal_bindings;
+    std::vector<std::pair<Texture, std::uintptr_t>> vec_bindings;
 
     void init_shader_func(T* shader, const SurfaceInteraction& interaction) const
     {
         std::uintptr_t start = (std::uintptr_t)shader;
         for (const auto& binding : color_bindings)
             *((Spectrum*)(start + binding.second)) = binding.first(interaction.UV);
-        /*for (const auto& binding : value_bindings)
+
+        for (const auto& binding : value_bindings)
             *((Prec*)shader + binding.second) = binding.first(interaction.UV);
+
         for (const auto& binding : normal_bindings)
-            *((Norm3*)shader + binding.second) = binding.first(interaction.UV);*/
+            *((Norm3*)shader + binding.second) = binding.first(interaction.UV);
+
+        for (const auto& binding : vec_bindings)
+            *((Vec3*)shader + binding.second) = binding.first(interaction.UV);
     }
 
     void Eval(const SurfaceInteraction& interaction, Ray scattered_ray, View<Ray> rays, ShaderResultsSep& result) const
@@ -120,6 +126,10 @@ template <ShaderFunc T> class ShaderRef
     {
         return &m_shader->default_shader;
     }
+    T& get()
+    {
+        return m_shader->default_shader;
+    }
 
     // returns false if Spectrum* is no property of *this
     bool BindTexture(Spectrum* property, std::string texture_path)
@@ -155,6 +165,20 @@ template <ShaderFunc T> class ShaderRef
         {
             Texture texture = m_tex_buffer.Load(texture_path);
             m_shader->normal_bindings.push_back({texture, redirect_prop});
+            return true;
+        }
+        JPC_LOG_ERROR("Could not bind texture");
+        return false;
+    }
+
+    // returns false if Spectrum* is no property of *this
+    bool BindTexture(Vec3* property, std::string texture_path)
+    {
+        std::uintptr_t redirect_prop;
+        if (to_property_pointer(property, redirect_prop))
+        {
+            Texture texture = m_tex_buffer.Load(texture_path);
+            m_shader->vec_bindings.push_back({texture, redirect_prop});
             return true;
         }
         JPC_LOG_ERROR("Could not bind texture");

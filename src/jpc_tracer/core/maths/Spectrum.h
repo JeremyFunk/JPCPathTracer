@@ -36,6 +36,6 @@ Spectrum FromRGB(const Vec3& rgb) noexcept;
 
 } // namespace xyz
 
-using namespace xyz;
+using namespace srgb;
 
 } // namespace jpctracer
