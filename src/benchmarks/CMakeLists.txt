@@ -1,5 +1,6 @@
 set(AUTOSRC
-"test.cpp"
+"main_benchmark.cpp"
+"math/Vector.cpp"
 )
 set(INC
 "../")
