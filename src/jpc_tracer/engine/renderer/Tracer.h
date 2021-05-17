@@ -19,24 +19,24 @@ namespace jpctracer::renderer
 {
 using HitPoint = shadersys::HitPoint;
 struct Tracer;
-struct IRayBehavior
+
+template <class T> struct IRayBehavior
 {
     // returnes if it was an hit
 
-    virtual AnyHitResult AnyHitProgram(const HitPoint& hit_point, Payload* payload) const
+    virtual AnyHitResult AnyHitProgram(const HitPoint& hit_point, T* payload) const
     {
         return {true, false};
     }
 
-    virtual void ClosestHitProgram(const HitPoint& hit_point, Payload* payload, Tracer& trace) const
+    virtual void ClosestHitProgram(const HitPoint& hit_point, T* payload, Tracer& trace) const
     {
     }
 
-    virtual void Miss(const Spectrum& background_color, Payload* payload) const
+    virtual void Miss(const Spectrum& background_color, T* payload) const
     {
     }
 };
-
 class Tracer
 {
 
@@ -52,8 +52,8 @@ class Tracer
         : m_shader_buffer(shader_buffer), m_scene(scene), m_lights(lights), m_shader_stack(shader_stack)
     {
     }
-
-    void operator()(const std::derived_from<IRayBehavior> auto& ray_behavior, Ray& ray, Payload* payload)
+    template <class T>
+    void operator()(const std::derived_from<IRayBehavior<T>> auto& ray_behavior, Ray& ray, T* payload)
     {
         Ray world_ray = ray;
         if (m_normal_space)

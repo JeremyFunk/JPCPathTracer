@@ -43,7 +43,7 @@ T1 ComputeDirectLight(const Distributed<T1>& bsdf, const Distributed<Spectrum>& 
     return bsdf_val * light_val * CosWeight(ray.Direction);
 };
 
-struct DirectLightBehavior final : public IRayBehavior
+struct DirectLightBehavior final : public IRayBehavior<Payload>
 {
     DirectLightBehavior(uint light_samples);
     void ClosestHitProgram(const HitPoint& hit_point, Payload* payload, Tracer& tracer) const;

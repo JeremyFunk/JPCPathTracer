@@ -21,7 +21,7 @@ void DebugIntegrator::Integrate(UInt2 pixel, const ICamera* camera, ISampler* sa
 {
     Ray ray = camera->Generate(pixel, {0.5, 0.5});
     DebugPayload payload;
-    tracer(DebugBehavior(), ray, (Payload*)&payload);
+    tracer(DebugBehavior(), ray, &payload);
     film.SavePixel("ScatteringRay", pixel, Vec3ToSpec(payload.scattering_dir));
     Prec length = payload.scattering_dir.norm();
     Spectrum val = std::abs(length - 1) < 0.001 ? FromValue(1) : FromValue(0);
@@ -34,25 +34,23 @@ void DebugIntegrator::Integrate(UInt2 pixel, const ICamera* camera, ISampler* sa
     film.SavePixel("BsdfPdf", pixel, FromValue(payload.bsdf_pdf));
 }
 
-void DebugBehavior::ClosestHitProgram(const HitPoint& hit_point, Payload* payload, Tracer& trace) const
+void DebugBehavior::ClosestHitProgram(const HitPoint& hit_point, DebugPayload* payload, Tracer& trace) const
 {
-    DebugPayload* d_payload = (DebugPayload*)payload;
     Vec2 sample = {0.5, 0.5};
 
     auto light_res = hit_point.ActiveLights({&sample, 1});
     auto results = hit_point.Shader(light_res.rays, {&sample, 1});
 
-    d_payload->light_dir = light_res.rays[0].Direction;
-    d_payload->scattering_dir = results.sampled_rays[1].Direction;
-    d_payload->bsdf_color = results.eval_bsdf[0].value;
-    d_payload->bsdf_pdf = results.eval_bsdf[0].pdf;
-    d_payload->light_distance = light_res.rays[0].ClipEnd;
-    d_payload->light_color = light_res.emission[0].value;
+    payload->light_dir = light_res.rays[0].Direction;
+    payload->scattering_dir = results.sampled_rays[1].Direction;
+    payload->bsdf_color = results.eval_bsdf[0].value;
+    payload->bsdf_pdf = results.eval_bsdf[0].pdf;
+    payload->light_distance = light_res.rays[0].ClipEnd;
+    payload->light_color = light_res.emission[0].value;
 }
 
-void DebugBehavior::Miss(const Spectrum& background_color, Payload* payload) const
+void DebugBehavior::Miss(const Spectrum& background_color, DebugPayload* payload) const
 {
-    DebugPayload* d_payload = (DebugPayload*)payload;
-    d_payload->scattering_dir = {-1, -1, -1};
+    payload->scattering_dir = {-1, -1, -1};
 }
 } // namespace jpctracer

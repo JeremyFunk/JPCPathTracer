@@ -31,7 +31,7 @@ inline BsdfNode Mix(BsdfNode node1, BsdfNode node2, Prec weight)
     return shadersys::MixBsdf(node1, node2, weight);
 }
 
-using IRayBehavior = renderer::IRayBehavior;
+template <class T> using IRayBehavior = renderer::IRayBehavior<T>;
 using Tracer = renderer::Tracer;
 using HitPoint = shadersys::HitPoint;
 
