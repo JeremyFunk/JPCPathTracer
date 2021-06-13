@@ -1,10 +1,12 @@
 #include "JPCRenderer.h"
+#include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/engine/films/Film.h"
 #include "jpc_tracer/engine/raytracing/Geometry.h"
 #include "jpc_tracer/engine/raytracing/detail/Scene.h"
 #include "jpc_tracer/engine/renderer/Tracer.h"
 #include "jpc_tracer/engine/shadersystem/Lights.h"
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -86,7 +88,7 @@ void JPCRenderer::Render(uint width, uint height, std::string directory)
             Tile tile = tiles[i];
             ISampler* thread_sampler(m_sampler->Clone());
             static thread_local shadersys::ShaderResultsStack shaderres{};
-//#pragma omp threadprivate(shaderres)
+            //#pragma omp threadprivate(shaderres)
             jpc_assertm(shaderres.IsEmpty(), "ShaderResultsStack is not in default state");
 
             Tracer tracer(buffer, scene.get(), lights, shaderres);
@@ -116,6 +118,10 @@ void JPCRenderer::Render(uint width, uint height, std::string directory)
                 for (uint x = tile.XRange[0]; x < tile.XRange[1]; x++)
                 {
                     UInt2 pixel = {x, y};
+                    if (x == 54 && y == 32)
+                    {
+                        JPC_LOG_INFO("Debug");
+                    }
                     m_integrator->Integrate(pixel, m_camera.get(), thread_sampler, tracer, result_film);
                 }
             }

@@ -1,5 +1,6 @@
 #pragma once
 #include "jpc_tracer/core/core.h"
+#include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/engine/PluginsApi.h"
 // #include <bits/stdint-uintn.h>
 #include <limits>
@@ -22,10 +23,22 @@ template <RandFunc R> class GridSampler final : public ISampler
 {
   private:
     R m_rand;
+    std::vector<Vec2> m_rand_samples;
+    int counter = 0;
+
+    Vec2 NextSample()
+    {
+        if (counter >= m_rand_samples.size())
+            counter = 0;
+        counter++;
+        return m_rand_samples[counter - 1];
+    }
 
   public:
-    GridSampler(R rand) : m_rand{rand}
+    GridSampler(R rand) : m_rand{rand}, m_rand_samples(200000)
     {
+        for (auto& sample : m_rand_samples)
+            sample = {rand(), rand()};
     }
 
     inline void Sample(UInt2 count, Vec2* result_it)
@@ -36,8 +49,9 @@ template <RandFunc R> class GridSampler final : public ISampler
         {
             for (int x = 0; x < count[0]; x++)
             {
-                Prec rx = m_rand();
-                Prec ry = m_rand();
+                Vec2 sample = NextSample();
+                Prec rx = sample[0];
+                Prec ry = sample[1];
                 Prec sample_x = ((Prec)x + rx) * inv_width;
                 Prec sample_y = ((Prec)y + ry) * inv_height;
                 *result_it = {sample_x, sample_y};

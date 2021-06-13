@@ -1,5 +1,6 @@
 #pragma once
 #include "Fresnel.h"
+#include "jpc_tracer/core/Logger.h"
 #include "jpc_tracer/core/MaterialType.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
 #include "jpc_tracer/engine/PluginsApi.h"
@@ -73,6 +74,7 @@ inline Vec3 BeckmannSample(Prec alpha2, Vec2 random_point)
 inline Distributed<Spectrum> CookTorranceReflection(Vec3 incident_dir, Vec3 scattered_dir, Spectrum reflectance,
                                                     Prec alpha)
 {
+    // JPC_LOG_INFO("Incident: {}", incident_dir.to_string());
     Distributed<Spectrum> result;
 
     Prec alpha2 = alpha * alpha;
@@ -123,12 +125,21 @@ struct GlossyBsdfClosure final : public IBsdfClosure
     }
     inline Distributed<Spectrum> Eval(Ray incident_ray) const
     {
-        return CookTorranceReflection(incident_ray.Direction, m_scattering_dir, m_color, m_alpha);
+        if (incident_ray.Direction[0] == 0 && incident_ray.Direction[1] == 0 && incident_ray.Direction[2] == 0)
+        {
+            JPC_LOG_INFO("Debug");
+        }
+        Distributed<Spectrum> result =
+            CookTorranceReflection(incident_ray.Direction, m_scattering_dir, m_color, m_alpha);
+        // JPC_LOG_INFO("Glossy: {},p: {}", result.value.to_string(), result.pdf);
+        return result;
     }
 
     inline Norm3 Sample2D(Vec2 rand_p) const
     {
-        return CookTorranceSample(m_scattering_dir, m_alpha * m_alpha, rand_p);
+        Norm3 result = CookTorranceSample(m_scattering_dir, m_alpha * m_alpha, rand_p);
+        // JPC_LOG_INFO("Sampled dir: {}", result.to_string());
+        return result;
     }
 
     Spectrum m_color;

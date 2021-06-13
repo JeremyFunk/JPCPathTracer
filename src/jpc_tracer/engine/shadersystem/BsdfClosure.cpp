@@ -126,6 +126,7 @@ void init_context(ShaderResultsSep& result, const Ray& scattered_ray, View<Ray> 
     init_context(result, scattered_ray, rays);
     ctx.is_seperated = true;
     ctx.samples = samples;
+    ctx.should_sample = true;
 }
 
 void init_context(ShaderResultsCom& result, const Ray& scattered_ray, View<Ray> rays, View<Vec2> samples)
@@ -133,6 +134,7 @@ void init_context(ShaderResultsCom& result, const Ray& scattered_ray, View<Ray> 
     init_context(result, scattered_ray, rays);
     ctx.samples = samples;
     ctx.is_seperated = false;
+    ctx.should_sample = true;
 }
 
 Range get_smprange()
@@ -147,7 +149,7 @@ Range get_evalrange()
 
 Range get_smprays_range()
 {
-    return {0, static_cast<int>(ctx.result.eval_bsdf.size)};
+    return {0, static_cast<int>(ctx.result.sampled_bsdf.size)};
 }
 
 const Vec2* get_samples()

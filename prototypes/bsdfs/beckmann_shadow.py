@@ -11,7 +11,6 @@ def beckmann_shadow(half_theta,alpha):
 def beckmann_shadow_aprox(half_theta,alpha):
     a = 1 / (alpha * np.tan(half_theta))
 
-
     g = (3.535 * a + 2.181* a**2 ) / (1+2.276*a+2.577*a**2)
     g[a>=1.6] = 1
     return g

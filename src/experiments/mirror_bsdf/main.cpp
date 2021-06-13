@@ -1,5 +1,7 @@
 #include "jpc_tracer/core/Logger.h"
+#include "jpc_tracer/core/maths/Constants.h"
 #include "jpc_tracer/core/maths/Spectrum.h"
+#include "jpc_tracer/core/maths/Transformation.h"
 #include "jpc_tracer/engine/JPCTracerApi.h"
 #include "jpc_tracer/engine/PluginsApi.h"
 #include "jpc_tracer/engine/utilities/MeshIO.h"
@@ -18,6 +20,18 @@ struct MirrorMaterial
     };
 };
 
+struct DiffuseMaterial
+{
+    auto bsdf()
+    {
+        return [=](jpctracer::Ray scattered) {
+            auto b = jpctracer::DebugBsdf(jpctracer::FromRGB({0.5, 0.7, 0.3}));
+            b.emission = jpctracer::FromRGB({0.5, 0.7, 0.3});
+            return b;
+        };
+    };
+};
+
 int main()
 {
     jpctracer::Logger::Init();
@@ -26,7 +40,7 @@ int main()
 
     std::unique_ptr<jpctracer::ICamera> camera = std::make_unique<jpctracer::camera::ProjectionCamera>(1);
 
-    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::DebugIntegrator>();
+    std::unique_ptr<jpctracer::IIntegrator> integrator = std::make_unique<jpctracer::PathIntegrator>(4, 1, 2);
 
     jpctracer::JPCRenderer renderer(std::move(sampler), std::move(camera), std::move(integrator));
     renderer.ShouldMultiThread = false;
@@ -37,10 +51,19 @@ int main()
     triangle->MaterialSlots[0] = shader;
 
     renderer.Draw(triangle);
+
+    auto cube = jpctracer::LoadMesh("/home/chris/dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
+
+    auto cube_shader = renderer.MaterialLib.Create<DiffuseMaterial>();
+    cube->MaterialSlots[0] = cube_shader;
+
+    cube->transformation = jpctracer::TransScalRot({-0.5, 0, -1}, 0.2, {0, 0, 0});
+    renderer.Draw(cube);
+
     renderer.LightsLib.AddPointLight({0, 0, 0}, jpctracer::FromRGB({1, 1, 1}));
 
     // Chris
-    renderer.Render(30, 30, "");
+    renderer.Render(300, 300, "");
 
     return 0;
 }

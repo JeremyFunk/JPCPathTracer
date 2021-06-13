@@ -26,6 +26,16 @@ struct GlossyDiff
     }
 };
 
+struct DiffuseMaterial{
+    Spectrum color = FromRGB({0.5,0.5,0.5});
+    auto bsdf()
+    {
+        return [=](Ray scattered){
+            return DiffuseBsdf(scattered,color);
+        };
+    }
+};
+
 struct DebugMaterial
 {
     Spectrum color = FromRGB({0.1, 0.2, 0.6});
@@ -46,11 +56,15 @@ bool LoadDebugMaterial(ShaderArchive& ar, DebugMaterial& mat)
 {
     return Load(ar,"color",mat.color);
 }
-
+bool LoadDiffuseMaterial(ShaderArchive& ar, DiffuseMaterial& mat)
+{
+    return Load(ar,"color",mat.color);
+}
 bool LoadMaterial(ShaderArchive& ar)
 {
     return LoadShader(ar, "GlossyDiff", LoadGlossyDiff)
-        || LoadShader(ar,"DebugShader",LoadDebugMaterial);
+        || LoadShader(ar,"DebugShader",LoadDebugMaterial)
+        || LoadShader(ar,"DebugMaterial",LoadDebugMaterial);
 }
 // clang-format on
 } // namespace jpctracer::parse

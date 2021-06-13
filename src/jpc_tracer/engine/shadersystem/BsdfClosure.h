@@ -117,7 +117,9 @@ template <class T> void sample_bsdf(const T& bsdf)
 
     const Vec2* samples = get_samples();
     for (int i = range.first; i < range.last; i++)
+    {
         set_sampled_direction(bsdf.Sample2D(samples[i]), i);
+    }
 }
 
 template <class T> void eval_bsdf(MaterialType type, const T& bsdf)
@@ -151,16 +153,15 @@ template <Closure S, class R>
 void SampleShader(S&& shader, Ray scattered_ray, View<Ray> rays, View<Vec2> samples, R& result)
 {
     init_context(result, scattered_ray, rays, samples);
-    for (int i = 1; i < 4; i += 2)
+    for (int i = 1; i < 4; i += 1)
     {
         next_state((BsdfState)i);
         BsdfNode root = shader(scattered_ray);
         if (i == 1)
         {
             result.emission = root.emission;
-            result.emission = root.emission;
-
             compute_weights(root);
+            compute_ranges(samples);
         }
     }
 
