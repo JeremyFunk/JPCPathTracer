@@ -95,7 +95,7 @@ void SceneBuilder::__BuildLBVH()
         if (m_scene_data->static_mesh_trees[idx].internal_nodes.size() == 0)
             bound = TransformTo(instance.second, m_scene_data->static_mesh_trees[idx].shape_bounds[0]);
         else
-            bound = TransformTo(instance.second, m_scene_data->static_mesh_trees[idx].internal_nodes[0].bound);
+            bound = TransformTo(instance.second, m_scene_data->static_mesh_trees[idx].internal_bounds[0]);
 
         instance_bounds.emplace_back(bound);
         instance_morton_codes.emplace_back(GetBoxMortonCode(bound));

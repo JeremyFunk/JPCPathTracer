@@ -61,7 +61,7 @@ IntersectionResult BVHTraversal(Ray& ray, const BVHTree& tree, AnyHitCallBack an
 
     while (true)
     {
-        if (BoundsIntersect(tree.internal_nodes[current_idx].bound, ray, inv_dir, dir_is_negative))
+        if (BoundsIntersect(tree.internal_bounds[current_idx], ray, inv_dir, dir_is_negative))
         {
             // Bound Intersect
 

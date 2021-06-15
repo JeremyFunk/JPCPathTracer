@@ -35,7 +35,8 @@ BVHTree BuildLBVH(std::vector<Bounds3D>&& bounds, std::vector<uint32_t>&& morton
 
         const Bounds3D bound = calc_bounds(tree.shape_bounds.data(), min_idx, max_idx);
 
-        tree.internal_nodes[idx] = {bound, min_idx, max_idx, split_idx};
+        tree.internal_nodes[idx] = {min_idx, max_idx, split_idx};
+        tree.internal_bounds[idx] = bound;
     }
 
     return tree;
