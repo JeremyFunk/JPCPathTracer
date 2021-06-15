@@ -38,12 +38,16 @@ T1 ComputeDirectLight(const Distributed<T1>& bsdf, const Distributed<Spectrum>& 
     }
     auto [light_val, light_pdf] = light;
     auto [bsdf_val, bsdf_pdf] = bsdf;
+    //JPC_LOG_INFO("Bsdf: {} Light: {} CosWeight: {}", bsdf_val.to_string(), light_val.to_string(),
+    //             CosWeight(ray.Direction));
     if (!IsDeltaDistribution(light_pdf))
         return bsdf_val * light_val / light_pdf * CosWeight(ray.Direction);
     return bsdf_val * light_val * CosWeight(ray.Direction);
 };
 
-struct DirectLightBehavior final : public IRayBehavior
+std::vector<Vec2> create_samples(ISampler* sampler, UInt2 counts);
+
+struct DirectLightBehavior final : public IRayBehavior<Payload>
 {
     DirectLightBehavior(uint light_samples);
     void ClosestHitProgram(const HitPoint& hit_point, Payload* payload, Tracer& tracer) const;

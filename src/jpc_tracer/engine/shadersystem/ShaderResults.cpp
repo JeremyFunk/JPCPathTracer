@@ -64,7 +64,7 @@ ShaderResults<T> ShaderResultsStack::Setup(uint eval_count, uint samples_count, 
         bsdf_mem.push_back(Distributed<T>{default_val, 0});
 
     result.eval_bsdf = {bsdf_mem.data() + bsdf_eval_start, eval_count};
-    result.sampled_bsdf = {bsdf_mem.data() + bsdf_smp_start, eval_count};
+    result.sampled_bsdf = {bsdf_mem.data() + bsdf_smp_start, samples_count};
 
     result.emission = Black();
     result.transparency = 1;
