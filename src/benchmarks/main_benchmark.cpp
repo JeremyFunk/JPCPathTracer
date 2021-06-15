@@ -15,6 +15,6 @@ static void BM_StringCopy(benchmark::State& state)
     for (auto _ : state)
         std::string copy(x);
 }
-// BENCHMARK(BM_StringCopy)->UseRealTime();
+BENCHMARK(BM_StringCopy)->UseRealTime();
 
 BENCHMARK_MAIN();
