@@ -17,12 +17,12 @@ struct Bounds3D
     {
     }
 
-    Vec3 operator[](const int& i) const
+    constexpr Vec3 operator[](const int& i) const
     {
         return (i == 0) ? Min : Max;
     }
 
-    Vec3& operator[](const int& i)
+    constexpr Vec3& operator[](const int& i)
     {
         return (i == 0) ? Min : Max;
     }

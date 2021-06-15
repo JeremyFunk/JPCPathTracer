@@ -35,7 +35,7 @@ IntersectionResult IntersectMesh(const Ray& ray, const MeshT& mesh, const int& i
 
 template <class IntersectFunc>
 IntersectionResult BVHTraversal(Ray& ray, const BVHTree& tree, AnyHitCallBack any_hit_program,
-                                IntersectFunc intersect_func)
+                                const IntersectFunc& intersect_func)
 {
     // empty tree
     if (tree.internal_nodes.size() == 0)

@@ -6,6 +6,7 @@
 
 namespace jpctracer::raytracing
 {
+/*
 bool BoundsIntersect(const Bounds3D& bound, const Ray& ray, const Vec3& inverse_direction, const Int3& dir_is_negative)
 {
     Prec x_min = (bound[dir_is_negative[0]][0] - ray.Origin[0]) * inverse_direction[0];
@@ -26,4 +27,5 @@ bool BoundsIntersect(const Bounds3D& bound, const Ray& ray, const Vec3& inverse_
 
     return true;
 }
+*/
 } // namespace jpctracer::raytracing
