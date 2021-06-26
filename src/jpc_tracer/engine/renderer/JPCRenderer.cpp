@@ -118,10 +118,10 @@ void JPCRenderer::Render(uint width, uint height, std::string directory)
                 for (uint x = tile.XRange[0]; x < tile.XRange[1]; x++)
                 {
                     UInt2 pixel = {x, y};
-                    if (x == 54 && y == 32)
-                    {
-                        JPC_LOG_INFO("Debug");
-                    }
+                    // if (x == 54 && y == 32)
+                    // {
+                    //     JPC_LOG_INFO("Debug");
+                    // }
                     m_integrator->Integrate(pixel, m_camera.get(), thread_sampler, tracer, result_film);
                 }
             }

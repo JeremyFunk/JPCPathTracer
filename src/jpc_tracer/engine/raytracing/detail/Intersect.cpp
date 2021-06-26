@@ -1,7 +1,7 @@
 #include "Intersect.h"
 #include "jpc_tracer/engine/raytracing/Base.h"
 #include "jpc_tracer/engine/raytracing/Geometry.h"
-#include "jpc_tracer/engine/raytracing/detail/acceleration/BVHIntersection.h"
+#include "jpc_tracer/engine/raytracing/detail/acceleration/ReworkBVHIntersection.h"
 #include "jpc_tracer/engine/raytracing/detail/acceleration/NaiveIntersection.h"
 #include <optional>
 

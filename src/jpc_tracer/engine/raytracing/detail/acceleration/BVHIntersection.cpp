@@ -1,5 +1,8 @@
 #include "BVHIntersection.h"
+#include "jpc_tracer/engine/raytracing/Base.h"
+#include "jpc_tracer/engine/raytracing/detail/Scene.h"
 #include "jpc_tracer/engine/raytracing/detail/acceleration/IntersectionInfo.h"
+#include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVH.h"
 
 namespace jpctracer::raytracing
 {
