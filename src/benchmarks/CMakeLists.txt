@@ -1,6 +1,7 @@
 set(AUTOSRC
 "main_benchmark.cpp"
 "math/Vector.cpp"
+"tracing_performance/TracingTest.cpp"
 )
 set(INC
 "../")

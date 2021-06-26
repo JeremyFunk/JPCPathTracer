@@ -1,10 +1,9 @@
-
 find_package(OpenImageIO)
 add_library(openimageio INTERFACE)
 if(OpenImageI0_FOUND)
     target_link_libraries(openimageio INTERFACE optimized OpenImageIO::OpenImageIO)
 else()
-    message("OpenImageI0 retry")
+    message("OpenImageIO retry")
     #reference vfx-cmake
     # try to find header
     find_path( OpenImageIO_INCLUDE_DIR OpenImageIO/imageio.h
@@ -40,6 +39,11 @@ else()
     OpenImageIO_INCLUDE_DIR
     OpenImageIO_LIBRARY
     )
+
+    if(OpenImageIO_LIBRARY)
+    message("OpenImageIO found")
+    endif()
+
     target_link_libraries(openimageio INTERFACE "${OpenImageIO_LIBRARY}")
     target_include_directories(openimageio INTERFACE "${OpenImageIO_INCLUDE_DIR}")
     

@@ -13,5 +13,5 @@
 
 namespace jpctracer::raytracing
 {
-IntersectionResult BVHIntersect(Ray& ray, const Scene& scene, AnyHitCallBack any_hit_program);
+// IntersectionResult BVHIntersect(Ray& ray, const Scene& scene, AnyHitCallBack any_hit_program);
 } // namespace jpctracer::raytracing
