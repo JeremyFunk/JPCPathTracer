@@ -1,181 +1,182 @@
-#include "BVHIntersection.h"
-#include "jpc_tracer/engine/raytracing/Base.h"
-#include "jpc_tracer/engine/raytracing/detail/Scene.h"
-#include "jpc_tracer/engine/raytracing/detail/acceleration/IntersectionInfo.h"
-#include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVH.h"
+// #include "BVHIntersection.h"
+// #include "jpc_tracer/engine/raytracing/Base.h"
+// #include "jpc_tracer/engine/raytracing/detail/Scene.h"
+// #include "jpc_tracer/engine/raytracing/detail/acceleration/IntersectionInfo.h"
+// #include "jpc_tracer/engine/raytracing/detail/acceleration/bvh/BVH.h"
 
-namespace jpctracer::raytracing
-{
-template <class MeshT> // SphereMesh || TriangleMesh
-IntersectionResult IntersectMesh(const Ray& ray, const MeshT& mesh, const int& idx, const int* material_per_slot,
-                                 AnyHitCallBack any_hit_program, const Transformation& trans)
-{
-    // intersect mesh
-    auto interaction = Intersect(mesh, idx, ray, material_per_slot);
+// namespace jpctracer::raytracing
+// {
+// template <class MeshT> // SphereMesh || TriangleMesh
+// IntersectionResult IntersectMesh(const Ray& ray, const MeshT& mesh, const int& idx, const int* material_per_slot,
+//                                  AnyHitCallBack any_hit_program, const Transformation& trans)
+// {
+//     // intersect mesh
+//     auto interaction = Intersect(mesh, idx, ray, material_per_slot);
 
-    if (interaction)
-    {
-        // transform interaction back
-        Vec3 ray_real_origin = TransformTo(trans, ray.Origin);
+//     if (interaction)
+//     {
+//         // transform interaction back
+//         Vec3 ray_real_origin = TransformTo(trans, ray.Origin);
 
-        auto temp_p = interaction->Point;
-        auto temp_n = interaction->Normal;
-        interaction->Point = TransformTo(trans, interaction->Point);
-        interaction->Normal = TransformTo(trans, interaction->Normal);
-        interaction->Distance = (interaction->Point - ray_real_origin).norm();
+//         auto temp_p = interaction->Point;
+//         auto temp_n = interaction->Normal;
+//         interaction->Point = TransformTo(trans, interaction->Point);
+//         interaction->Normal = TransformTo(trans, interaction->Normal);
+//         interaction->Distance = (interaction->Point - ray_real_origin).norm();
 
-        // test AnyHitFunc
-        AnyHitResult any_hit_result = any_hit_program(*interaction);
+//         // test AnyHitFunc
+//         AnyHitResult any_hit_result = any_hit_program(*interaction);
 
-        if (any_hit_result.ShouldTerminate || any_hit_result.IsHit == false)
-            return IntersectionResult{std::nullopt, true};
+//         if (any_hit_result.ShouldTerminate || any_hit_result.IsHit == false)
+//             return IntersectionResult{std::nullopt, true};
 
-        // JPC_LOG_WARN("LBVH Intersect idx: {}, with distance: {}", idx, interaction->Distance);
-    }
+//         // JPC_LOG_WARN("LBVH Intersect idx: {}, with distance: {}", idx, interaction->Distance);
+//     }
 
-    return {interaction, false};
-}
+//     return {interaction, false};
+// }
 
-template <class IntersectFunc>
-IntersectionResult BVHTraversal(Ray& ray, const BVHTree& tree, AnyHitCallBack any_hit_program,
-                                const IntersectFunc& intersect_func)
-{
-    // empty tree
-    if (tree.internal_nodes.size() == 0)
-    {
-        IntersectionResult interaction = intersect_func(ray, 0, any_hit_program);
+// template <class IntersectFunc>
+// IntersectionResult BVHTraversal(Ray& ray, const BVHTree& tree, AnyHitCallBack any_hit_program,
+//                                 const IntersectFunc& intersect_func)
+// {
+//     // empty tree
+//     if (tree.internal_nodes.size() == 0)
+//     {
+//         IntersectionResult interaction = intersect_func(ray, 0, any_hit_program);
 
-        if (interaction.ShouldTerminate)
-            return {std::nullopt, true};
+//         if (interaction.ShouldTerminate)
+//             return {std::nullopt, true};
 
-        return interaction;
-    }
+//         return interaction;
+//     }
 
-    // bound intersect acceleration
-    const Vec3 inv_dir = {1 / ray.Direction[0], 1 / ray.Direction[1], 1 / ray.Direction[2]};
-    const Int3 dir_is_negative = {inv_dir[0] < 0, inv_dir[1] < 0, inv_dir[2] < 0};
+//     // bound intersect acceleration
+//     const Vec3 inv_dir = {1 / ray.Direction[0], 1 / ray.Direction[1], 1 / ray.Direction[2]};
+//     const Int3 dir_is_negative = {inv_dir[0] < 0, inv_dir[1] < 0, inv_dir[2] < 0};
 
-    std::optional<SurfaceInteraction> closest_interaction;
+//     std::optional<SurfaceInteraction> closest_interaction;
 
-    // stack design to iterate
-    int to_visit = 0;
-    int current_idx = 0;
-    std::array<int, 64> nodes_to_visit;
+//     // stack design to iterate
+//     int to_visit = 0;
+//     int current_idx = 0;
+//     std::array<int, 64> nodes_to_visit;
 
-    while (true)
-    {
-        if (BoundsIntersect(tree.internal_bounds[current_idx], ray, inv_dir, dir_is_negative))
-        {
-            // Bound Intersect
+//     while (true)
+//     {
+//         if (BoundsIntersect(tree.internal_bounds[current_idx], ray, inv_dir, dir_is_negative))
+//         {
+//             // Bound Intersect
 
-            const auto& first_idx = tree.internal_nodes[current_idx].first_idx;
-            const auto& last_idx = tree.internal_nodes[current_idx].last_idx;
-            const auto& split_idx = tree.internal_nodes[current_idx].split_idx;
+//             const auto& first_idx = tree.internal_nodes[current_idx].first_idx;
+//             const auto& last_idx = tree.internal_nodes[current_idx].last_idx;
+//             const auto& split_idx = tree.internal_nodes[current_idx].split_idx;
 
-            // right leaf
-            if (last_idx == split_idx + 1)
-            {
-                // Bound Intersect
-                if (BoundsIntersect(tree.shape_bounds[last_idx], ray, inv_dir, dir_is_negative))
-                {
-                    // intersect mesh
-                    IntersectionResult interaction = intersect_func(ray, last_idx, any_hit_program);
+//             // right leaf
+//             if (last_idx == split_idx + 1)
+//             {
+//                 // Bound Intersect
+//                 if (BoundsIntersect(tree.shape_bounds[last_idx], ray, inv_dir, dir_is_negative))
+//                 {
+//                     // intersect mesh
+//                     IntersectionResult interaction = intersect_func(ray, last_idx, any_hit_program);
 
-                    if (interaction.ShouldTerminate)
-                        return {std::nullopt, true};
+//                     if (interaction.ShouldTerminate)
+//                         return {std::nullopt, true};
 
-                    if (interaction.interaction)
-                    {
-                        closest_interaction = ClosestInteraction(closest_interaction, interaction.interaction);
-                        ray.ClipEnd = closest_interaction->Distance;
-                    }
-                }
-            }
-            else
-            {
-                nodes_to_visit[to_visit++] = split_idx + 1;
-            }
+//                     if (interaction.interaction)
+//                     {
+//                         closest_interaction = ClosestInteraction(closest_interaction, interaction.interaction);
+//                         ray.ClipEnd = closest_interaction->Distance;
+//                     }
+//                 }
+//             }
+//             else
+//             {
+//                 nodes_to_visit[to_visit++] = split_idx + 1;
+//             }
 
-            // left leaf
-            if (first_idx == split_idx)
-            {
-                // Bound Intersect
-                if (BoundsIntersect(tree.shape_bounds[first_idx], ray, inv_dir, dir_is_negative))
-                {
-                    // intersect mesh
-                    IntersectionResult interaction = intersect_func(ray, first_idx, any_hit_program);
+//             // left leaf
+//             if (first_idx == split_idx)
+//             {
+//                 // Bound Intersect
+//                 if (BoundsIntersect(tree.shape_bounds[first_idx], ray, inv_dir, dir_is_negative))
+//                 {
+//                     // intersect mesh
+//                     IntersectionResult interaction = intersect_func(ray, first_idx, any_hit_program);
 
-                    if (interaction.ShouldTerminate)
-                        return {std::nullopt, true};
+//                     if (interaction.ShouldTerminate)
+//                         return {std::nullopt, true};
 
-                    if (interaction.interaction)
-                    {
-                        closest_interaction = ClosestInteraction(closest_interaction, interaction.interaction);
-                        ray.ClipEnd = closest_interaction->Distance;
-                    }
-                }
-            }
-            else
-            {
-                nodes_to_visit[to_visit++] = split_idx;
-            }
-        }
+//                     if (interaction.interaction)
+//                     {
+//                         closest_interaction = ClosestInteraction(closest_interaction, interaction.interaction);
+//                         ray.ClipEnd = closest_interaction->Distance;
+//                     }
+//                 }
+//             }
+//             else
+//             {
+//                 nodes_to_visit[to_visit++] = split_idx;
+//             }
+//         }
 
-        // stack empty
-        if (to_visit == 0)
-            break;
+//         // stack empty
+//         if (to_visit == 0)
+//             break;
 
-        // advance
-        current_idx = nodes_to_visit[--to_visit];
-    }
+//         // advance
+//         current_idx = nodes_to_visit[--to_visit];
+//     }
 
-    return {closest_interaction, false};
-}
+//     return {closest_interaction, false};
+// }
 
-IntersectionResult MeshBVHIntersect(const Scene& scene, const Ray& ray, const int& instance_idx,
-                                    AnyHitCallBack any_hit_program)
-{
-    auto& instance = scene.static_instances[instance_idx];
-    auto& mesh_id = instance.first.mesh_id;
-    const int* material_per_slot = &instance.first.materials_per_slot[0];
-    auto& trans = instance.second;
+// IntersectionResult MeshBVHIntersect(const Scene& scene, const Ray& ray, const int& instance_idx,
+//                                     AnyHitCallBack any_hit_program)
+// {
+//     auto& instance = scene.static_instances[instance_idx];
+//     auto& mesh_id = instance.first.mesh_id;
+//     const int* material_per_slot = &instance.first.materials_per_slot[0];
+//     auto& trans = instance.second;
 
-    // transform ray to instance object space
-    Ray mesh_ray = TransformBack(trans, ray);
+//     // transform ray to instance object space
+//     Ray mesh_ray = TransformBack(trans, ray);
 
-    // intersect mesh geometry
-    auto mesh_intesect_tri = [&scene, &mesh_id, material_per_slot, &trans](const Ray& ray, const int& mesh_idx,
-                                                                           AnyHitCallBack any_hit_program) {
-        return IntersectMesh(ray, scene.triangle_meshs[mesh_id.id], mesh_idx, material_per_slot, any_hit_program,
-                             trans);
-    };
+//     // intersect mesh geometry
+//     auto mesh_intesect_tri = [&scene, &mesh_id, material_per_slot, &trans](const Ray& ray, const int& mesh_idx,
+//                                                                            AnyHitCallBack any_hit_program) {
+//         return IntersectMesh(ray, scene.triangle_meshs[mesh_id.id], mesh_idx, material_per_slot, any_hit_program,
+//                              trans);
+//     };
 
-    auto mesh_intesect_sphere = [&scene, &mesh_id, material_per_slot, &trans](const Ray& ray, const int& mesh_idx,
-                                                                              AnyHitCallBack any_hit_program) {
-        return IntersectMesh(ray, scene.sphere_meshs[mesh_id.id], mesh_idx, material_per_slot, any_hit_program, trans);
-    };
+//     auto mesh_intesect_sphere = [&scene, &mesh_id, material_per_slot, &trans](const Ray& ray, const int& mesh_idx,
+//                                                                               AnyHitCallBack any_hit_program) {
+//         return IntersectMesh(ray, scene.sphere_meshs[mesh_id.id], mesh_idx, material_per_slot, any_hit_program,
+//         trans);
+//     };
 
-    // Intersect Mesh Tree
-    switch (mesh_id.type)
-    {
-    case MeshTypes::TRIANGLE:
-        return BVHTraversal(mesh_ray, scene.static_mesh_trees[mesh_id.id], any_hit_program, mesh_intesect_tri);
+//     // Intersect Mesh Tree
+//     switch (mesh_id.type)
+//     {
+//     case MeshTypes::TRIANGLE:
+//         return BVHTraversal(mesh_ray, scene.static_mesh_trees[mesh_id.id], any_hit_program, mesh_intesect_tri);
 
-    case MeshTypes::SPHERE:
-        auto number_triangle_meshs = scene.triangle_meshs.size();
+//     case MeshTypes::SPHERE:
+//         auto number_triangle_meshs = scene.triangle_meshs.size();
 
-        return BVHTraversal(mesh_ray, scene.static_mesh_trees[mesh_id.id + number_triangle_meshs], any_hit_program,
-                            mesh_intesect_sphere);
-    }
-}
+//         return BVHTraversal(mesh_ray, scene.static_mesh_trees[mesh_id.id + number_triangle_meshs], any_hit_program,
+//                             mesh_intesect_sphere);
+//     }
+// }
 
-IntersectionResult BVHIntersect(Ray& ray, const Scene& scene, AnyHitCallBack any_hit_program)
-{
-    // Intstance Tree intersect function
-    auto mesh_tree_intersect = [&scene](Ray& ray, const int& instance_idx, AnyHitCallBack any_hit_program) {
-        return MeshBVHIntersect(scene, ray, instance_idx, any_hit_program);
-    };
+// IntersectionResult BVHIntersect(Ray& ray, const Scene& scene, AnyHitCallBack any_hit_program)
+// {
+//     // Intstance Tree intersect function
+//     auto mesh_tree_intersect = [&scene](Ray& ray, const int& instance_idx, AnyHitCallBack any_hit_program) {
+//         return MeshBVHIntersect(scene, ray, instance_idx, any_hit_program);
+//     };
 
-    return BVHTraversal(ray, scene.static_instance_tree, any_hit_program, mesh_tree_intersect);
-}
-} // namespace jpctracer::raytracing
+//     return BVHTraversal(ray, scene.static_instance_tree, any_hit_program, mesh_tree_intersect);
+// }
+// } // namespace jpctracer::raytracing

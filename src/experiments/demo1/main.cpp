@@ -88,8 +88,8 @@ int main()
     auto test_shader = jpc_renderer.MaterialLib.Create<DiffuseMat>();
     test_shader.BindTexture(&test_shader->color,
                             // "/home/chris/dev/path_tracing/V2/JPCPathTracer/resource/color_grid.png" /* Christian */
-                            // "E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\color_grid.png" /* Peer */
-                            "/home/peer/dev/PathTracing/JPCPathTracer/resource/color_grid.png"
+                            "E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\color_grid.png" /* Peer */
+                            // "/home/peer/dev/PathTracing/JPCPathTracer/resource/color_grid.png"
     );
 
     auto sphere_shader = jpc_renderer.MaterialLib.Create<Glossy>();
@@ -102,7 +102,7 @@ int main()
     // Christian
     // auto cube = jpctracer::LoadMesh("/home/chris/dev/path_tracing/V2/JPCPathTracer/resource/cube.obj");
     // Peer
-    auto cube = jpctracer::LoadMesh("/home/peer/dev/PathTracing/JPCPathTracer/resource/cube.obj");
+    auto cube = jpctracer::LoadMesh("E:\\dev\\pathTrace\\V2\\JPCPathTracer\\resource\\cube.obj");
 
     cube->transformation = jpctracer::TransScalRot({0, -2, -3}, 1, {0, 0, 0});
     cube->MaterialSlots[0] = test_shader;
