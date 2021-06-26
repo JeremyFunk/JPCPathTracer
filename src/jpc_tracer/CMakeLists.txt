@@ -10,6 +10,7 @@ set(AUTOSRC
 "core/maths/Transformation.cpp"
 "core/maths/Spectrum.cpp"
 "core/maths/Transformation.h"
+"core/maths/simd.h"
 "core/maths/maths.h"
 "core/maths/Shapes.h"
 "core/maths/Spectrum.h"
@@ -108,7 +109,10 @@ set(AUTOSRC
 "plugins/cameras/cameras.h"
 )
 
-
+set(SRC 
+${AUTOSRC}
+"core/maths/simd.inl"
+)
 
 
 set(INC 
@@ -121,6 +125,16 @@ openimageio
 
 
 jpctr_add_library(jpc_tracer "${AUTOSRC}" "${INC}" "${LIBS}" STATIC)
+
+
+add_library(simd INTERFACE IMPORTED)
+if(MSVC)
+    target_compile_options(simd INTERFACE /arch:SSE4.1 /arch:AVX2)
+else()
+    target_compile_options(simd INTERFACE -msse4.1 -march=native)
+endif()
+
+target_link_libraries(jpc_tracer simd)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set_target_properties(jpc_tracer PROPERTIES COMPILE_FLAGS "-ffast-math") 
