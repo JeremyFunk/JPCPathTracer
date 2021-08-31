@@ -122,9 +122,8 @@ extra_samples/profiling/stop.txt
 /.vs
 
 # Hallo
-demo3.png
-pathintegrator_t.png
-pathintegrator.png
-prototypes/bsdfs/.~lock.bsdfs_samples.csv#
-prototypes/bsdfs/bsdfs_samples.csv
-scripts/cmake_utilities/arch_linux/CMakeUpdater
+scripts/cmake_utilities/
+
+*neovim.json
+
+

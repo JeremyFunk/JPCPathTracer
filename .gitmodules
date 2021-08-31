@@ -1,5 +1,6 @@
-
-
-[submodule "src/libs/google-test/googletest"]
-	path = src/libs/google-test/googletest
-	url = https://github.com/google/googletest.git
+[submodule "scripts/cmake_utilities"]
+	path = scripts/cmake_utilities
+	url = https://github.com/Arnizack/cmake_utilities.git
+[submodule "jpctracer/c/libs/cglm"]
+	path = jpctracer/c/libs/cglm
+	url = https://github.com/recp/cglm.git
