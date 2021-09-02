@@ -49,7 +49,7 @@ typedef struct shader_s
 {
     const char*           name;
     const uniform_desc_t* uniforms_layout;
-    uint8_t               uniforms_count;
+    uint                  uniforms_count;
     size_t                uniforms_size;
     const void*           uniforms_default;
     create_bsdf_f         create_bsdf;
@@ -59,7 +59,7 @@ typedef struct shader_s
 typedef struct shaders_s
 {
     shader_t* shaders;
-    uint32_t  count;
+    uint      count;
 } shaders_t;
 
 // Uniforms:
@@ -158,8 +158,8 @@ typedef struct
     material_t* materials;
     void*       buffer;
 
-    image_t*  textures;
-    uint      textures_count;
+    image_t* textures;
+    uint     textures_count;
 } materiallib_t;
 
 typedef struct
@@ -204,17 +204,20 @@ typedef struct
     uint max_depth;
 } render_settings_t;
 
-shaders_t* shaders_init();
-void       shader_load_defaults(shaders_t* shaders);
-void       shaders_free(shaders_t* shaders);
+shaders_t shaders_init();
+void      shaders_load_defaults(shaders_t shaders);
+void      shaders_free(shaders_t shaders);
 
-//returns buffer
-void* materials_init(uint* shader_ids, material_t* materials, uint n);
+// returns buffer which contains the params and texturebinding
+void* materials_init(material_t* materials, const shader_t* shaders, uint n);
 
-material_t create_material(shader_t* shader);
-
-
+// value float, float3 or float4 depended on the type of the uniform
+void material_set_uniform(material_t* mat, const shader_t* shader,
+                          uint uniform_id, float* value);
+void material_set_texture(material_t* mat, const shader_t* shader,
+                          uint uniform_id, int texture);
 
 void geometries_create_bvhtree(geometries_t* geometries);
 
-void render(const scene_t* scene, const render_settings_t settings, image_t* outputs);
+void render(const scene_t* scene, const render_settings_t settings,
+            image_t* outputs);

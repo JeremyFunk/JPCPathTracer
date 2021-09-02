@@ -42,7 +42,7 @@ void bsdfshaders_weights(bsdfmixnode_t* nodes, uint nodes_n, float* weights, uin
 
         if (nodes[i].left.is_leaf)
         {
-            weights[nodes[i].left.id] += left_factor;
+              weights[nodes[i].left.id] += left_factor;
         }
         else
         {
