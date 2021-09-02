@@ -207,6 +207,7 @@ typedef struct
 shaders_t shaders_init();
 void      shaders_load_defaults(shaders_t shaders);
 void      shaders_free(shaders_t shaders);
+void      shader_default_uniform(const shader_t* shader, uint id, float* dst);
 
 // returns buffer which contains the params and texturebinding
 void* materials_init(material_t* materials, const shader_t* shaders, uint n);

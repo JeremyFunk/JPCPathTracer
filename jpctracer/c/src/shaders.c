@@ -8,10 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-void* material_load_params(const material_t* material, const image_t* textures, vec2 uv, stack_allocator_t* allocator)
+void* material_load_params(const material_t* material, const image_t* textures,
+                           vec2 uv, stack_allocator_t* allocator)
 {
 
-    void* params = stack_alloc(allocator, material->param_size, _Alignof(float4));
+    void* params
+        = stack_alloc(allocator, material->param_size, _Alignof(float4));
 
     uintptr_t params_int = (uintptr_t)params;
 
@@ -46,7 +48,7 @@ void* material_load_params(const material_t* material, const image_t* textures, 
 
 shaders_t shaders_init()
 {
-    shaders_t shader; 
+    shaders_t shader;
 
     shader.shaders = malloc(SHADER_COUNT * sizeof(shader_t));
     shader.count = SHADER_COUNT;
@@ -60,33 +62,57 @@ void shaders_load_defaults(shaders_t shaders)
 }
 void shaders_free(shaders_t shaders)
 {
-    printf("Free shaders->shaders\n");
     free(shaders.shaders);
 }
 
+size_t sizeof_uniform(uniform_type_t type)
+{
+    switch (type)
+    {
+    case JPC_float:
+        return sizeof(float);
+    case JPC_float3:
+        return sizeof(float3);
+    case JPC_float4:
+        return sizeof(float4);
+    }
+}
 
+void shader_default_uniform(const shader_t* shader, uint id, float* dst)
+{
+
+    char* uniform = (char*)shader->uniforms_default;
+    for (int i = 0; i < id ; i++)
+    {
+        uniform += sizeof_uniform(shader->uniforms_layout[i].type);
+    }
+    memccpy(dst, uniform, sizeof(char),
+            sizeof_uniform(shader->uniforms_layout[id].type));
+}
 void* materials_init(material_t* materials, const shader_t* shaders, uint n)
 {
     size_t params_size = 0;
     size_t bindings_count = 0;
-    for(int i = 0;i<n;i++)
+    for (int i = 0; i < n; i++)
     {
         params_size += shaders[i].uniforms_size;
-        bindings_count += shaders[i].uniforms_count; 
+        bindings_count += shaders[i].uniforms_count;
     }
 
-    void* buffer = malloc(bindings_count*sizeof(texture_uniform_binding_t)+params_size);
+    void* buffer = malloc(bindings_count * sizeof(texture_uniform_binding_t)
+                          + params_size);
 
     texture_uniform_binding_t* tex_uni_buffer = buffer;
-    char* params_buffer = (char*) tex_uni_buffer + bindings_count;
+    char* params_buffer = (char*)tex_uni_buffer + bindings_count;
 
-    for(int i= 0; i<n ; i++)
+    for (int i = 0; i < n; i++)
     {
 
-        materials[i].bindings_count=0;
-        materials[i].bindings=tex_uni_buffer;
-        tex_uni_buffer+=shaders[i].uniforms_count;
-        memcpy(materials[i].params,shaders[i].uniforms_default,shaders[i].uniforms_count);
+        materials[i].bindings_count = 0;
+        materials[i].bindings = tex_uni_buffer;
+        tex_uni_buffer += shaders[i].uniforms_count;
+        memcpy(materials[i].params, shaders[i].uniforms_default,
+               shaders[i].uniforms_count);
 
         materials[i].params = params_buffer;
         params_buffer += shaders[i].uniforms_size;
@@ -95,43 +121,33 @@ void* materials_init(material_t* materials, const shader_t* shaders, uint n)
     }
 
     return buffer;
-
-        
 }
 
-size_t sizeof_uniform(uniform_type_t type)
-{
-    switch(type)
-    {
-        case JPC_float:
-            return sizeof(float);
-        case JPC_float3:
-            return sizeof(float3);
-        case JPC_float4:
-            return sizeof(float4);
-    }
-}
-
-void material_set_uniform(material_t* mat, const shader_t* shader, uint uniform_id, float* value)
+void material_set_uniform(material_t* mat, const shader_t* shader,
+                          uint uniform_id, float* value)
 {
     char* uniform = mat[uniform_id].params;
-    for(int i = 0; i<uniform_id-1;i++)
+
+    for (int i = 0; i < uniform_id ; i++)
     {
         uniform += sizeof_uniform(shader->uniforms_layout[i].type);
     }
-    memccpy(uniform,value,sizeof(char),sizeof_uniform(shader->uniforms_layout[uniform_id].type));    
-
+    memccpy(uniform, value, sizeof(char),
+            sizeof_uniform(shader->uniforms_layout[uniform_id].type));
 }
-void material_set_texture(material_t* mat, const shader_t* shader, uint uniform_id, int texture){
+void material_set_texture(material_t* mat, const shader_t* shader,
+                          uint uniform_id, int texture)
+{
     uintptr_t offset = 0;
 
-    for(int i = 0; i<uniform_id-1;i++)
+    for (int i = 0; i <  uniform_id ; i++)
     {
         offset += sizeof_uniform(shader->uniforms_layout[i].type);
     }
 
     int binding_i = 0;
-    while(binding_i < mat->bindings_count && mat->bindings[binding_i].offset == offset)
+    while (binding_i < mat->bindings_count
+           && mat->bindings[binding_i].offset == offset)
     {
         binding_i++;
     }
@@ -139,6 +155,4 @@ void material_set_texture(material_t* mat, const shader_t* shader, uint uniform_
     mat->bindings[binding_i].offset = offset;
     mat->bindings[binding_i].type = shader->uniforms_layout[uniform_id].type;
     mat->bindings[binding_i].texture = texture;
-
-
 }
