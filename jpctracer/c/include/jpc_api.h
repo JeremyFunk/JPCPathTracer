@@ -152,11 +152,13 @@ typedef struct
     bvh_tree_t*       bvhtree;
 } geometries_t;
 
+typedef struct mat_bfr_s mat_bfr_t;
+
 typedef struct
 {
     uint        materials_n;
     material_t* materials;
-    void*       buffer;
+    mat_bfr_t*       buffer;
 
     image_t* textures;
     uint     textures_count;
@@ -210,7 +212,9 @@ void      shaders_free(shaders_t shaders);
 void      shader_default_uniform(const shader_t* shader, uint id, float* dst);
 
 // returns buffer which contains the params and texturebinding
-void* materials_init(material_t* materials, const shader_t* shaders, uint n);
+mat_bfr_t* materials_init(material_t* materials, const shader_t* shaders, uint n);
+
+void mat_bfr_t_free(mat_bfr_t* bfr);
 
 // value float, float3 or float4 depended on the type of the uniform
 void material_set_uniform(material_t* mat, const shader_t* shader,

@@ -1,4 +1,11 @@
-from jpctracer.types import ctracer, shader_t,shaders_t, JPC_float,JPC_float3,JPC_float4
+from jpctracer.types import (
+        ctracer, 
+        shader_t,
+        shaders_t, 
+        JPC_float,
+        JPC_float3,
+        JPC_float4,
+        image_t)
 from jpctracer.Texture import Texture
 import ctypes as ct
 import numpy as np
@@ -13,6 +20,8 @@ ctracer.shaders_free.argtypes = [shaders_t]
 ctracer.shader_default_uniform.argtypes = [ct.POINTER(shader_t),ct.c_uint,
                                            np.ctypeslib.ndpointer(ct.c_float)]
 
+ctracer.mat_bfr_t_free.argtypes = [ct.c_void_p]
+ctracer.materials_init.argtypes = [ct.POINTER(material_t)]
 
 def size_of_uniform(uniform):
     if(uniform == JPC_float):
@@ -39,12 +48,16 @@ class Material(object):
 
     _properties = {}
 
-    def __init__(self, shader: shader_t):
-        print("Init Mat")
+    _callback_on_prop_change = None
+    _callback_on_delete = None
+
+    def __init__(self, shader: shader_t, callback_on_prop_change,callback_on_delete):
         self._c_shader = shader
         self._property_types = []
         self._properties = {}
         self.shader = shader.name.decode("utf-8")
+        self._callback_on_prop_change = callback_on_prop_change
+        self._callback_on_delete = callback_on_delete
 
         for i in range(shader.uniforms_count):
             type = shader.uniforms_layout[i].type
@@ -92,19 +105,44 @@ class Material(object):
                                  str(type_size) + " channels")
             prop.value = value
 
+        self._callback_on_prop_change(self)
+
     def property_names(self):
         return self._properties.keys()
+
+    def __del__(self):
+        self._callback_on_delte(self)
+
+
+class materiallib:
+    _materiallib_t = None
+    _texture_buffer = None
+    _material_buffer = None
+
+    def __init__(self, materials):
+        textures = []
+        py_shaders = [mat._c_shader for mat in materials]
+        c_shaders = (shader_t * len(py_shaders))(*py_shaders)
+
+
+
 
 
 class MaterialFactory:
 
     shader_names = []
 
+    _created_materials = []
+    _materials_to_update = [] # saves the ids 
+    
+
     def __init__(self):
         self._c_shaders = ctracer.shaders_init()
         ctracer.shaders_load_defaults(self._c_shaders)
         shaders = self._c_shaders
         self.shader_names = []
+        self._materiallib_t = None
+        self._texture_buffer = None
         for i in range(shaders.count):
             self.shader_names.append(
                 shaders.shaders[i].name.decode("utf-8")
@@ -113,10 +151,39 @@ class MaterialFactory:
     def __del__(self):
         ctracer.shaders_free(self._c_shaders)
 
+
+    def get_id(self,material):
+        self._created_materials.append(material) 
+
+
+
+
+    def delte(self, material):
+
+        id = self.get_id(material)
+        self._created_materials.remove(id)
+        del material
+        self._rebuild_all = None 
+
+    def _register_for_update(self,material):
+        id = self.get_id(material)
+        self._created_materials.append(id)
+
+
     def create(self, shader_name):
         try:
             i = self.shader_names.index(shader_name)
-            return Material(self._c_shaders.shaders[i])
+            mat = Material(self._c_shaders.shaders[i],
+                    self._register_for_update,
+                    self.delte)
+            self._created_materials.append(mat)
+            self._materials_to_update.append(len(self._created_materials)-1)
+            return mat
+
 
         except ValueError:
             raise ValueError(shader_name + " is not a loaded Shader")
+
+    def _build_matlib(self):
+        materials = np.array(self._created_materials)
+        

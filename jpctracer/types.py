@@ -37,9 +37,12 @@ class shaders_t(ct.Structure):
     _fields_ = [("shaders",ct.POINTER(shader_t)),
                 ("count",ct.c_uint)]
 
+class material_t(ct.Structure):
+    pass
 
 class image_t(ct.Structure):
     _fields_ = [("data",np.ctypeslib.ndpointer(ct.c_float)),
                 ("width", ct.c_uint),
                 ("height",ct.c_uint),
                 ("channels",ct.c_uint)]
+
