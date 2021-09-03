@@ -37,12 +37,25 @@ class shaders_t(ct.Structure):
     _fields_ = [("shaders",ct.POINTER(shader_t)),
                 ("count",ct.c_uint)]
 
+
 class material_t(ct.Structure):
-    pass
+    _fields_ = [("bsdf_creator",ct.c_void_p),
+                ("param_size",ct.c_uint),
+                ("params",ct.c_void_p),
+                ("bindings",ct.c_void_p),
+                ("bindings_count",ct.c_uint)]
+
 
 class image_t(ct.Structure):
-    _fields_ = [("data",np.ctypeslib.ndpointer(ct.c_float)),
+    _fields_ = [("data",ct.POINTER(ct.c_float)),
                 ("width", ct.c_uint),
                 ("height",ct.c_uint),
                 ("channels",ct.c_uint)]
 
+
+class materiallib_t(ct.Structure):
+    _fields_ = [("materials_n",ct.c_uint),
+                ("materials",ct.POINTER(material_t)),
+                ("buffer",ct.c_void_p),
+                ("textures",ct.POINTER(image_t)),
+                ("textures_count",ct.c_uint)]

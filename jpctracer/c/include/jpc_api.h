@@ -220,7 +220,7 @@ void mat_bfr_t_free(mat_bfr_t* bfr);
 void material_set_uniform(material_t* mat, const shader_t* shader,
                           uint uniform_id, float* value);
 void material_set_texture(material_t* mat, const shader_t* shader,
-                          uint uniform_id, int texture);
+                          uint uniform_id, uint texture);
 
 void geometries_create_bvhtree(geometries_t* geometries);
 

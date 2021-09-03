@@ -2,6 +2,7 @@
 #include "allocators.h"
 #include "cglm/vec3.h"
 #include "jpc_api.h"
+#include "log/log.h"
 #include "texture.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -82,7 +83,7 @@ void shader_default_uniform(const shader_t* shader, uint id, float* dst)
 {
 
     char* uniform = (char*)shader->uniforms_default;
-    for (int i = 0; i < id ; i++)
+    for (int i = 0; i < id; i++)
     {
         uniform += sizeof_uniform(shader->uniforms_layout[i].type);
     }
@@ -92,7 +93,7 @@ void shader_default_uniform(const shader_t* shader, uint id, float* dst)
 
 typedef struct mat_bfr_s
 {
-    char* params;
+    char*                      params;
     texture_uniform_binding_t* bindings;
 } mat_bfr_t;
 
@@ -103,7 +104,8 @@ void mat_bfr_t_free(mat_bfr_t* bfr)
     free(bfr);
 }
 
-mat_bfr_t* materials_init(material_t* materials, const shader_t* shaders, uint n)
+mat_bfr_t* materials_init(material_t* materials, const shader_t* shaders,
+                          uint n)
 {
     size_t params_size = 0;
     size_t bindings_count = 0;
@@ -114,12 +116,11 @@ mat_bfr_t* materials_init(material_t* materials, const shader_t* shaders, uint n
     }
 
     mat_bfr_t* bfr = malloc(sizeof(mat_bfr_t));
-    bfr->params = malloc(sizeof(char)*params_size);
-    bfr->bindings = malloc(sizeof(texture_uniform_binding_t)*bindings_count);
-
+    bfr->params = malloc(sizeof(char) * params_size);
+    bfr->bindings = malloc(sizeof(texture_uniform_binding_t) * bindings_count);
 
     texture_uniform_binding_t* tex_uni_buffer = bfr->bindings;
-    char* params_buffer = bfr->params;
+    char*                      params_buffer = bfr->params;
 
     for (int i = 0; i < n; i++)
     {
@@ -127,11 +128,12 @@ mat_bfr_t* materials_init(material_t* materials, const shader_t* shaders, uint n
         materials[i].bindings_count = 0;
         materials[i].bindings = tex_uni_buffer;
         tex_uni_buffer += shaders[i].uniforms_count;
-        memcpy(materials[i].params, shaders[i].uniforms_default,
-               shaders[i].uniforms_count);
 
         materials[i].params = params_buffer;
         params_buffer += shaders[i].uniforms_size;
+        memcpy(materials[i].params, shaders[i].uniforms_default,
+               shaders[i].uniforms_size);
+
         materials[i].param_size = shaders[i].uniforms_size;
         materials[i].bsdf_creator = shaders[i].create_bsdf;
     }
@@ -142,21 +144,21 @@ mat_bfr_t* materials_init(material_t* materials, const shader_t* shaders, uint n
 void material_set_uniform(material_t* mat, const shader_t* shader,
                           uint uniform_id, float* value)
 {
-    char* uniform = mat[uniform_id].params;
+    char* uniform = mat->params;
 
-    for (int i = 0; i < uniform_id ; i++)
+    for (int i = 0; i < uniform_id; i++)
     {
         uniform += sizeof_uniform(shader->uniforms_layout[i].type);
     }
-    memccpy(uniform, value, sizeof(char),
-            sizeof_uniform(shader->uniforms_layout[uniform_id].type));
+    memcpy(uniform, value,
+           sizeof_uniform(shader->uniforms_layout[uniform_id].type));
 }
 void material_set_texture(material_t* mat, const shader_t* shader,
-                          uint uniform_id, int texture)
+                          uint uniform_id, uint texture)
 {
     uintptr_t offset = 0;
 
-    for (int i = 0; i <  uniform_id ; i++)
+    for (int i = 0; i < uniform_id; i++)
     {
         offset += sizeof_uniform(shader->uniforms_layout[i].type);
     }

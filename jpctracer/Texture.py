@@ -1,5 +1,5 @@
-from jpctracer.types import ctracer, image_t
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Texture:
@@ -7,6 +7,7 @@ class Texture:
     _data = None
 
     def __init__(self,data):
+        data = np.array(data,dtype=np.float32)
         if(not len(data.shape) in [2,3]):
             raise ValueError("image should be 2D or 3D dimensional")
         if(len(data.shape) == 2):
