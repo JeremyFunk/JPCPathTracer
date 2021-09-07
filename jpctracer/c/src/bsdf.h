@@ -7,16 +7,16 @@
 
 typedef struct
 {
-    float pdf;
-    vec3  color;
-} sampled_color_t;
-typedef struct
-{
     vec4 location;
     int  material_id;
     vec2 uvs;
     vec3 normal;
 } hit_point_t;
+typedef struct
+{
+    float pdf;
+    vec3  color;
+} sampled_color_t;
 typedef struct
 {
     vec3        incident_dir;

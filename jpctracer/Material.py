@@ -8,10 +8,10 @@ from jpctracer.types import (
     JPC_float4,
     material_t,
     image_t)
-from jpctracer.Texture import Texture
 import ctypes as ct
 import numpy as np
 
+import matplotlib.pyplot as plt
 
 ctracer.shaders_init.argtypes = []
 ctracer.shaders_init.restype = shaders_t
@@ -29,6 +29,25 @@ ctracer.material_set_texture.argtypes = [ct.POINTER(material_t),ct.POINTER(shade
 ctracer.mat_bfr_t_free.argtypes = [ct.c_void_p]
 ctracer.materials_init.argtypes = [ct.POINTER(material_t)]
 ctracer.materials_init.restype = ct.c_void_p
+
+
+class Texture:
+    channels = 0
+    _data = None
+
+    def __init__(self,data):
+        data = np.array(data,dtype=np.float32)
+        if(not len(data.shape) in [2,3]):
+            raise ValueError("image should be 2D or 3D dimensional")
+        if(len(data.shape) == 2):
+            self.channels = 1
+        if(len(data.shape) == 3):
+            self.channels = data.shape[2]
+        self._data = data
+
+
+def LoadTexture(path):
+    return Texture(plt.imread(path))
 
 
 def size_of_uniform(uniform):
@@ -189,11 +208,14 @@ class MaterialFactory:
             self.shader_names.append(
                 shaders.shaders[i].name.decode("utf-8")
                 )
+        self.create("Diffuse")
 
     def __del__(self):
         ctracer.shaders_free(self._c_shaders)
 
     def get_id(self,material):
+        if(material is None):
+            return 0
         return self._created_materials.index(material)
 
     def delete(self, material):

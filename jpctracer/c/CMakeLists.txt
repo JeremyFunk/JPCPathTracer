@@ -25,6 +25,8 @@ endif()
 
 set(AUTOSRC
 "test.c"
+"src/renderer.h"
+"src/bvh.h"
 "src/lights.h"
 "src/camera.h"
 "src/spherical_coords.h"
@@ -34,24 +36,21 @@ set(AUTOSRC
 "src/types.h"
 "src/texture.h"
 "src/shaders.h"
-"src/integrator.h"
 "src/allocators.h"
 "src/sampler.h"
 "src/bsdf.c"
 "src/shaders.c"
 "src/renderer.c"
-"src/integrator.c"
+"src/bvh.c"
 "src/sampling.c"
 "src/allocators.c"
 "src/texture.c"
 "src/sampler.c"
+"src/lbvh.c"
 "src/lights.c"
 "src/camera.c"
 "src/shaders/shader2.c"
 "src/shaders/shader_diffuse.c"
-"src/bvh/bvh_tree.h"
-"src/bvh/shapes.h"
-"src/bvh/shapes.c"
 "src/bsdfs/diffuse.c"
 "include/jpc_api.h"
 )
@@ -62,6 +61,7 @@ stb
 log
 pcg_basic
 m
+sorting
 )
 
 add_library(tracer SHARED "${AUTOSRC}")

@@ -17,8 +17,8 @@ typedef enum
 
 typedef enum
 {
-    JPC_SPHERE,
-    JPC_TRIANGLE,
+    JPC_SPHERE = 0,
+    JPC_TRIANGLE = 1,
 } geometry_type_t;
 
 // forward declaration
@@ -108,6 +108,9 @@ typedef struct
     uint3* uvs_ids;
     uint*  material_slots;
 
+    uint  mesh_count;
+    uint* mesh_end_idx;
+
 } triangles_t;
 
 typedef struct
@@ -116,23 +119,32 @@ typedef struct
     float3* positions;
     float*  radii;
     uint*   material_slot_id;
+
+    uint  mesh_count;
+    uint* mesh_end_idx;
 } spheres_t;
 
 typedef struct
 {
-    uint  material_slots_n;
-    uint* material_ids;
-} material_slots_t;
-
-typedef struct
-{
     geometry_type_t type;
-    uint            face_start;
-    uint            face_end;
+    uint            mesh_id;
     uint            material_slot_start;
 
     float4x4 transformations;
 } instance_t;
+
+typedef struct
+{
+    uint        instances_count;
+    instance_t* instances;
+    triangles_t triangles;
+    spheres_t   spheres;
+    uint*       material_slots;
+    uint        material_slots_count;
+    bvh_tree_t* bvhtree_instances;
+    bvh_tree_t* bvhtree_triangles;
+    bvh_tree_t* bvhtree_spheres;
+} geometries_t;
 
 typedef struct
 {
@@ -141,24 +153,13 @@ typedef struct
     float3 direction;
 } camera_t;
 
-typedef struct
-{
-
-    instance_t*       instances;
-    triangles_t       triangles;
-    spheres_t         spheres;
-    material_slots_t* material_slots;
-    uint              material_slots_count;
-    bvh_tree_t*       bvhtree;
-} geometries_t;
-
 typedef struct mat_bfr_s mat_bfr_t;
 
 typedef struct
 {
     uint        materials_n;
     material_t* materials;
-    mat_bfr_t*       buffer;
+    mat_bfr_t*  buffer;
 
     image_t* textures;
     uint     textures_count;
@@ -212,7 +213,8 @@ void      shaders_free(shaders_t shaders);
 void      shader_default_uniform(const shader_t* shader, uint id, float* dst);
 
 // returns buffer which contains the params and texturebinding
-mat_bfr_t* materials_init(material_t* materials, const shader_t* shaders, uint n);
+mat_bfr_t* materials_init(material_t* materials, const shader_t* shaders,
+                          uint n);
 
 void mat_bfr_t_free(mat_bfr_t* bfr);
 
@@ -226,3 +228,8 @@ void geometries_create_bvhtree(geometries_t* geometries);
 
 void render(const scene_t* scene, const render_settings_t settings,
             image_t* outputs);
+
+void        bvhtree_free(bvh_tree_t* tree);
+bvh_tree_t* bvhtree_build_triangles(triangles_t triangles);
+bvh_tree_t* bvhtree_build_spheres(spheres_t spheres);
+bvh_tree_t* bvhtree_build_instances(geometries_t* geometries);
