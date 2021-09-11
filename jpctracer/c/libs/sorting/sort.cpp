@@ -4,20 +4,22 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
+#include <iostream>
 
 void sort_permutation_uint(uint32_t* data, uint32_t* permutation, uint n)
 {
     std::iota(permutation, permutation + n, 0);
+    
     std::sort(permutation, permutation + n,
               [&](uint32_t a, uint32_t b) { return data[a] < data[b]; });
     apply_permutation(permutation,data,n,sizeof(uint32_t));
+
 
 }
 
 
 void apply_permutation(uint32_t* permutation, void* dst, uint n, size_t size)
 {
-
     std::vector<bool> done(n,false);
     void* temp = malloc(size);
     char* data = (char*) dst;

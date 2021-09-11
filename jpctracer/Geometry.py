@@ -10,6 +10,7 @@ from jpctracer.types import (
     JPC_SPHERE,
     JPC_TRIANGLE,
     )
+import math
 from jpctracer.Material import MaterialFactory
 
 ctracer.bvhtree_free.argtypes = [ct.c_void_p]
@@ -54,7 +55,7 @@ class GeometryFactory:
         self._tri_verticies = np.empty((0,3),dtype=np.float32)
         self._tri_normals = np.empty((0,3),dtype=np.float32)
         self._tri_uvs = np.empty((0,2),dtype=np.float32)
-        self._tri_verticies_ids = np.empty((0,3),dtype=np.float32)
+        self._tri_verticies_ids = np.empty((0,3),dtype=np.uint32)
         self._tri_normals_ids = np.empty((0,3),dtype=np.uint32)
         self._tri_uvs_ids = np.empty((0,3),dtype=np.uint32)
         self._tri_material_slot_ids = np.empty(0,dtype=np.uint32)
@@ -99,7 +100,15 @@ class GeometryFactory:
     material_slot_ids shape = (n)
     """
 
-    def mesh(self,vertices, uvs, normals, verticies_ids, normals_ids, uvs_ids, material_slot_ids):
+    def triangles(self,vertices, uvs, normals, verticies_ids, normals_ids, uvs_ids, material_slot_ids):
+        vertices = np.array(vertices,dtype=np.float32)
+        print("type: ",vertices.dtype)
+        uvs = np.array(uvs,dtype=np.float32)
+        normals = np.array(normals,dtype=np.float32)
+        verticies_ids = np.array(verticies_ids,dtype=np.uint32)
+        normals_ids = np.array(normals_ids,dtype=np.uint32)
+        uvs_ids = np.array(uvs_ids,dtype=np.uint32)
+        material_slot_ids = np.array(material_slot_ids,dtype=np.uint32)
         self._tri_verticies = np.concatenate([
             self._tri_verticies,vertices],dtype=np.float32)
         self._tri_normals = np.concatenate([self._tri_normals,normals],dtype=np.float32)
@@ -111,7 +120,7 @@ class GeometryFactory:
             self._tri_material_slot_ids,material_slot_ids],dtype=np.uint32)
         self._tri_normals_ids = np.concatenate([
             self._tri_normals_ids,normals_ids],dtype=np.uint32)
-        end = len(self._tri_verticies)
+        end = len(self._tri_verticies_ids)
 
         self._tri_mesh_ends.append(end)
         id = len(self._tri_mesh_ends) - 1
@@ -197,9 +206,7 @@ class GeometryFactory:
             self._c_sphere_bvhtree = ctracer.bvhtree_build_spheres(sphs)
             self._c_geometris.bvhtree_triangles = self._c_tri_bvhtree
             self._c_geometris.bvhtree_spheres = self._c_sphere_bvhtree
-            print("bvh spheres: ",self._c_geometris.bvhtree_spheres)
             self._state = "geometry_loaded"
-            print("bvh sphs count: ",sphs.count)
         if(self._state == "geometry_loaded"):
             inst_n = len(self._created_instances)
             self._c_instances = (instance_t * inst_n)()
@@ -233,3 +240,63 @@ class GeometryFactory:
             self._state = "instances_loaded"
 
         return self._c_geometris
+
+
+def RotationX(angle):
+    angle = np.deg2rad(angle)
+    return np.array(
+        [[1,0,0,0],
+         [0,math.cos(angle),math.sin(angle),0],
+         [0,math.sin(angle),math.cos(angle),0],
+         [0,0,0,1]],
+        dtype=np.float32
+        ).T.copy()
+
+
+def RotationY(angle):
+
+    angle = np.deg2rad(angle)
+    return np.array(
+        [[math.cos(angle),0,math.sin(angle),0],
+         [0,1,0,0],
+         [-math.sin(angle),0,math.cos(angle),0],
+         [0,0,0,1]],
+        dtype=np.float32).T.copy()
+
+
+def RotationZ(angle):
+    angle = np.deg2rad(angle)
+    return np.array(
+        [[math.cos(angle),-math.sin(angle),0,0],
+         [math.sin(angle),math.cos(angle),0,0],
+         [0,0,1,0],
+         [0,0,0,1]],
+        dtype=np.float32).T.copy()
+
+
+def Translataion(x,y,z):
+    return np.array([
+        [1,0,0,x],
+        [0,1,0,y],
+        [0,0,1,z],
+        [0,0,0,1]],
+        dtype=np.float32).T.copy()
+
+
+def Scale(x,y,z):
+    return np.array(
+        [[x,0,0,0],
+         [0,y,0,0],
+         [0,0,z,0],
+         [0,0,0,1]],
+        dtype=np.float32).T.copy()
+
+
+def RotSclTrans(rotation=[0,0,0], scale=[1,1,1], translation=[0,0,0]):
+    if(type(scale) == float or type(scale) == int):
+        scale = [scale,scale,scale]
+    return RotationX(rotation[0])\
+        .dot(RotationY(rotation[1]))\
+        .dot(RotationZ(rotation[2]))\
+        .dot(Scale(*scale))\
+        .dot(Translataion(*translation))

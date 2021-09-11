@@ -1,7 +1,9 @@
+
 from jpctracer.Geometry import (
     GeometryFactory,
     MaterialFactory,
     RotSclTrans,
+    RotationZ,
     )
 from jpctracer.types import (
     ctracer,
@@ -28,17 +30,20 @@ class bvh_tree_t(ct.Structure):
 
 mat_fac = MaterialFactory()
 geom_fac_fac = GeometryFactory(mat_fac)
-sp1 = geom_fac_fac.spheres([[0,0,4],[2,3,4],[-4,4,7]],
-                           [1,1,0.5],[0,0,0])
 
-sp2 = geom_fac_fac.spheres([[0,0,0]],[1],[0])
-
+sp1 = geom_fac_fac.spheres([[-1.5,0,5],[1,0,5]],
+                           [2,2],[0,0])
 sp1.materials[0] = mat_fac.create("Diffuse")
-sp2.materials[0] = mat_fac.create("Diffuse")
 
-sp2.transformation = RotSclTrans(translation=[0,1,15.5],scale=[2,2,2])
-print("transformation: \n",sp2.transformation)
-print("transformation inv: \n",np.linalg.inv(sp2.transformation))
+tri = geom_fac_fac.triangles([[-0.5,-0.5,0],[-0.5,1.5,0],[1.5,-0.5,0]],
+                             [[0,0]],[[1,1,1]],[[0,1,2]],[[0,0,0]],[[0,0,0]],[0])
+
+tri.materials[0] = mat_fac.create("Diffuse")
+
+tri.transformation = RotSclTrans(translation=[0,0,13],scale=6,rotation=[0,0,90])
+
+print("trans: ",tri.transformation)
+
 
 c_geom = geom_fac_fac._build_geometries()
 print("Geometries")
@@ -96,16 +101,16 @@ dir = np.array([0,0,14],dtype=np.float32)
 hitpoint = hit_point_t()
 
 
-hitpoint.location[0] = 0
-hitpoint.location[1] = 0
-hitpoint.location[2] = 0
+org = np.array([0,0,0])
+hitpoint.location[0] = org[0]
+hitpoint.location[1] = org[1]
+hitpoint.location[2] = org[2]
 hitpoint.location[3] = 1
 
 print("hit p:",ctracer.ray_intersect(c_geom,dir,hitpoint))
 
 loc = np.array(
     [hitpoint.location[0],hitpoint.location[1],hitpoint.location[2]])
-org = np.array([0,0,0])
 dist = np.linalg.norm(loc - org)
 print("dist: ",dist)
 
@@ -120,17 +125,17 @@ for i_y,y in enumerate(np.arange(-10,10,20. / img.shape[0])):
         if(result):
             loc = np.array(
                 [hitpoint.location[0],hitpoint.location[1],hitpoint.location[2]])
-            org = np.array([x,y,0])
-            dist = np.linalg.norm(loc - org)
+            _org = np.array([x,y,0])
+            dist = np.linalg.norm(loc - _org)
 
             img[i_y][i_x] = dist
         else:
             img[i_y][i_x] = 0
-        if(np.abs(y + 4) < 0.1 and np.abs(x + 4) < 0.1):
-            img[i_y][i_x] = 0.5
+        if(np.abs(org[0] - x) < 0.1 and np.abs(org[0] - y) < 0.1):
+            img[i_y][i_x] = 20
 
 
-#plt.imshow(np.clip(img - 13,0,10))
-plt.imshow(img)
+#plt.imshow(np.clip(img - 8.5,0,10))
+plt.imshow(np.log(1 + img))
 plt.show()
 #"""

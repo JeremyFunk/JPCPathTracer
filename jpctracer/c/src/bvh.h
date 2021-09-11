@@ -44,7 +44,7 @@ typedef struct{
 bool ray_intersect(const geometries_t* geometries, vec3 direction, hit_point_t* last_hitpoint);
 typedef bool(*intersect_f)(int id, ray_t ray, float* distance, void* param);
 
-bool traverse_bvh(const bvh_tree_t* tree, ray_t ray, float* distance,  intersect_f intersect, void* param);
+bool traverse_bvh(const bvh_tree_t* tree, ray_t ray, float* distance,  intersect_f intersect, void* param,bool shadow_test);
 
 #define ERROR_THICKNESS 1e-6
 
