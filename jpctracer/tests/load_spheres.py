@@ -6,6 +6,7 @@ from jpctracer.Geometry import (
 from jpctracer.types import (
     ctracer,
     geometries_t,
+    Ray,
     )
 import ctypes as ct
 import numpy as np
@@ -32,6 +33,7 @@ sp1 = geom_fac_fac.spheres([[0,0,4],[2,3,4],[-4,4,7]],
                            [1,1,0.5],[0,0,0])
 
 sp2 = geom_fac_fac.spheres([[0,0,0]],[1],[0])
+
 
 sp1.materials[0] = mat_fac.create("Diffuse")
 sp2.materials[0] = mat_fac.create("Diffuse")
@@ -85,7 +87,7 @@ class hit_point_t(ct.Structure):
 
 
 ctracer.ray_intersect.argtypes = [ct.POINTER(geometries_t),
-                                  np.ctypeslib.ndpointer(ct.c_float),
+                                    Ray,
                                   ct.POINTER(hit_point_t)]
 ctracer.ray_intersect.restype = ct.c_bool
 
@@ -96,12 +98,16 @@ dir = np.array([0,0,14],dtype=np.float32)
 hitpoint = hit_point_t()
 
 
-hitpoint.location[0] = 0
-hitpoint.location[1] = 0
-hitpoint.location[2] = 0
-hitpoint.location[3] = 1
+ray = Ray()
 
-print("hit p:",ctracer.ray_intersect(c_geom,dir,hitpoint))
+ray.direction[0] = dir[0]
+ray.direction[1] = dir[1]
+ray.direction[2] = dir[2]
+ray.origin[0] = 0
+ray.origin[1] = 0
+ray.origin[2] = 0
+
+print("hit p:",ctracer.ray_intersect(c_geom,ray,hitpoint))
 
 loc = np.array(
     [hitpoint.location[0],hitpoint.location[1],hitpoint.location[2]])
@@ -112,11 +118,10 @@ print("dist: ",dist)
 #"""
 for i_y,y in enumerate(np.arange(-10,10,20. / img.shape[0])):
     for i_x,x in enumerate(np.arange(-10,10,20. / img.shape[1])):
-        hitpoint.location[0] = x
-        hitpoint.location[1] = y
-        hitpoint.location[2] = 0
-        hitpoint.location[3] = 1
-        result = ctracer.ray_intersect(c_geom,dir,hitpoint)
+        ray.origin[0] = x
+        ray.origin[1] = y
+        ray.origin[2] = 0
+        result = ctracer.ray_intersect(c_geom,ray,hitpoint)
         if(result):
             loc = np.array(
                 [hitpoint.location[0],hitpoint.location[1],hitpoint.location[2]])

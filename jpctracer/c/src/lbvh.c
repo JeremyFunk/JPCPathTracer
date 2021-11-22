@@ -41,7 +41,9 @@ int count_leading_zeros_combined(uint32_t a, uint32_t b)
     return 0;
 #endif
 }
-int number_leading_zeros(uint32_t* morton_codes, int idx_a, int offset,
+int number_leading_zeros(uint32_t*    morton_codes,
+                         int          idx_a,
+                         int          offset,
                          const size_t number_nodes)
 {
     int idx_b = idx_a + offset;
@@ -83,8 +85,11 @@ int calc_direction(uint32_t* morton, int idx, size_t number_nodes)
     return (dir_forward - dir_backward < 0) ? -1 : 1;
 }
 
-uint calc_split_idx(uint32_t* morton, int min_idx, int max_idx, int dir,
-                    size_t number_nodes)
+uint calc_split_idx(uint32_t* morton,
+                    int       min_idx,
+                    int       max_idx,
+                    int       dir,
+                    size_t    number_nodes)
 {
     uint32_t morton_first = morton[min_idx];
     uint32_t morton_last = morton[max_idx];
@@ -104,8 +109,8 @@ uint calc_split_idx(uint32_t* morton, int min_idx, int max_idx, int dir,
         int new_split_idx = split_idx + step;
 
         if (new_split_idx < max_idx
-            && number_leading_zeros(morton, min_idx, new_split_idx - min_idx,
-                                    number_nodes)
+            && number_leading_zeros(
+                   morton, min_idx, new_split_idx - min_idx, number_nodes)
                    > compare_number)
         {
             split_idx = new_split_idx;
@@ -128,8 +133,8 @@ int calc_last_idx(uint32_t* morton, int idx, int dir, size_t number_nodes)
     int lower_range = 0;
     for (int i = upper_range / 2; i >= 1; i /= 2)
     {
-        if (number_leading_zeros(morton, idx, (lower_range + i) * dir,
-                                 number_nodes)
+        if (number_leading_zeros(
+                morton, idx, (lower_range + i) * dir, number_nodes)
             > min_diff)
             lower_range += i;
     }
@@ -150,8 +155,8 @@ void lbvh_build(bvh_tree_t tree, vec3* centers, uint* permutation)
 
     sort_permutation_uint(morton, permutation, tree.n);
 
-    apply_permutation(permutation, tree.shape_bounds, tree.n,
-                      sizeof(bounds3d_t));
+    apply_permutation(
+        permutation, tree.shape_bounds, tree.n, sizeof(bounds3d_t));
 
     // build binary radix tree
     // #pragma omp parallel for
@@ -168,7 +173,7 @@ void lbvh_build(bvh_tree_t tree, vec3* centers, uint* permutation)
             = calc_split_idx(morton, min_idx, max_idx, direction, nodes_n);
 
         bounds3d_t* bounds = tree.shape_bounds + min_idx;
-        bounds3d_t_merge(bounds, max_idx - min_idx +1, tree.node_bounds + idx);
+        bounds3d_t_merge(bounds, max_idx - min_idx + 1, tree.node_bounds + idx);
 
         bvh_node_t node = {
             .first_idx = min_idx,
@@ -179,5 +184,4 @@ void lbvh_build(bvh_tree_t tree, vec3* centers, uint* permutation)
     }
 
     free(morton);
-
 }

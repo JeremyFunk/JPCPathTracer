@@ -34,14 +34,10 @@ void bounds3d_t_merge(bounds3d_t* bounds, uint n, bounds3d_t* dst);
 // tree.shape_bounds should always be set
 void lbvh_build(bvh_tree_t tree, vec3* centers, uint* permutation);
 
-typedef struct{
-    float* origin;
-    float* direction;
-} ray_t;
 
 
 // updates the hitpoint
-bool ray_intersect(const geometries_t* geometries, vec3 direction, hit_point_t* last_hitpoint);
+bool ray_intersect(const geometries_t* geometries, ray_t ray, hit_point_t* out_hitpoint);
 typedef bool(*intersect_f)(int id, ray_t ray, float* distance, void* param);
 
 bool traverse_bvh(const bvh_tree_t* tree, ray_t ray, float* distance,  intersect_f intersect, void* param,bool shadow_test);
@@ -49,4 +45,5 @@ bool traverse_bvh(const bvh_tree_t* tree, ray_t ray, float* distance,  intersect
 #define ERROR_THICKNESS 1e-6
 
 
-uint64_t rays_shadow_test(const geometries_t* geometries, bidir_scattering_t* scattering);
+uint64_t rays_shadow_test(const geometries_t* geometries, vec3* dirs, vec3 origin, uint n );
+

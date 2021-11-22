@@ -151,6 +151,7 @@ typedef struct
     float  near_plane;
     float3 position;
     float3 direction;
+    float clip_end;
 } camera_t;
 
 typedef struct mat_bfr_s mat_bfr_t;
@@ -213,21 +214,27 @@ void      shaders_free(shaders_t shaders);
 void      shader_default_uniform(const shader_t* shader, uint id, float* dst);
 
 // returns buffer which contains the params and texturebinding
-mat_bfr_t* materials_init(material_t* materials, const shader_t* shaders,
-                          uint n);
+mat_bfr_t* materials_init(material_t*     materials,
+                          const shader_t* shaders,
+                          uint            n);
 
 void mat_bfr_t_free(mat_bfr_t* bfr);
 
 // value float, float3 or float4 depended on the type of the uniform
-void material_set_uniform(material_t* mat, const shader_t* shader,
-                          uint uniform_id, float* value);
-void material_set_texture(material_t* mat, const shader_t* shader,
-                          uint uniform_id, uint texture);
+void material_set_uniform(material_t*     mat,
+                          const shader_t* shader,
+                          uint            uniform_id,
+                          float*          value);
+void material_set_texture(material_t*     mat,
+                          const shader_t* shader,
+                          uint            uniform_id,
+                          uint            texture);
 
 void geometries_create_bvhtree(geometries_t* geometries);
 
-void render(const scene_t* scene, const render_settings_t settings,
-            image_t* outputs);
+void render(const scene_t*          scene,
+            const render_settings_t settings,
+            image_t*                outputs);
 
 void        bvhtree_free(bvh_tree_t* tree);
 bvh_tree_t* bvhtree_build_triangles(triangles_t triangles);

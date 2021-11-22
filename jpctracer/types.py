@@ -11,7 +11,8 @@ class Ray(ct.Structure):
 class Camera(ct.Structure):
     _fields_ = [("near_plane",ct.c_float),
                 ("position",ct.c_float * 3),
-                ("direction",ct.c_float * 3)]
+                ("direction",ct.c_float * 3),
+                ("clip_end",ct.c_float)]
 
 
 JPC_float = 0

@@ -40,7 +40,7 @@ class Instance:
 
     def _set_transformation(self,value):
         self._transformation = value
-        self._callback_on_trans_change
+        self._callback_on_trans_change(self)
 
     transformation = property(_get_transformation,_set_transformation)
 
@@ -274,7 +274,7 @@ def RotationZ(angle):
         dtype=np.float32).T.copy()
 
 
-def Translataion(x,y,z):
+def Translation(x,y,z):
     return np.array([
         [1,0,0,x],
         [0,1,0,y],
@@ -299,4 +299,4 @@ def RotSclTrans(rotation=[0,0,0], scale=[1,1,1], translation=[0,0,0]):
         .dot(RotationY(rotation[1]))\
         .dot(RotationZ(rotation[2]))\
         .dot(Scale(*scale))\
-        .dot(Translataion(*translation))
+        .dot(Translation(*translation))

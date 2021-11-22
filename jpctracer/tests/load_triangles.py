@@ -3,11 +3,11 @@ from jpctracer.Geometry import (
     GeometryFactory,
     MaterialFactory,
     RotSclTrans,
-    RotationZ,
     )
 from jpctracer.types import (
     ctracer,
     geometries_t,
+    Ray,
     )
 import ctypes as ct
 import numpy as np
@@ -31,16 +31,20 @@ class bvh_tree_t(ct.Structure):
 mat_fac = MaterialFactory()
 geom_fac_fac = GeometryFactory(mat_fac)
 
+
 sp1 = geom_fac_fac.spheres([[-1.5,0,5],[1,0,5]],
                            [2,2],[0,0])
 sp1.materials[0] = mat_fac.create("Diffuse")
+sp1.transformation = RotSclTrans(scale=2)
+
 
 tri = geom_fac_fac.triangles([[-0.5,-0.5,0],[-0.5,1.5,0],[1.5,-0.5,0]],
                              [[0,0]],[[1,1,1]],[[0,1,2]],[[0,0,0]],[[0,0,0]],[0])
 
 tri.materials[0] = mat_fac.create("Diffuse")
 
-tri.transformation = RotSclTrans(translation=[0,0,13],scale=6,rotation=[0,0,90])
+
+tri.transformation = RotSclTrans(translation=[0,0,3],scale=4,rotation=[0,0,0])
 
 print("trans: ",tri.transformation)
 
@@ -90,24 +94,28 @@ class hit_point_t(ct.Structure):
 
 
 ctracer.ray_intersect.argtypes = [ct.POINTER(geometries_t),
-                                  np.ctypeslib.ndpointer(ct.c_float),
+                                  Ray,
                                   ct.POINTER(hit_point_t)]
 ctracer.ray_intersect.restype = ct.c_bool
 
 img = np.empty(shape=(300,300))
 
-dir = np.array([0,0,14],dtype=np.float32)
+dir = np.array([0,0,18],dtype=np.float32)
 
 hitpoint = hit_point_t()
 
 
 org = np.array([0,0,0])
-hitpoint.location[0] = org[0]
-hitpoint.location[1] = org[1]
-hitpoint.location[2] = org[2]
-hitpoint.location[3] = 1
 
-print("hit p:",ctracer.ray_intersect(c_geom,dir,hitpoint))
+ray = Ray()
+ray.direction[0] = dir[0]
+ray.direction[1] = dir[1]
+ray.direction[2] = dir[2]
+ray.origin[0] = org[0]
+ray.origin[1] = org[1]
+ray.origin[2] = org[2]
+
+print("hit p:",ctracer.ray_intersect(c_geom,ray,hitpoint))
 
 loc = np.array(
     [hitpoint.location[0],hitpoint.location[1],hitpoint.location[2]])
@@ -117,11 +125,16 @@ print("dist: ",dist)
 #"""
 for i_y,y in enumerate(np.arange(-10,10,20. / img.shape[0])):
     for i_x,x in enumerate(np.arange(-10,10,20. / img.shape[1])):
-        hitpoint.location[0] = x
-        hitpoint.location[1] = y
-        hitpoint.location[2] = 0
-        hitpoint.location[3] = 1
-        result = ctracer.ray_intersect(c_geom,dir,hitpoint)
+        ray = Ray()
+
+        ray.direction[0] = dir[0]
+        ray.direction[1] = dir[1]
+        ray.direction[2] = dir[2]
+
+        ray.origin[0] = x
+        ray.origin[1] = y
+        ray.origin[2] = 0
+        result = ctracer.ray_intersect(c_geom,ray,hitpoint)
         if(result):
             loc = np.array(
                 [hitpoint.location[0],hitpoint.location[1],hitpoint.location[2]])

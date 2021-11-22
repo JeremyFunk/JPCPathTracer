@@ -10,6 +10,7 @@ ctracer.generate_camera_ray.restype = Ray
 
 cam = Camera()
 cam.near_plane = 1
+cam.clip_end = 1
 
 
 width = 1920
