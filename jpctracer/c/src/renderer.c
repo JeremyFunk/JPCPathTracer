@@ -6,6 +6,7 @@
 #include "cglm/struct/vec3.h"
 #include "cglm/struct/vec4.h"
 #include "cglm/types.h"
+#include "cglm/vec3.h"
 #include "cglm/vec4.h"
 #include "lights.h"
 #include "sampler.h"
@@ -17,73 +18,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "integrator.h"
 #include "utils.h"
 #include <math.h>
-#include "integrator.h"
-
-scattering_t scattering_alloc(uint max_size)
-{
-    scattering_t result;
-    result.all_org_colors = malloc(sizeof(*result.all_org_colors)*max_size);
-    result.all_directions = malloc(sizeof(*result.all_directions)*max_size);
-    result.direct_dest_colors = malloc(sizeof(*result.direct_dest_colors)*max_size);
-    result.direct_org_colors = NULL;
-    result.direct_directions = NULL;
-    result.indirect_org_colors = result.all_org_colors;
-    result.indirect_directions = result.all_directions;
-    result.all_size=0;
-    result.indirect_size = 0;
-    result.direct_size = 0;
-    result.max_size = max_size;
-    return result;
-    
-}
-void scattering_free(scattering_t scatter)
-{
-    free(scatter.all_org_colors);
-    free(scatter.all_directions);
-    free(scatter.direct_dest_colors);
-}
-
-void set_to_black(vec4 color)
-{
-    color[0]=0;
-    color[1]=0;
-    color[2]=0;
-    color[3]= 0;
-}
-
-void scattering_init(scattering_t* scattering,uint indirect_size,vec3 incident_dir)
-{
-    //TO DO
-    assert(false);
-    assert(true);
-    assert(indirect_size >=scattering->max_size);
-    scattering->direct_org_colors = scattering->all_org_colors+indirect_size;
-    scattering->direct_directions = scattering->all_directions+indirect_size;
-    scattering->all_size = indirect_size;
-    scattering->indirect_size = indirect_size;
-    set_to_black(scattering->emission);
-    glm_vec3_scale(incident_dir,-1,scattering->incident_dir);
-}
-
-
-
-
-void scattering_resize_direct(scattering_t* scattering,uint direct_size)
-{
-    assert(scattering->indirect_size+direct_size >= scattering->all_size);
-    scattering->all_size+=direct_size;
-    scattering->direct_size = direct_size;
-}
-
-void eval_background(const materiallib_t* matlib,vec3 incident_dir, vec4 out_color)
-{
-    out_color[0] = 0.01;
-    out_color[1] = 0.2;
-    out_color[2] = 0.5;
-    out_color[3] = 1;
-}
 
 void render(const scene_t*          scene,
             const render_settings_t settings,
@@ -100,23 +37,22 @@ void render(const scene_t*          scene,
     {
         for (int x = 0; x < tiles_count_x; x++)
         {
-            tile_t tile = {
-                .x_start = x * tile_s,
-                .x_end = MIN((x + 1) * tile_s, width),
-                .y_start = y * tile_s,
-                .y_end = MIN((y + 1) * tile_s, height),
-            };
+            bounds2d_t tile
+                = {.min = {x * tile_s, y * tile_s},
+                   .max = {
+                       MIN((x + 1) * tile_s, width),
+                       MIN((y + 1) * tile_s, height),},
+                };
 
             render_tile(scene, &settings, &tile, outputs);
         }
     }
 }
-
-
-void render_tile(const scene_t*           scene,
-                 const render_settings_t* settings,
-                 tile_t*                  tile,
-                 image_t*                 output)
+/*
+void render_tile2(const scene_t*           scene,
+                  const render_settings_t* settings,
+                  tile_t*                  tile,
+                  image_t*                 output)
 {
     assert(output->channels >= 4);
 
@@ -151,15 +87,15 @@ void render_tile(const scene_t*           scene,
                 vec2              pixel = {x, y};
                 sample2d(sampler, 1, 1, &camera_sample);
                 ray_t ray = generate_camera_ray(&scene->camera,
-                                    output->width,
-                                    output->height,
-                                    pixel,
-                                    camera_sample);
+                                                output->width,
+                                                output->height,
+                                                pixel,
+                                                camera_sample);
 
                 do
                 {
 
-                    scattering_init(&scattering, 1,ray.direction);
+                    scattering_init(&scattering, 1, ray.direction);
                     if (ray_intersect(
                             &scene->geometries, ray, &scattering.hitpoint))
                     {
@@ -172,7 +108,7 @@ void render_tile(const scene_t*           scene,
                                  light_samples);
                         sample2d(sampler, 1, 1, &indirect_randp);
 
-                        uint direct_count  
+                        uint direct_count
                             = sample_lights(&scene->lights,
                                             light_samples,
                                             light_samples_n,
@@ -186,7 +122,7 @@ void render_tile(const scene_t*           scene,
                         uint64_t shadow_mask
                             = rays_shadow_test(&scene->geometries,
                                                scattering.direct_directions,
-                                                ray.origin, 
+                                               ray.origin,
                                                light_samples_n);
 
                         sampled_color_t black = {
@@ -202,8 +138,10 @@ void render_tile(const scene_t*           scene,
                             }
                         }
 
-                        bsdf_init(
-                            bsdf, &scene->materiallib, scattering.incident_dir, scattering.hitpoint);
+                        bsdf_init(bsdf,
+                                  &scene->materiallib,
+                                  scattering.incident_dir,
+                                  scattering.hitpoint);
 
                         bsdf_vec3_to_local(bsdf,
                                            scattering.direct_directions,
@@ -224,13 +162,14 @@ void render_tile(const scene_t*           scene,
                     else
                     {
                         vec4 emission;
-                        eval_background(
-                            &scene->materiallib, ray.direction, scattering.emission);
+                        eval_background(&scene->materiallib,
+                                        ray.direction,
+                                        scattering.emission);
                     }
-                } while (integral_next(&integral,&scattering,&ray));
-                
+                } while (integral_next(&integral, &scattering, &ray));
+
                 vec4 integral_color;
-                integral_get_color(&integral,&integral_color);
+                integral_get_color(&integral, &integral_color);
                 glm_vec4_add(integral_color, pixel_color, pixel_color);
             }
 
@@ -247,4 +186,36 @@ void render_tile(const scene_t*           scene,
     free(subpixel_samples);
     sampler_free(sampler);
     bsdf_free(bsdf);
+}*/
+
+void add_to_image(image_t* image, vec2 pixel, float* color, uint subpixels)
+{
+    uint2  idx = {pixel[0], pixel[1]};
+    float* img_pixel = image->data + idx[1] * image->width + idx[0];
+    for (int i = 0; i < image->channels; i++)
+        img_pixel[i] += color[i] / subpixels;
+}
+
+void render_tile(const scene_t*           scene,
+                 const render_settings_t* settings,
+                 bounds2d_t*              tile,
+                 image_t*                 output)
+{
+    sampler_state* sampler = sampler_init();
+    integrator_t*  integrator = integrator_init(
+        settings->max_depth, scene, sampler, settings->light_samples);
+    iterator2d pixel_iter = grid2d(*tile, settings->subpixels);
+
+    vec2 pixel;
+    vec4 color;
+    while (sample2d_next(&pixel_iter, sampler, pixel))
+    {
+        ray_t ray = generate_camera_ray(
+            &scene->camera, output->width, output->height, pixel);
+        integrate(integrator, ray, color);
+        add_to_image(output, pixel, color, settings->subpixels);
+    }
+
+    integrator_free(integrator);
+    sampler_free(sampler);
 }

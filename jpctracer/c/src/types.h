@@ -1,4 +1,5 @@
 #pragma once
+#include "jpc_api.h"
 #include <cglm/cglm.h>
 
 typedef struct
@@ -22,4 +23,8 @@ typedef struct
     vec4  color;
 } sampled_color_t;
 
-
+typedef struct
+{
+    vec2 min;
+    vec2 max;
+} bounds2d_t;
