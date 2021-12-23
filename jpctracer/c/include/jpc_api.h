@@ -151,7 +151,7 @@ typedef struct
     float  near_plane;
     float3 position;
     float3 direction;
-    float clip_end;
+    float  clip_end;
 } camera_t;
 
 typedef struct mat_bfr_s mat_bfr_t;
@@ -179,7 +179,6 @@ typedef struct
 {
     float4 color;
     float  strength;
-    float  falloff;
     float3 direction;
 } sun_light_t;
 

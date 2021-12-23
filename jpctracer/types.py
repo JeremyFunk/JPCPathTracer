@@ -8,7 +8,7 @@ class Ray(ct.Structure):
                 ("direction",ct.c_float * 3)]
 
 
-class Camera(ct.Structure):
+class camera_t(ct.Structure):
     _fields_ = [("near_plane",ct.c_float),
                 ("position",ct.c_float * 3),
                 ("direction",ct.c_float * 3),
@@ -110,4 +110,33 @@ class geometries_t(ct.Structure):
                 ("bvhtree_triangles",ct.c_void_p),
                 ("bvhtree_spheres",ct.c_void_p)]
 
+
+class point_light_t(ct.Structure):
+    _fields_ = [("color",ct.c_float*4),
+                ("strength",ct.c_float),
+                ("falloff",ct.c_float),
+                ("position",ct.c_float*3)]
+
+class sun_light_t(ct.Structure):
+    _fields_ = [("color",ct.c_float*4),
+                ("strength",ct.c_float),
+                ("direction",ct.c_float*3)]
+
+class lights_t(ct.Structure):
+    _fields_ = [("point_lights_count",ct.c_uint),
+                ("point_lights",ct.POINTER(point_light_t)),
+                ("sun_lights_count",ct.c_uint),
+                ("sun_lights",ct.POINTER(sun_light_t))]
+
+class render_settings_t(ct.Structure):
+    _fields_ = [("tile_size",ct.c_uint),
+                ("subpixels",ct.c_uint),
+                ("light_samples",ct.c_uint),
+                ("max_depth",ct.c_uint)]
+
+class scene_t(ct.Structure):
+    _fields_ = [("geometries",geometries_t),
+                ("materiallib",materiallib_t),
+                ("camera",camera_t),
+                ("lights",lights_t) ]
 

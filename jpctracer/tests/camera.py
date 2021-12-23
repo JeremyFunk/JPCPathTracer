@@ -1,14 +1,14 @@
 import numpy as np
 import ctypes as ct
-from jpctracer.types import ctracer,Ray,Camera
+from jpctracer.types import ctracer,Ray,camera_t
 import matplotlib.pyplot as plt
 print("hallo")
-ctracer.generate_camera_ray.argtypes = [ct.POINTER(Camera),ct.c_int,ct.c_int,
+ctracer.generate_camera_ray.argtypes = [ct.POINTER(camera_t),ct.c_int,ct.c_int,
                                         np.ctypeslib.ndpointer(ct.c_float),
                                         np.ctypeslib.ndpointer(ct.c_float)]
 ctracer.generate_camera_ray.restype = Ray
 
-cam = Camera()
+cam = camera_t()
 cam.near_plane = 1
 cam.clip_end = 1
 
