@@ -746,8 +746,8 @@ bool instances_intersect_program(int    inst_id,
     glm_mat4_mulv(inv_trans, temp_dir, direction);
 
     ray_t ray_local;
-    glm_vec3_copy(direction,ray_local.direction);
-    glm_vec3_copy(origin,ray_local.origin);
+    glm_vec3_copy(direction, ray_local.direction);
+    glm_vec3_copy(origin, ray_local.origin);
 
     float local_max_dist = glm_vec3_norm(direction);
     glm_vec3_scale(direction, 1. / local_max_dist, direction);
@@ -844,31 +844,39 @@ bool instances_intersect_program(int    inst_id,
 }
 
 bool ray_intersect(const geometries_t* geometries,
-                   ray_t                ray,
+                   ray_t               ray,
                    hit_point_t*        out_hitpoint)
 {
 #ifdef LOG_TRAVERSAL
     printf("ray intersect\n");
 #endif
 
-
     float distance = glm_vec3_norm(ray.direction);
 
     glm_vec3_scale(ray.direction, 1. / distance, ray.direction);
 
-    glm_vec3_copy(ray.origin,out_hitpoint->location);
+    glm_vec3_copy(ray.origin, out_hitpoint->location);
     struct inst_inter_param param = {
         .geom = geometries,
         .hit = out_hitpoint,
         .shadow_test = false,
     };
 
-    return traverse_bvh(geometries->bvhtree_instances,
-                        ray,
-                        &distance,
-                        instances_intersect_program,
-                        &param,
-                        false);
+    bool is_hit = traverse_bvh(geometries->bvhtree_instances,
+                               ray,
+                               &distance,
+                               instances_intersect_program,
+                               &param,
+                               false);
+
+    if (is_hit)
+    {
+        // offset location by normal
+        vec3 temp;
+        glm_vec3_scale(out_hitpoint->normal, 1e-5, temp);
+        glm_vec3_add(out_hitpoint->location, temp, out_hitpoint->location);
+    }
+    return is_hit;
 }
 
 uint64_t rays_shadow_test(const geometries_t* geometries,
@@ -876,7 +884,6 @@ uint64_t rays_shadow_test(const geometries_t* geometries,
                           vec3                origin,
                           uint                n)
 {
-    vec3 _dir;
 
     struct inst_inter_param param = {
         .geom = geometries,
@@ -885,17 +892,15 @@ uint64_t rays_shadow_test(const geometries_t* geometries,
     };
 
     ray_t ray;
-    glm_vec3_copy(origin,ray.origin);
+    glm_vec3_copy(origin, ray.origin);
 
-    assert(n <= 64);
+    assert(n < 64);
 
     uint64_t result = 0;
     for (int i = 0; i < n; i++)
     {
-
+        glm_vec3_copy(dirs[i], ray.direction);
         float distance = glm_vec3_norm(ray.direction);
-        glm_vec3_scale(_dir, 1. / distance, _dir);
-        glm_vec3_copy(ray.direction,_dir);
         glm_vec3_scale(ray.direction, 1. / distance, ray.direction);
         if (traverse_bvh(geometries->bvhtree_instances,
                          ray,

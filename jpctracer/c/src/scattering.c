@@ -6,6 +6,7 @@
 #include "lights.h"
 #include "sampler.h"
 #include "types.h"
+#include "utils.h"
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
@@ -25,15 +26,15 @@ void combine_rays(sampled_color_t* bsdf_colors,
                   vec4             result)
 {
     glmc_vec3_zero(result);
-    vec3 flipped_incident_dir;
 
     for (int i = 0; i < n; i++)
     {
         vec3 temp;
         glmc_vec3_mul(bsdf_colors[i].color, light_colors[i].color, temp);
-        glmc_vec3_scale(temp, light_colors->pdf, temp);
-        glmc_vec3_adds(
-            temp, cos_weight(scatterd_dirs[i], incident_dir), result);
+        float w = cos_weight(scatterd_dirs[i], incident_dir);
+        glmc_vec3_scale(temp, w / light_colors->pdf, temp);
+
+        glmc_vec3_add(temp, result, result);
     }
 }
 
@@ -60,7 +61,7 @@ ray_evaluator_t* ray_evaluator_init(const scene_t* scene,
                                     uint           indirect_count)
 {
 
-    assert(direct_count > 64);
+    assert(direct_count < 64);
     uint direct_n_sqrt = sqrt(direct_count);
     uint indirect_n_sqrt = sqrt(indirect_count);
 
@@ -105,10 +106,12 @@ void eval_background(const materiallib_t* matlib,
     out_color[3] = 1;
 }
 
+// Assumes that result has alloced enougth memory for the indirect rays
 void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
 {
     hit_point_t    hitpoint;
     const scene_t* scene = eval->scene;
+
     if (ray_intersect(&scene->geometries, incident_ray, &hitpoint))
     {
         sampled_color_t* direct_colors = eval->colors + eval->indirect_count;
@@ -145,6 +148,8 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
             }
         }
 
+        result->indirect_count = eval->indirect_count;
+
         bsdf_init(
             eval->bsdf, &scene->materiallib, incident_ray.direction, hitpoint);
 
@@ -177,6 +182,9 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
             glm_vec3_copy(hitpoint.location, result->indirect_rays[i].origin);
             result->indirect_color[i] = indirect_colors[i];
         }
+        // printf("Hit: direct color:");
+        // printf_arrayf(4,result->direct_color);
+        // printf("\n");
     }
     else
     {

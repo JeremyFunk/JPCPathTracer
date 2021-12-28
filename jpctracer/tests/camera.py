@@ -40,5 +40,5 @@ img = img * 0.5 + 0.5
 
 plt.imshow(img)
 
-
-plt.show()
+plt.savefig("test2.png")
+#plt.show()

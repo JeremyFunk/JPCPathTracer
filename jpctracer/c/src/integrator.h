@@ -1,4 +1,6 @@
+
 #pragma once
+
 #include "cglm/types.h"
 #include "sampler.h"
 #include "types.h"

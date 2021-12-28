@@ -1,6 +1,6 @@
 import ctypes as ct
 import numpy as np
-ctracer = ct.PyDLL("build/jpctracer/c/libtracer.so")
+ctracer = ct.PyDLL("build/linux-debug/jpctracer/c/libtracer.so")
 
 
 class Ray(ct.Structure):

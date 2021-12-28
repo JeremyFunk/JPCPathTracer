@@ -7,7 +7,7 @@
 
 typedef struct
 {
-    float4 color;
+    vec4 color;
 } diffuse_params;
 
 void diff_eval(vec3 incident_dir, vec3* scattered_dirs,uint n, sampled_color_t* out_colors, vec4* emission, void* params)
@@ -37,6 +37,10 @@ bsdfnode_t diffuse(bsdfcontext_t* ctx, float4 color)
 {
 
     diffuse_params* param = stack_alloc(&ctx->params_allocator, sizeof(diffuse_params), _Alignof(diffuse_params));
-    glm_vec4_copy(color, param->color);
+    for(int i = 0; i<4;i++)
+    {
+        param->color[i] = color[i];
+    }
+    //glm_vec4_copy(color, param->color);
     return bsdfshaders_add(&ctx->shaders, diff_eval, diff_sample, param);
 }

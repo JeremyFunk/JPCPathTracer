@@ -59,8 +59,8 @@ class Lights:
     def _get_ctype(self) -> lights_t:
         point_lights_n = len(self._pointlights)
         sun_light_n = len(self._sunlights)
-        self._c_pointlights = point_light_t * point_lights_n
-        self._c_sunlights = sun_light_t * sun_light_n
+        self._c_pointlights = (point_light_t * point_lights_n)()
+        self._c_sunlights = (sun_light_t * sun_light_n)()
         for i in range(point_lights_n):
             self._c_pointlights[i] = self._pointlights[i]._get_ctype()
         for i in range(sun_light_n):
@@ -68,7 +68,7 @@ class Lights:
         
         result = lights_t()
         result.point_lights_count = point_lights_n
-        result.point_lights = self._c_sunlights
+        result.point_lights = self._c_pointlights
         result.sun_lights_count = sun_light_n
         result.sun_lights = self._c_sunlights
         return result

@@ -45,7 +45,7 @@ class Renderer:
         for i in range(3):
             self._c_camera.position[i] = position[i]
             self._c_camera.direction[i] = direction[i]
-        self._c_camera.clip_end
+        self._c_camera.clip_end = clip_end
         
 
     def settings(self,tile_size=16,subpixels=16,light_samples=32,max_depth=5):

@@ -9,6 +9,7 @@
 #include "cglm/vec3.h"
 #include "cglm/vec4.h"
 #include "lights.h"
+#include "log/log.h"
 #include "sampler.h"
 #include "types.h"
 #include <assert.h>
@@ -16,6 +17,7 @@
 #include <jpc_api.h>
 #include <math.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "integrator.h"
@@ -26,12 +28,20 @@ void render(const scene_t*          scene,
             const render_settings_t settings,
             image_t*                outputs)
 {
+    log_info("Start rendering");
+    log_debug("test\n");
+
+    for(int i=0;i<outputs->channels*outputs->width*outputs->height;i++)
+    {
+        outputs->data[i] = 0;
+    }
+
     uint width = outputs->width;
     uint height = outputs->height;
     uint tile_s = settings.tile_size;
 
-    uint tiles_count_x = ceil((float)width / (float)settings.subpixels);
-    uint tiles_count_y = ceil((float)height / (float)settings.subpixels);
+    uint tiles_count_x = ceil((float)width / (float)settings.tile_size);
+    uint tiles_count_y = ceil((float)height / (float)settings.tile_size);
 
     for (int y = 0; y < tiles_count_y; y++)
     {
@@ -43,10 +53,11 @@ void render(const scene_t*          scene,
                        MIN((x + 1) * tile_s, width),
                        MIN((y + 1) * tile_s, height),},
                 };
-
+            log_info("next tile");
             render_tile(scene, &settings, &tile, outputs);
         }
     }
+    log_info("End rendering");
 }
 /*
 void render_tile2(const scene_t*           scene,
@@ -191,7 +202,9 @@ void render_tile2(const scene_t*           scene,
 void add_to_image(image_t* image, vec2 pixel, float* color, uint subpixels)
 {
     uint2  idx = {pixel[0], pixel[1]};
-    float* img_pixel = image->data + idx[1] * image->width + idx[0];
+    uint c = image->channels;
+    float* img_pixel = image->data + idx[1] * image->width * c + idx[0] * c;
+
     for (int i = 0; i < image->channels; i++)
         img_pixel[i] += color[i] / subpixels;
 }

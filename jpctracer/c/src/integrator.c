@@ -61,8 +61,12 @@ void integrate(integrator_t* integrator, ray_t ray, vec4 result)
     for (int depth = 0; depth < integrator->max_depth; depth++)
     {
         scatter(integrator->evaluator, ray, &scattering);
+
         // path_color_(i+1) += bsdf_color_i * E_(i+1)
         glm_vec4_muladd(bsdf_color, scattering.direct_color, path_color);
+
+        if(scattering.indirect_count==0)
+            break;
 
         // bsdf_color_(i+1) *= f_(i+1) * w
         glm_vec4_mul(bsdf_color, indirect_color.color, bsdf_color);
@@ -71,4 +75,49 @@ void integrate(integrator_t* integrator, ray_t ray, vec4 result)
     }
 
     glm_vec4_copy(path_color, result);
+}
+
+
+void integrate2(integrator_t* integrator, ray_t ray, vec4 result)
+{
+    // update scheme
+    // L_i = E_i + f_i L_{i+1}
+    // L_0 = E_0 + f_0 (E_1 + f_1 (E_2 + f_2 ))
+    // path_color_0 = E_0
+    // bsdf_color_0 = f_0
+    // path_color_1 = E_0 + f_0 * E_1
+    // bsdf_color_1 = f_0 * f_1
+    // path_color_2 = E_0 + f_0 * E_1 + f_0*f_1*E_2
+    //
+    // path_color_(i+1) += bsdf_color_i * E_(i+1)
+    // bsdf_color_(i+1) *= f_(i+1)
+
+    vec4            path_color;
+    vec4            bsdf_color;
+    sampled_color_t indirect_color;
+    ray_t           indirect_ray;
+
+    scattering_t scattering = {
+        .direct_color = {0, 0, 0, 0},
+        .indirect_color = &indirect_color,
+        .indirect_count = 1,
+        .indirect_rays = &indirect_ray,
+    };
+
+    glm_vec4_zero(path_color);
+    glm_vec4_one(bsdf_color);
+
+    scatter(integrator->evaluator, ray, &scattering);
+
+    if(scattering.indirect_count==0)
+    {
+        vec4 color = {0,0,1,1};
+        glm_vec4_copy(color,result);
+    }
+    else{
+
+        vec4 color = {0,1,0,1};
+        glm_vec4_copy(color,result);
+    }
+
 }

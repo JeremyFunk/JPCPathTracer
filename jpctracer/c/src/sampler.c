@@ -1,4 +1,6 @@
 #include "sampler.h"
+#include "iterator.h"
+#include "log/log.h"
 #include "pcg_basic/pcg_basic.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,14 +46,22 @@ void sample2d(sampler_state* state, uint2 count, vec2* out)
 
 bool sample2d_next(iterator2d* iter, sampler_state* state, vec2 rand)
 {
-
-    for (int i = 0; i < 2; i++)
+    if (iterator_next(iter))
     {
-        float r = next_rand(state);
-        float idx = iter->current_idx[0];
-        float r_mapped = (r + idx) / iter->count[i];
-        float r_range = (r_mapped + iter->range.min[i]) / iter->range.max[i];
-        rand[i] = r_range;
+        for (int i = 0; i < 2; i++)
+        {
+            float r = next_rand(state);
+            float idx = iter->current_idx[i];
+            float r_mapped = (r + idx) / iter->count[i];
+            float r_range = r_mapped * (iter->range.max[i] - iter->range.min[i])
+                            + iter->range.min[i];
+            rand[i] = r_range;
+        }
+        /*
+        log_info("2d rand: %f,%f\n",rand[0],rand[1]);
+        log_info("x: %d, y: %d", iter->current_idx[0], iter->current_idx[1]);
+        */
+        return true;
     }
-    return iterator_next(iter);
+    return false;
 }
