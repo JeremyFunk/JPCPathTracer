@@ -6,6 +6,8 @@ typedef struct
 {
     vec3 origin;
     vec3 direction;
+    // max distance of intersection
+    float clip_end;
 } ray_t;
 
 typedef vec4 spectrum;
@@ -19,8 +21,11 @@ typedef struct
 } hit_point_t;
 typedef struct
 {
-    float pdf;
-    vec4  color;
+    vec4 color;
+    union {
+        float pdf;
+        vec4  _; //alligment
+    };
 } sampled_color_t;
 
 typedef struct

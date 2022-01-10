@@ -20,9 +20,9 @@ ray_t generate_camera_ray(const camera_t* camera,
     ray_t result = {
         .direction = {dir_x, -dir_y, -camera->near_plane},
         .origin = {0, 0, 0},
+        .clip_end = camera->clip_end,
     };
     glm_vec3_normalize(result.direction);
-    glm_vec3_scale(result.direction, camera->clip_end, result.direction);
 
     return result;
 }

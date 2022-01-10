@@ -65,6 +65,11 @@ void integrate(integrator_t* integrator, ray_t ray, vec4 result)
         // path_color_(i+1) += bsdf_color_i * E_(i+1)
         glm_vec4_muladd(bsdf_color, scattering.direct_color, path_color);
 
+        if(path_color[1]>0.6)
+        {
+       //     printf("Warn: lol2\n");
+        }
+
         if(scattering.indirect_count==0)
             break;
 

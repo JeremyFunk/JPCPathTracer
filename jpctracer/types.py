@@ -5,7 +5,8 @@ ctracer = ct.PyDLL("build/linux-debug/jpctracer/c/libtracer.so")
 
 class Ray(ct.Structure):
     _fields_ = [("origin",ct.c_float * 3),
-                ("direction",ct.c_float * 3)]
+                ("direction",ct.c_float * 3),
+                ("clip_end",ct.c_float)]
 
 
 class camera_t(ct.Structure):

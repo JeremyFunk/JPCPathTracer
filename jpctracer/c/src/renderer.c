@@ -221,12 +221,13 @@ void render_tile(const scene_t*           scene,
 
     vec2 pixel;
     vec4 color;
+    float subpixel2 = settings->subpixels * settings->subpixels;
     while (sample2d_next(&pixel_iter, sampler, pixel))
     {
         ray_t ray = generate_camera_ray(
             &scene->camera, output->width, output->height, pixel);
         integrate(integrator, ray, color);
-        add_to_image(output, pixel, color, settings->subpixels);
+        add_to_image(output, pixel, color, subpixel2);
     }
 
     integrator_free(integrator);

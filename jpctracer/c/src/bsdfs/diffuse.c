@@ -15,6 +15,7 @@ void diff_eval(vec3 incident_dir, vec3* scattered_dirs,uint n, sampled_color_t* 
     diffuse_params* p = params;
     float4 luminance;
     glm_vec4_scale(p->color, M_PI, luminance);
+    luminance[3] = 1;
     for (int i = 0; i < n; i++)
     {
         float pdf = same_hemisphere_nspace(incident_dir, scattered_dirs[i])
@@ -28,7 +29,7 @@ void diff_eval(vec3 incident_dir, vec3* scattered_dirs,uint n, sampled_color_t* 
 
 void diff_sample(vec3 incident_dir, vec2 rand_p, vec3* out_scattered_dir, void* params)
 {
-    cosinus_sample_hemisphere(rand_p, out_scattered_dir);
+    cosinus_sample_hemisphere(rand_p, *out_scattered_dir);
     if (!same_hemisphere_nspace(*out_scattered_dir, incident_dir))
         glm_vec3_negate(*out_scattered_dir);
 }

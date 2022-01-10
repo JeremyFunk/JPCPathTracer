@@ -50,10 +50,10 @@ typedef struct
 
 } bsdf_limits_t;
 
-const static bsdf_limits_t bsdf_default_limits = {
-    .bsdf_mixnodes_max = 100,
-    .bsdf_params_max = 10000,
+const static bsdf_limits_t bsdf_default_limits={
     .bsdf_shaders_max = 100,
+    .bsdf_params_max = 10000,
+    .bsdf_mixnodes_max = 100,
     .bsdf_eval_max = 100,
 };
 

@@ -15,7 +15,9 @@ float cos_weight(vec3 a, vec3 b)
 {
     float w = glmc_vec3_dot(a, b);
     // flip direction of a
-    return w * -1;
+    //w*=-1;
+
+    return w>0 ? w : 0;
 }
 
 void combine_rays(sampled_color_t* bsdf_colors,
@@ -25,16 +27,26 @@ void combine_rays(sampled_color_t* bsdf_colors,
                   vec3             incident_dir,
                   vec4             result)
 {
-    glmc_vec3_zero(result);
+    glm_vec4_zero(result);
 
     for (int i = 0; i < n; i++)
     {
-        vec3 temp;
-        glmc_vec3_mul(bsdf_colors[i].color, light_colors[i].color, temp);
+        vec4 temp;
+        glm_vec4_mul(bsdf_colors[i].color, light_colors[i].color, temp);
         float w = cos_weight(scatterd_dirs[i], incident_dir);
-        glmc_vec3_scale(temp, w / light_colors->pdf, temp);
+        glm_vec4_scale(temp, w / light_colors->pdf, temp);
 
-        glmc_vec3_add(temp, result, result);
+        glm_vec4_add(temp, result, result);
+        if(result[1]>0.1)
+        {
+            //printf("test\n");
+        }
+        for (int j = 0; j < 3; j++)
+        {
+//            result[j] = w;
+            //result[j] = scatterd_dirs[i][j];
+            // result[j] = incident_dir[j];
+        }
     }
 }
 
@@ -47,6 +59,7 @@ typedef struct ray_evaluator_s
     uint             indirect_count;
     sampled_color_t* colors;
     sampled_color_t* light_colors;
+    float*           direct_clip_ends;
     vec3*            directions;
 
     vec2* samples;
@@ -77,6 +90,8 @@ ray_evaluator_t* ray_evaluator_init(const scene_t* scene,
     result->indirect_count = indirect_count;
     result->colors = malloc(all_count * sizeof(*result->colors));
     result->light_colors = malloc(direct_count * sizeof(*result->light_colors));
+    result->direct_clip_ends
+        = malloc(direct_count * sizeof(*result->direct_clip_ends));
     result->directions = malloc(all_count * sizeof(*result->directions));
     result->samples = malloc(all_count * sizeof(*result->samples));
     result->direct_samples[0] = direct_n_sqrt;
@@ -93,6 +108,7 @@ void ray_evaluator_free(ray_evaluator_t* evaluator)
     free(evaluator->colors);
     free(evaluator->light_colors);
     free(evaluator->directions);
+    free(evaluator->direct_clip_ends);
     free(evaluator->samples);
 }
 
@@ -100,10 +116,8 @@ void eval_background(const materiallib_t* matlib,
                      ray_t                incident_ray,
                      vec4                 out_color)
 {
-    out_color[0] = 0.01;
-    out_color[1] = 0.2;
-    out_color[2] = 0.5;
-    out_color[3] = 1;
+    vec4 color = {0, 0, 0,1};
+    glm_vec4_copy(color, out_color);
 }
 
 // Assumes that result has alloced enougth memory for the indirect rays
@@ -112,7 +126,7 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
     hit_point_t    hitpoint;
     const scene_t* scene = eval->scene;
 
-    if (ray_intersect(&scene->geometries, incident_ray, &hitpoint))
+    if (ray_intersect(&scene->geometries, &incident_ray, &hitpoint))
     {
         sampled_color_t* direct_colors = eval->colors + eval->indirect_count;
         sampled_color_t* indirect_colors = eval->colors;
@@ -131,24 +145,29 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
                                          eval->indirect_count,
                                          hitpoint,
                                          direct_dirs,
+                                         eval->direct_clip_ends,
                                          eval->light_colors);
 
-        uint64_t shadow_mask = rays_shadow_test(
-            &scene->geometries, direct_dirs, hitpoint.location, direct_count);
+        uint64_t shadow_mask = rays_shadow_test(&scene->geometries,
+                                                direct_dirs,
+                                                eval->direct_clip_ends,
+                                                hitpoint.location,
+                                                direct_count);
 
         for (int i = 0; i < direct_count; i++)
         {
-            glm_vec3_normalize(direct_dirs[i]);
             if (shadow_mask & (1 << i))
             {
                 eval->light_colors[i] = (sampled_color_t){
-                    .color = {0.f, 0.f, 0.f},
-                    .pdf = 0,
+                    .color = {0.f, 0.f, 0.f, 1.f},
+                    .pdf = 1,
                 };
             }
         }
 
         result->indirect_count = eval->indirect_count;
+
+        int all_count = eval->indirect_count + direct_count;
 
         bsdf_init(
             eval->bsdf, &scene->materiallib, incident_ray.direction, hitpoint);
@@ -160,12 +179,12 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
         vec4 emission;
         bsdf_eval(eval->bsdf,
                   eval->directions,
-                  eval->indirect_count + direct_count,
+                  all_count,
                   eval->colors,
                   &emission);
 
-        bsdf_vec3_to_world(
-            eval->bsdf, eval->directions, eval->indirect_count + direct_count);
+
+        bsdf_vec3_to_world(eval->bsdf, eval->directions, all_count);
 
         combine_rays(direct_colors,
                      eval->light_colors,
@@ -173,14 +192,23 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
                      direct_count,
                      incident_ray.direction,
                      result->direct_color);
-
+        //glm_vec4_copy(hitpoint.location,result->direct_color);
+        if(result->direct_color[1]>0.6)
+        {
+//            printf("lol\n");
+        }
         result->indirect_count = eval->indirect_count;
 
         for (int i = 0; i < eval->indirect_count; i++)
         {
             glm_vec3_copy(indirect_dirs[i], result->indirect_rays[i].direction);
             glm_vec3_copy(hitpoint.location, result->indirect_rays[i].origin);
+            result->indirect_rays[i].clip_end = scene->camera.clip_end;
             result->indirect_color[i] = indirect_colors[i];
+        }
+        if (glm_vec3_norm(result->direct_color) > 0.1)
+        {
+            //            printf("Warn: lol\n");
         }
         // printf("Hit: direct color:");
         // printf_arrayf(4,result->direct_color);

@@ -111,9 +111,10 @@ class Material(object):
         type_size = size_of_uniform(prop.type)
 
         if(type(value) in [list,tuple]):
-            value = np.array(value)
+            value = np.array(value,dtype=np.float32)
 
         if(type(value) == np.ndarray):
+            value = value.astype(np.float32)
 
             if(not len(value) == size_of_uniform(prop.type)):
                 raise ValueError(str(value) + " must be of length " + str(type_size))
@@ -155,6 +156,7 @@ class materiallib:
         for prop in material._properties.values():
             prop_i = prop.id
             if(type(prop.value) == np.ndarray):
+                print("prop val: ",prop.value)
                 ctracer.material_set_uniform(c_material,c_shader,prop_i,prop.value)
             elif(type(prop.value) == Texture):
 

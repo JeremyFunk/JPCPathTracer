@@ -1,11 +1,18 @@
+extern "C"
+{
 #include "bsdf.h"
 #include "allocators.h"
+#include "cglm/cglm.h"
 #include "cglm/mat4.h"
 #include "cglm/vec3.h"
+#include "cglm/vec4.h"
 #include "jpc_api.h"
 #include "sampling.h"
 #include "shaders.h"
+#include "types.h"
 #include <assert.h>
+}
+#include <algorithm>
 
 bsdfnode_t bsdfshaders_add(bsdfshaders_t* shaders,
                            eval_f         eval,
@@ -19,7 +26,7 @@ bsdfnode_t bsdfshaders_add(bsdfshaders_t* shaders,
     shaders->params[id] = param;
     shaders->count++;
     assert(shaders->count <= shaders->count_max);
-    return (bsdfnode_t){id, true};
+    return bsdfnode_t{id, true};
 }
 
 void bsdfshaders_weights(bsdfmixnode_t*     nodes,
@@ -33,16 +40,18 @@ void bsdfshaders_weights(bsdfmixnode_t*     nodes,
         weights[0] = 1;
         return;
     }
-    for (int i = 0; i < weights_n; i++)
-        weights[i] = 0;
+
     size_t used_mem = allocator->used;
-    float* nodes_weights
-        = stack_alloc(allocator, sizeof(float) * nodes_n, _Alignof(float));
-    for (int i = 0; i < nodes_n; i++)
-        nodes_weights[i] = 0;
+    float* nodes_weights = (float*)stack_alloc(
+        allocator, sizeof(float) * nodes_n, alignof(float));
+
+    std::fill_n(weights, weights_n, 0);
+    std::fill_n(nodes_weights, nodes_n, 0);
 
     nodes_weights[nodes_n - 1] = 1;
 
+    // precondition:
+    //  for all i : nodes[i].left.id < i and nodes[i].right.id < i
     for (int i = nodes_n - 1; i >= 0; i--)
     {
         float left_factor = nodes[i].mix_factor * nodes_weights[i];
@@ -78,30 +87,28 @@ struct bsdf_s
 
 bsdfcontext_t* bsdf_alloc(bsdf_limits_t limits)
 {
-    bsdfcontext_t* ctx = malloc(sizeof(bsdfcontext_t));
-    *ctx = (bsdfcontext_t) {
-        .mix_nodes = malloc(sizeof(bsdfmixnode_t)*limits.bsdf_mixnodes_max),
+    return new bsdfcontext_t{
+        .shaders = bsdfshaders_t
+        {
+            .count = 0,
+            .count_max = limits.bsdf_shaders_max,
+            .evals = new eval_f[limits.bsdf_shaders_max],
+            .samplers = new sample_f[limits.bsdf_shaders_max],
+            .params = new void*[limits.bsdf_shaders_max],
+            .weights = new float[limits.bsdf_shaders_max],
+        },
         .mix_nodes_count = 0,
         .mix_nodes_count_max = limits.bsdf_mixnodes_max,
-        .params_allocator = (stack_allocator_t)
+        .mix_nodes = new bsdfmixnode_t[limits.bsdf_mixnodes_max],
+        .params_allocator = stack_allocator_t
         {
             .memory = malloc(limits.bsdf_params_max),
-            .size = limits.bsdf_params_max,
             .used = 0,
+            .size = limits.bsdf_params_max,
         },
-        .shaders = (bsdfshaders_t)
-        {
-            .count = -1,
-            .count_max = limits.bsdf_shaders_max,
-            .params = malloc(sizeof(void*)*limits.bsdf_shaders_max),
-            .evals = malloc(sizeof(eval_f)*limits.bsdf_shaders_max),
-            .samplers = malloc(sizeof(sample_f)*limits.bsdf_shaders_max),
-            .weights = malloc(sizeof(float)*limits.bsdf_shaders_max),
-        },
-        .temp_eval_color = malloc(sizeof(sampled_color_t)*limits.bsdf_eval_max),
+        .temp_eval_color = new sampled_color_t[limits.bsdf_eval_max],
         .eval_color_max = limits.bsdf_eval_max,
    };
-    return ctx;
 }
 void bsdf_free(bsdfcontext_t* bsdf)
 {
@@ -139,9 +146,35 @@ void normal_transformation(vec3 normal, mat4 dst)
     glm_vec3_normalize(basis_2);
 
     glm_mat4_identity(dst);
-    glm_vec4_copy(basis_1, dst[0]);
-    glm_vec4_copy(basis_2, dst[1]);
+    glm_vec4_copy3(basis_1, dst[0]);
+    glm_vec4_copy3(basis_2, dst[1]);
     glm_vec4_copy3(normal, dst[2]);
+
+    vec4 test = {0, 0, 1, 0};
+
+    vec4 normal2;
+    glm_mat4_mulv(dst, test, normal2);
+
+    vec4 diff = {0, 0, 0, 0};
+    glm_vec3_sub(normal, normal2, diff);
+
+    assert(glm_vec4_norm(diff) < 0.001);
+
+    glm_mat4_transpose(dst);
+
+    // Debug
+    mat4 dst_inv, actual, expected;
+    glm_mat4_transpose_to(dst, dst_inv);
+
+    glm_mat4_mul(dst, dst_inv, actual);
+
+    glm_mat4_identity(expected);
+
+    for (int i = 0; i < 4; i++)
+    {
+        glm_vec4_sub(actual[i], expected[i], diff);
+        assert(glm_vec4_norm(diff) < 0.0001);
+    }
 }
 
 void bsdf_init(bsdfcontext_t*       ctx,
@@ -151,7 +184,7 @@ void bsdf_init(bsdfcontext_t*       ctx,
 {
 
     ctx->hit = hit;
-    ctx->shaders.count=0;  
+    ctx->shaders.count = 0;
     ctx->mix_nodes_count = 0;
     ctx->params_allocator.used = 0;
 
@@ -182,24 +215,81 @@ void bsdf_sample(bsdfcontext_t* ctx, vec2 rand_p, vec3* out_scattered)
     ctx->shaders.samplers[i](ctx->incident_dir, rand_p, out_scattered, param);
 }
 
+sampled_color_t operator*(float s, sampled_color_t a)
+{
+    sampled_color_t result;
+    result.pdf = a.pdf * s;
+    glm_vec4_scale(a.color, s, result.color);
+    return result;
+}
+
+sampled_color_t operator*(sampled_color_t a, float s)
+{
+    return operator*(s, a);
+}
+
+sampled_color_t operator+(sampled_color_t a, sampled_color_t b)
+{
+    sampled_color_t result;
+    result.pdf = a.pdf + b.pdf;
+    glm_vec4_add(a.color, b.color, result.color);
+    return result;
+}
+
+void operator+=(sampled_color_t& a, const sampled_color_t& b)
+{
+    a = a + b;
+}
+
+
+//out of size m
+//mat of size n
+//vec of size m
+template <class T, class Iter2D,class Iter1D, class OutputIT, class Func>
+mat_mul_vec_n_m(Iter2D mat
+                uint      n,
+                Iter1D vec,
+                uint      m,
+                Func      get_row,
+                T         zero,
+                OutputIt  out)
+{
+    std::fill_m(out,m,zero);
+    auto column = mat;
+
+    for(uint i = 0; i<n;i++)
+    {
+        const auto& row = *column;
+        for(uint j=0;j<m;j++)
+        {
+           *out += *vec * *row;
+           row++;
+           out++;
+        }
+        column++;
+        vec++;
+    }
+}
+
 void bsdf_eval(bsdfcontext_t*   ctx,
                vec3*            scattered_dir,
                uint             n,
                sampled_color_t* out_color,
                vec4*            out_emission)
 {
-
+    // Thits is a matrix vector multiplication algorithm
     assert(n <= ctx->eval_color_max);
 
-    for (int j = 0; j < n; j++)
-    {
-        out_color[j].color[0] = 0;
-        out_color[j].color[1] = 0;
-        out_color[j].color[2] = 0;
-        out_color[j].color[3] = 0;
-        out_color[j].pdf = 0;
-    }
-    for (int i = 0; i < ctx->shaders.count; i++)
+    std::fill_n(out_color,
+                n,
+                sampled_color_t{
+                    .color = {0, 0, 0, 0},
+                    .pdf = 0,
+                });
+
+    // E * w = out
+    // E in R^m
+    for (uint i = 0; i < ctx->shaders.count; i++)
     {
         ctx->shaders.evals[i](ctx->incident_dir,
                               scattered_dir,
@@ -208,19 +298,17 @@ void bsdf_eval(bsdfcontext_t*   ctx,
                               out_emission,
                               ctx->shaders.params[i]);
 
-        for (int j = 0; j < n; j++)
+        float weight = ctx->shaders.weights[i];
+        for (uint j = 0; j < n; j++)
         {
-            float weight = ctx->shaders.weights[i];
-            glm_vec4_adds(
-                ctx->temp_eval_color[j].color, weight, out_color[j].color);
-            out_color[j].pdf += weight * ctx->temp_eval_color[j].pdf;
+            out_color[j] += weight * ctx->temp_eval_color[j];
         }
     }
 }
 
 void bsdf_vec3_to_local(bsdfcontext_t* bsdf, vec3* directions, uint n)
 {
-    for (int i = 0; i < n; i++)
+    for (uint i = 0; i < n; i++)
     {
         vec3 temp;
         glm_mat4_mulv3(bsdf->world_to_local, directions[i], 0, temp);
@@ -230,8 +318,8 @@ void bsdf_vec3_to_local(bsdfcontext_t* bsdf, vec3* directions, uint n)
 void bsdf_vec3_to_world(bsdfcontext_t* bsdf, vec3* directions, uint n)
 {
     mat4 local_to_world;
-    glm_mat4_inv(bsdf->world_to_local, local_to_world);
-    for (int i = 0; i < n; i++)
+    glm_mat4_transpose_to(bsdf->world_to_local, local_to_world);
+    for (uint i = 0; i < n; i++)
     {
         vec3 temp;
         glm_mat4_mulv3(local_to_world, directions[i], 0, temp);

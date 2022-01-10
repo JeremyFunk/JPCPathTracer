@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(jcp_pathtracer LANGUAGES C)
+project(jcp_pathtracer LANGUAGES C CXX)
 set(CMAKE_C_STANDARD 11)
-#set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 enable_testing()
 
@@ -41,7 +42,7 @@ set(AUTOSRC
 "src/iterator.h"
 "src/allocators.h"
 "src/sampler.h"
-"src/bsdf.c"
+"src/bsdf.cpp"
 "src/shaders.c"
 "src/renderer.c"
 "src/integrator.c"

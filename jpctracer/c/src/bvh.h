@@ -2,10 +2,10 @@
 #include "cglm/call/vec3.h"
 #include <jpc_api.h>
 
+#include "bsdf.h"
 #include "cglm/cglm.h"
 #include "jpc_api.h"
 #include "types.h"
-#include "bsdf.h"
 
 typedef struct
 {
@@ -29,21 +29,27 @@ typedef struct bvh_tree_s
 
 } bvh_tree_t;
 
-
 void bounds3d_t_merge(bounds3d_t* bounds, uint n, bounds3d_t* dst);
 // tree.shape_bounds should always be set
 void lbvh_build(bvh_tree_t tree, vec3* centers, uint* permutation);
 
-
-
 // updates the hitpoint
-bool ray_intersect(const geometries_t* geometries, ray_t ray, hit_point_t* out_hitpoint);
-typedef bool(*intersect_f)(int id, ray_t ray, float* distance, void* param);
+bool ray_intersect(const geometries_t* geometries,
+                   ray_t*               ray,
+                   hit_point_t*        out_hitpoint);
+typedef bool (*intersect_f)(int id, ray_t* ray, void* param);
 
-bool traverse_bvh(const bvh_tree_t* tree, ray_t ray, float* distance,  intersect_f intersect, void* param,bool shadow_test);
+// updates the clip_end of the ray
+bool traverse_bvh(const bvh_tree_t* tree,
+                  ray_t*            ray,
+                  intersect_f       intersect,
+                  void*             param,
+                  bool              shadow_test);
 
 #define ERROR_THICKNESS 1e-6
 
-
-uint64_t rays_shadow_test(const geometries_t* geometries, vec3* dirs, vec3 origin, uint n );
-
+uint64_t rays_shadow_test(const geometries_t* geometries,
+                          vec3*               dirs,
+                          float*              distances,
+                          vec3                origin,
+                          uint                n);

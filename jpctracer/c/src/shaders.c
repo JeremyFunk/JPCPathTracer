@@ -145,7 +145,6 @@ void material_set_uniform(material_t* mat, const shader_t* shader,
                           uint uniform_id, float* value)
 {
     char* uniform = mat->params;
-
     for (int i = 0; i < uniform_id; i++)
     {
         uniform += sizeof_uniform(shader->uniforms_layout[i].type);
