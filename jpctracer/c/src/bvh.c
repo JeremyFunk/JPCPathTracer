@@ -700,7 +700,8 @@ void sphere_fill_hitpoint(hit_point_t*              hit,
     hit->uvs[0] = hit->normal[0];
     hit->uvs[1] = hit->normal[1];
 
-    hit->material_id = p->spheres->material_slot_id[p->id];
+    uint slot_id =  p->spheres->material_slot_id[p->id];
+    hit->material_id = mat_slots_bindings[slot_id];
 }
 
 struct inst_inter_param

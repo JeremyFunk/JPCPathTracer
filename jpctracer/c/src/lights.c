@@ -3,6 +3,7 @@
 #include "cglm/vec3.h"
 #include "jpc_api.h"
 #include "sampling.h"
+#include "utils.h"
 
 int sample_point_lights(point_light_t*   lights,
                         uint             lights_n,
@@ -15,7 +16,9 @@ int sample_point_lights(point_light_t*   lights,
 {
     for (int i = 0; i < samples_n; i++)
     {
-        int           light_i = rand_points[i][0] * samples_n;
+        int light_i = rand_points[i][0] * lights_n;
+        light_i = MIN(light_i, (lights_n - 1));
+        light_i = MAX(light_i, 0);
         point_light_t light = lights[light_i];
 
         glm_vec3_sub(light.position, hitpoint.location, out_directions[i]);

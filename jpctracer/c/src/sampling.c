@@ -1,5 +1,4 @@
-#include"sampling.h"
-
+#include "sampling.h"
 
 void concentric_sample_disk(vec2 random_point, vec2 out)
 {
@@ -44,13 +43,18 @@ void cosinus_sample_hemisphere(vec2 random_point, vec3 out)
 int sample_discrete(float* pdfs, int n, float* rand_p)
 {
     float sum = 0;
-    int i = 0;
+    int   i = 0;
     for (i = 0; i < (n - 1) && *rand_p > sum + pdfs[i]; i++)
     {
         sum += pdfs[i];
     }
     *rand_p = (*rand_p - sum) / pdfs[i];
-    assert(*rand_p <= 1.);
-    assert(*rand_p >= 0.);
+    if (*rand_p > 1. + 1e-6 || *rand_p < -1e-6)
+    {
+        printf("rand_p: %f sum: %f pdf: %f\n", *rand_p, sum, pdfs[i]);
+    }
+    assert(*rand_p <= 1. + 1e-6);
+
+    assert(*rand_p >= -1e-6);
     return i;
 }

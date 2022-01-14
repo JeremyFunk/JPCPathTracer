@@ -155,6 +155,8 @@ class materiallib:
         c_shader = self._c_shaders[idx]
         for prop in material._properties.values():
             prop_i = prop.id
+            print("prop_i: ",prop_i)
+            print("idx: ",idx)
             if(type(prop.value) == np.ndarray):
                 print("prop val: ",prop.value)
                 ctracer.material_set_uniform(c_material,c_shader,prop_i,prop.value)

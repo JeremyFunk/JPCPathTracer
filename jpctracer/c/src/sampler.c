@@ -2,6 +2,7 @@
 #include "iterator.h"
 #include "log/log.h"
 #include "pcg_basic/pcg_basic.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -32,16 +33,15 @@ float next_rand(sampler_state* state)
 void sample2d(sampler_state* state, uint2 count, vec2* out)
 {
     iterator2d iter
-        = {.count = {count[0], count[1]},
-           .range = (bounds2d_t){
-               .min = {0, 0},
-               .max = {1,1},
-           },
-            .current_idx = {0,0}};
+        = line_space2d(count, (bounds2d_t){.min = {0, 0}, .max = {1, 1}});
+
     while (sample2d_next(&iter, state, *out))
     {
+        assert((*out)[0] <= 1. + 1.e-6);
         out++;
     }
+
+    assert((*out)[0] <= 1. + 1.e-6);
 }
 
 bool sample2d_next(iterator2d* iter, sampler_state* state, vec2 rand)
@@ -58,7 +58,7 @@ bool sample2d_next(iterator2d* iter, sampler_state* state, vec2 rand)
             rand[i] = r_range;
         }
         /*
-        log_info("2d rand: %f,%f\n",rand[0],rand[1]);
+        log_info("2d rand: %f,%f\n", rand[0], rand[1]);
         log_info("x: %d, y: %d", iter->current_idx[0], iter->current_idx[1]);
         */
         return true;

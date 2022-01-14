@@ -215,12 +215,14 @@ class GeometryFactory:
                  for inst in self._created_instances for mat in inst.materials],
                 dtype=np.uint
                 )
+            print("material_solts:",self._c_matsolts)
             counter_mat = 0
 
             for i, inst in enumerate(self._created_instances):
                 self._c_instances[i].type = inst._type
                 self._c_instances[i].mesh_id = inst._id
                 self._c_instances[i].material_slot_start = counter_mat
+                print("material_slot_start: ",counter_mat)
                 counter_mat += len(inst.materials)
                 py_trans_p = inst.transformation.ctypes.data_as(ct.POINTER(ct.c_float))
                 ct.memmove(self._c_instances[i].transformations,

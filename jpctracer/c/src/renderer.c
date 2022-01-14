@@ -31,7 +31,8 @@ void render(const scene_t*          scene,
     log_info("Start rendering");
     log_debug("test\n");
 
-    for(int i=0;i<outputs->channels*outputs->width*outputs->height;i++)
+    for (int i = 0; i < outputs->channels * outputs->width * outputs->height;
+         i++)
     {
         outputs->data[i] = 0;
     }
@@ -53,7 +54,7 @@ void render(const scene_t*          scene,
                        MIN((x + 1) * tile_s, width),
                        MIN((y + 1) * tile_s, height),},
                 };
-            log_info("next tile");
+            // log_info("next tile");
             render_tile(scene, &settings, &tile, outputs);
         }
     }
@@ -202,7 +203,7 @@ void render_tile2(const scene_t*           scene,
 void add_to_image(image_t* image, vec2 pixel, float* color, uint subpixels)
 {
     uint2  idx = {pixel[0], pixel[1]};
-    uint c = image->channels;
+    uint   c = image->channels;
     float* img_pixel = image->data + idx[1] * image->width * c + idx[0] * c;
 
     for (int i = 0; i < image->channels; i++)
@@ -219,8 +220,8 @@ void render_tile(const scene_t*           scene,
         settings->max_depth, scene, sampler, settings->light_samples);
     iterator2d pixel_iter = grid2d(*tile, settings->subpixels);
 
-    vec2 pixel;
-    vec4 color;
+    vec2  pixel;
+    vec4  color;
     float subpixel2 = settings->subpixels * settings->subpixels;
     while (sample2d_next(&pixel_iter, sampler, pixel))
     {

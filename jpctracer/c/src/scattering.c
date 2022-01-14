@@ -15,9 +15,9 @@ float cos_weight(vec3 a, vec3 b)
 {
     float w = glmc_vec3_dot(a, b);
     // flip direction of a
-    //w*=-1;
+    // w*=-1;
 
-    return w>0 ? w : 0;
+    return w > 0 ? w : 0;
 }
 
 void combine_rays(sampled_color_t* bsdf_colors,
@@ -37,14 +37,14 @@ void combine_rays(sampled_color_t* bsdf_colors,
         glm_vec4_scale(temp, w / light_colors->pdf, temp);
 
         glm_vec4_add(temp, result, result);
-        if(result[1]>0.1)
+        if (result[1] > 0.1)
         {
-            //printf("test\n");
+            // printf("test\n");
         }
         for (int j = 0; j < 3; j++)
         {
-//            result[j] = w;
-            //result[j] = scatterd_dirs[i][j];
+            //            result[j] = w;
+            // result[j] = scatterd_dirs[i][j];
             // result[j] = incident_dir[j];
         }
     }
@@ -63,8 +63,8 @@ typedef struct ray_evaluator_s
     vec3*            directions;
 
     vec2* samples;
-    uint2 direct_samples;
-    uint2 indirect_samples;
+    uint2 direct_sample_count;
+    uint2 indirect_sample_count;
 
 } ray_evaluator_t;
 
@@ -94,10 +94,10 @@ ray_evaluator_t* ray_evaluator_init(const scene_t* scene,
         = malloc(direct_count * sizeof(*result->direct_clip_ends));
     result->directions = malloc(all_count * sizeof(*result->directions));
     result->samples = malloc(all_count * sizeof(*result->samples));
-    result->direct_samples[0] = direct_n_sqrt;
-    result->direct_samples[1] = direct_n_sqrt;
-    result->indirect_samples[0] = indirect_n_sqrt;
-    result->indirect_samples[1] = indirect_n_sqrt;
+    result->direct_sample_count[0] = direct_n_sqrt;
+    result->direct_sample_count[1] = direct_n_sqrt;
+    result->indirect_sample_count[0] = indirect_n_sqrt;
+    result->indirect_sample_count[1] = indirect_n_sqrt;
 
     return result;
 }
@@ -116,7 +116,7 @@ void eval_background(const materiallib_t* matlib,
                      ray_t                incident_ray,
                      vec4                 out_color)
 {
-    vec4 color = {0, 0, 0,1};
+    vec4 color = {0, 0, 0, 1};
     glm_vec4_copy(color, out_color);
 }
 
@@ -137,8 +137,10 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
         vec2* indirect_samples = eval->samples;
 
         // sample lights
-        sample2d(eval->sampler, eval->direct_samples, direct_samples);
-        sample2d(eval->sampler, eval->indirect_samples, indirect_samples);
+        sample2d(eval->sampler, eval->direct_sample_count, direct_samples);
+        sample2d(eval->sampler, eval->indirect_sample_count, indirect_samples);
+
+        assert(indirect_samples[0][0] < 1. + 1e-6);
 
         int direct_count = sample_lights(&scene->lights,
                                          indirect_samples,
@@ -175,14 +177,14 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
         bsdf_vec3_to_local(eval->bsdf, direct_dirs, direct_count);
 
         for (int i = 0; i < eval->indirect_count; i++)
-            bsdf_sample(eval->bsdf, indirect_samples[i], indirect_dirs + i);
-        vec4 emission;
-        bsdf_eval(eval->bsdf,
-                  eval->directions,
-                  all_count,
-                  eval->colors,
-                  &emission);
+        {
 
+            assert(indirect_samples[i][0] < 1. + 1e-6);
+            bsdf_sample(eval->bsdf, indirect_samples[i], indirect_dirs + i);
+        }
+        vec4 emission;
+        bsdf_eval(
+            eval->bsdf, eval->directions, all_count, eval->colors, &emission);
 
         bsdf_vec3_to_world(eval->bsdf, eval->directions, all_count);
 
@@ -192,10 +194,10 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
                      direct_count,
                      incident_ray.direction,
                      result->direct_color);
-        //glm_vec4_copy(hitpoint.location,result->direct_color);
-        if(result->direct_color[1]>0.6)
+        // glm_vec4_copy(hitpoint.location,result->direct_color);
+        if (result->direct_color[1] > 0.6)
         {
-//            printf("lol\n");
+            //            printf("lol\n");
         }
         result->indirect_count = eval->indirect_count;
 

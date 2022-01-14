@@ -26,6 +26,7 @@ endif()
 
 set(AUTOSRC
 "test.c"
+"src/bsdf.cpp"
 "src/renderer.h"
 "src/bvh.h"
 "src/lights.h"
@@ -42,7 +43,7 @@ set(AUTOSRC
 "src/iterator.h"
 "src/allocators.h"
 "src/sampler.h"
-"src/bsdf.cpp"
+"src/algorithms.h"
 "src/shaders.c"
 "src/renderer.c"
 "src/integrator.c"
@@ -55,9 +56,11 @@ set(AUTOSRC
 "src/lbvh.c"
 "src/lights.c"
 "src/camera.c"
+"src/bsdf.hpp"
+"src/allocators.hpp"
 "src/shaders/shader2.c"
 "src/shaders/shader_diffuse.c"
-"src/bsdfs/diffuse.c"
+"src/bsdfs/diffuse.cpp"
 "include/jpc_api.h"
 )
 

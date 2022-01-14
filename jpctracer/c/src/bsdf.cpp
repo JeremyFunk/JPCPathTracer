@@ -1,7 +1,6 @@
 extern "C"
 {
 #include "bsdf.h"
-#include "allocators.h"
 #include "cglm/cglm.h"
 #include "cglm/mat4.h"
 #include "cglm/vec3.h"
@@ -12,6 +11,9 @@ extern "C"
 #include "types.h"
 #include <assert.h>
 }
+
+#include "algorithms.h"
+#include "allocators.hpp"
 #include <algorithm>
 
 bsdfnode_t bsdfshaders_add(bsdfshaders_t* shaders,
@@ -42,8 +44,7 @@ void bsdfshaders_weights(bsdfmixnode_t*     nodes,
     }
 
     size_t used_mem = allocator->used;
-    float* nodes_weights = (float*)stack_alloc(
-        allocator, sizeof(float) * nodes_n, alignof(float));
+    float* nodes_weights = stack_alloc_n<float>(allocator, nodes_n);
 
     std::fill_n(weights, weights_n, 0);
     std::fill_n(nodes_weights, nodes_n, 0);
@@ -76,7 +77,7 @@ void bsdfshaders_weights(bsdfmixnode_t*     nodes,
         }
     }
 
-    allocator->used = used_mem;
+    allocator->used = used_mem; // free nodes_weights
 }
 
 struct bsdf_s
@@ -209,8 +210,9 @@ void bsdf_init(bsdfcontext_t*       ctx,
 
 void bsdf_sample(bsdfcontext_t* ctx, vec2 rand_p, vec3* out_scattered)
 {
-    int i
-        = sample_discrete(ctx->shaders.weights, ctx->shaders.count, &rand_p[0]);
+    assert(rand_p[0] <= 1. + 1e-6);
+    int i = sample_discrete(
+        ctx->shaders.weights, ctx->shaders.count, &(rand_p[0]));
     void* param = ctx->shaders.params[i];
     ctx->shaders.samplers[i](ctx->incident_dir, rand_p, out_scattered, param);
 }
@@ -241,43 +243,13 @@ void operator+=(sampled_color_t& a, const sampled_color_t& b)
     a = a + b;
 }
 
-
-//out of size m
-//mat of size n
-//vec of size m
-template <class T, class Iter2D,class Iter1D, class OutputIT, class Func>
-mat_mul_vec_n_m(Iter2D mat
-                uint      n,
-                Iter1D vec,
-                uint      m,
-                Func      get_row,
-                T         zero,
-                OutputIt  out)
-{
-    std::fill_m(out,m,zero);
-    auto column = mat;
-
-    for(uint i = 0; i<n;i++)
-    {
-        const auto& row = *column;
-        for(uint j=0;j<m;j++)
-        {
-           *out += *vec * *row;
-           row++;
-           out++;
-        }
-        column++;
-        vec++;
-    }
-}
-
 void bsdf_eval(bsdfcontext_t*   ctx,
                vec3*            scattered_dir,
                uint             n,
                sampled_color_t* out_color,
                vec4*            out_emission)
 {
-    // Thits is a matrix vector multiplication algorithm
+    // This is a matrix vector multiplication algorithm
     assert(n <= ctx->eval_color_max);
 
     std::fill_n(out_color,
@@ -286,7 +258,7 @@ void bsdf_eval(bsdfcontext_t*   ctx,
                     .color = {0, 0, 0, 0},
                     .pdf = 0,
                 });
-
+    vec4 temp_emission = {0, 0, 0, 0};
     // E * w = out
     // E in R^m
     for (uint i = 0; i < ctx->shaders.count; i++)
@@ -295,10 +267,13 @@ void bsdf_eval(bsdfcontext_t*   ctx,
                               scattered_dir,
                               n,
                               ctx->temp_eval_color,
-                              out_emission,
+                              &temp_emission,
                               ctx->shaders.params[i]);
 
         float weight = ctx->shaders.weights[i];
+
+        glm_vec3_scale(temp_emission, weight, temp_emission);
+        glm_vec3_add(temp_emission, *out_emission, *out_emission);
         for (uint j = 0; j < n; j++)
         {
             out_color[j] += weight * ctx->temp_eval_color[j];
@@ -308,21 +283,11 @@ void bsdf_eval(bsdfcontext_t*   ctx,
 
 void bsdf_vec3_to_local(bsdfcontext_t* bsdf, vec3* directions, uint n)
 {
-    for (uint i = 0; i < n; i++)
-    {
-        vec3 temp;
-        glm_mat4_mulv3(bsdf->world_to_local, directions[i], 0, temp);
-        glm_vec3_copy(temp, directions[i]);
-    }
+    mat_mul_n(bsdf->world_to_local, directions, n, 0);
 }
 void bsdf_vec3_to_world(bsdfcontext_t* bsdf, vec3* directions, uint n)
 {
     mat4 local_to_world;
     glm_mat4_transpose_to(bsdf->world_to_local, local_to_world);
-    for (uint i = 0; i < n; i++)
-    {
-        vec3 temp;
-        glm_mat4_mulv3(local_to_world, directions[i], 0, temp);
-        glm_vec3_copy(temp, directions[i]);
-    }
+    mat_mul_n(local_to_world, directions, n, 0);
 }
