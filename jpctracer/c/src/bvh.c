@@ -443,6 +443,7 @@ bool traverse_bvh(const bvh_tree_t* tree,
     return is_inter;
 }
 
+
 bool triangle_intersect(ray_t*  ray,
                         vec3   v1,
                         vec3   v2,
