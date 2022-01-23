@@ -338,9 +338,9 @@ bool bounds3d_intersect(bounds3d_t* bound,
 #endif
     return true;
 }
-//updates the distance of the ray
+// updates the distance of the ray
 bool traverse_bvh(const bvh_tree_t* tree,
-                  ray_t*             ray,
+                  ray_t*            ray,
                   intersect_f       intersect,
                   void*             param,
                   bool              shadow_test)
@@ -378,8 +378,10 @@ bool traverse_bvh(const bvh_tree_t* tree,
     do
     {
 
-        if (bounds3d_intersect(
-                &tree->node_bounds[current_idx], origin, inv_dir, ray->clip_end))
+        if (bounds3d_intersect(&tree->node_bounds[current_idx],
+                               origin,
+                               inv_dir,
+                               ray->clip_end))
         {
 #ifdef LOG_TRAVERSAL
             printf("Node intersect %d\n", current_idx);
@@ -399,8 +401,7 @@ bool traverse_bvh(const bvh_tree_t* tree,
 #ifdef LOG_TRAVERSAL
                     printf("Intersect Child\n");
 #endif
-                    bool temp_inter
-                        = intersect(node.first_idx, ray, param);
+                    bool temp_inter = intersect(node.first_idx, ray, param);
                     is_inter = is_inter || temp_inter;
                     if (is_inter && shadow_test)
                         return true;
@@ -424,8 +425,7 @@ bool traverse_bvh(const bvh_tree_t* tree,
 #ifdef LOG_TRAVERSAL
                     printf("Intersect Child\n");
 #endif
-                    bool temp_inter
-                        = intersect(node.last_idx, ray, param);
+                    bool temp_inter = intersect(node.last_idx, ray, param);
                     is_inter = is_inter || temp_inter;
 
                     if (is_inter && shadow_test)
@@ -443,12 +443,7 @@ bool traverse_bvh(const bvh_tree_t* tree,
     return is_inter;
 }
 
-
-bool triangle_intersect(ray_t*  ray,
-                        vec3   v1,
-                        vec3   v2,
-                        vec3   v3,
-                        float* uv)
+bool triangle_intersect(ray_t* ray, vec3 v1, vec3 v2, vec3 v3, float* uv)
 {
 #ifdef LOG_TRAVERSAL
     printf("triangle intersect\n");
@@ -456,7 +451,7 @@ bool triangle_intersect(ray_t*  ray,
     printf_arrayf(3, ray->origin);
     printf(" dir: ");
     printf_arrayf(3, ray->direction);
-    printf(" clip_end: %f\n",ray->clip_end);
+    printf(" clip_end: %f\n", ray->clip_end);
 
     printf("Verts:");
     printf_arrayf(3, v1);
@@ -511,20 +506,15 @@ struct mesh_inter_params
     float2 uv;
 };
 
-bool triangle_intersect_program(int    tri_id,
-                                ray_t*  ray,
-                                void*  _p)
+bool triangle_intersect_program(int tri_id, ray_t* ray, void* _p)
 {
     struct mesh_inter_params* p = _p;
     tri_id = tri_id + p->start_offset;
 
     uint*   v_ids = p->tris->verticies_ids[tri_id];
     float3* verts = p->tris->verticies;
-    if (triangle_intersect(ray,
-                           verts[v_ids[0]],
-                           verts[v_ids[1]],
-                           verts[v_ids[2]],
-                           p->uv))
+    if (triangle_intersect(
+            ray, verts[v_ids[0]], verts[v_ids[1]], verts[v_ids[2]], p->uv))
     {
         p->id = tri_id;
         return true;
@@ -610,9 +600,7 @@ bool solveQuadratic(const float a,
 }
 
 // ray.direction should be normalized
-bool sphere_intersect_program(int    sphs_id,
-                              ray_t*  ray,
-                              void*  _p)
+bool sphere_intersect_program(int sphs_id, ray_t* ray, void* _p)
 {
 
     struct mesh_inter_params* p = _p;
@@ -701,7 +689,7 @@ void sphere_fill_hitpoint(hit_point_t*              hit,
     hit->uvs[0] = hit->normal[0];
     hit->uvs[1] = hit->normal[1];
 
-    uint slot_id =  p->spheres->material_slot_id[p->id];
+    uint slot_id = p->spheres->material_slot_id[p->id];
     hit->material_id = mat_slots_bindings[slot_id];
 }
 
@@ -712,9 +700,7 @@ struct inst_inter_param
     bool                shadow_test;
 };
 
-bool instances_intersect_program(int    inst_id,
-                                 ray_t*  ray,
-                                 void*  param)
+bool instances_intersect_program(int inst_id, ray_t* ray, void* param)
 {
 #ifdef LOG_TRAVERSAL
     printf("intersect instance:\n");
@@ -742,7 +728,7 @@ bool instances_intersect_program(int    inst_id,
     glm_vec3_copy(direction, ray_local.direction);
     glm_vec3_copy(origin, ray_local.origin);
 
-     ray_local.clip_end = glm_vec3_norm(direction);
+    ray_local.clip_end = glm_vec3_norm(direction);
     glm_vec3_scale(direction, 1. / ray_local.clip_end, direction);
 #ifdef LOG_TRAVERSAL
     printf("dist local: %f dist max: %f\n", ray_local.clip_end, ray->clip_end);
@@ -754,9 +740,9 @@ bool instances_intersect_program(int    inst_id,
     struct mesh_inter_params inter_params;
 
     void (*fill_hit_point)(hit_point_t * hit,
-                           ray_t                     ray,
-                           uint*                     mat_slots_bindings,
-                           struct mesh_inter_params* p);
+                           ray_t ray,
+                           uint * mat_slots_bindings,
+                           struct mesh_inter_params * p);
     intersect_f inter_prog;
 
     switch (inst.type)
@@ -806,19 +792,13 @@ bool instances_intersect_program(int    inst_id,
 
     inter_params.start_offset = mesh_start;
 
-    if (traverse_bvh(&local_bvh,
-                     &ray_local,
-                     inter_prog,
-                     &inter_params,
-                     p->shadow_test))
+    if (traverse_bvh(
+            &local_bvh, &ray_local, inter_prog, &inter_params, p->shadow_test))
     {
         if (p->shadow_test)
             return true;
 
-        fill_hit_point(p->hit,
-                       ray_local,
-                       mat_slot_bindings,
-                       &inter_params);
+        fill_hit_point(p->hit, ray_local, mat_slot_bindings, &inter_params);
 
         glm_vec3_scale(direction, ray_local.clip_end, direction);
 
@@ -834,13 +814,12 @@ bool instances_intersect_program(int    inst_id,
 }
 
 bool ray_intersect(const geometries_t* geometries,
-                   ray_t*               ray,
+                   ray_t*              ray,
                    hit_point_t*        out_hitpoint)
 {
 #ifdef LOG_TRAVERSAL
     printf("ray intersect\n");
 #endif
-
 
     glm_vec3_copy(ray->origin, out_hitpoint->location);
     struct inst_inter_param param = {
@@ -859,7 +838,7 @@ bool ray_intersect(const geometries_t* geometries,
     {
         // offset location by normal
         vec3 temp;
-        glm_vec3_scale(out_hitpoint->normal, ERROR_THICKNESS*2, temp);
+        glm_vec3_scale(out_hitpoint->normal, ERROR_THICKNESS * 2, temp);
         glm_vec3_add(out_hitpoint->location, temp, out_hitpoint->location);
     }
     return is_hit;
@@ -867,7 +846,7 @@ bool ray_intersect(const geometries_t* geometries,
 
 uint64_t rays_shadow_test(const geometries_t* geometries,
                           vec3*               dirs,
-                          float* distances,
+                          float*              distances,
                           vec3                origin,
                           uint                n)
 {
