@@ -1,4 +1,5 @@
 #pragma once
+#include <bits/types/__locale_t.h>
 extern "C"
 {
 #include "bvh.h"
@@ -7,6 +8,7 @@ extern "C"
 #include "maths.h"
 #include "types.h"
 }
+#include "simdpp/simd.h"
 #include <algorithm>
 #include <cstddef>
 #include <limits>
@@ -16,6 +18,12 @@ struct ray_trav_t
 {
     vec3 origin;
     vec3 direction;
+    ray_trav_t() = default;
+    ray_trav_t(ray_t ray)
+    {
+        glm_vec3_copy(ray.origin, origin);
+        glm_vec3_copy(ray.direction, origin);
+    }
 };
 template <class T> class TD;
 
@@ -65,27 +73,18 @@ inline pair<float, float> bounds3d_intersect(const bounds3d_t& bound,
     float z_min = (bound.min[2] - origin[2]);
     float z_max = (bound.max[2] - origin[2]);
 
-    float temp;
     if (inverse_direction[0] < 0)
     {
-        temp = x_min;
-        x_min = x_max;
-        x_max = temp;
+        std::swap(x_min, x_max);
     }
     if (inverse_direction[1] < 0)
     {
-        temp = y_min;
-        y_min = y_max;
-        y_max = temp;
+        std::swap(y_min, y_max);
     }
     if (inverse_direction[2] < 0)
     {
-        temp = z_min;
-        z_min = z_max;
-        z_max = temp;
+        std::swap(z_min, z_max);
     }
-
-    float distance = std::max(x_min, std::max(y_min, z_min));
 
     x_min *= inverse_direction[0];
     x_max *= inverse_direction[0];
@@ -110,31 +109,80 @@ inline bool does_intersect(const pair<float, float>& x, const T& intervall)
            && x.first < t_max(intervall);
 }
 
-struct bounds3d_intersector
+template <std::size_t N> struct bounds3dN_t
 {
-    vec3 origin;
-    vec3 inv_dir;
-    using intervall_type = pair<float, float>;
-    bounds3d_intersector(ray_trav_t ray)
-    {
-        glm_vec3_copy(ray.origin, origin);
-        for (int i = 0; i < 3; i++)
-            inv_dir[i] = 1. / ray.direction[i];
-    }
-    template <typename I, typename O>
-    // I Forward Iterator with Valuetype bounds3d
-    // O Output Iterator with Valuetype std::pair<float,float>
-    O operator()(I first, I last, O out)
-    {
-        while (first != last)
-        {
-            *out = bounds3d_intersect(*first, origin, inv_dir);
-            first++;
-            out++;
-        }
-        return out;
-    }
+    simdpp::float32<N> min[3];
+    simdpp::float32<N> max[3];
 };
+// returns the index of the the first 1
+// and removes this 1
+inline int next_mask_idx(std::uint32_t& mask)
+{
+    int r = __builtin_ffs(mask);
+    mask &= mask - 1;
+    return r - 1;
+}
+
+template <class H, class S>
+// H: node hitpoint
+// Members:
+//      mask :size_t
+//      t_min : float array
+//      t_max : float array
+//      childs : randomaccessiterato
+// S: forward outputiterator
+// Precondition hit.mask != 0
+S inline push_to_stack(H& hit, S stack)
+{
+    int i = next_mask_idx(hit.mask);
+    *stack = {hit.childs[i], hit.t_min[i], hit.t_max[i]};
+    stack++;
+    return stack;
+}
+template <size_t N>
+// I: randomaccess iterator
+struct bounds3d_hitpoints
+{
+    simdpp::float32<N> t_min;
+    simdpp::float32<N> t_max;
+    std::size_t        mask;
+};
+
+template <size_t N>
+// I must be semiregular
+bounds3d_hitpoints<N> bounds3d_intersect(const bounds3dN_t<N>&     bounds,
+                                         const simdpp::float32<N>& inv_dir,
+                                         const simdpp::float32<N>& inv_dir_org,
+                                         int load_permul_min[3],
+                                         int load_permul_max[3],
+                                         const simdpp::float32<N>& ray_t_min,
+                                         const simdpp::float32<N>& ray_t_max)
+
+{
+    using floatN = simdpp::float32<N>;
+
+    const floatN mins[3];
+    for (int i = 0; i < 3; i++)
+    {
+        mins[i] = simdpp::fmsub(load(&bounds.min[load_permul_min[i]]),
+                                inv_dir[i],
+                                inv_dir_org[i]); //(bounds.min-org)/(dir)
+    }
+    const floatN maxs[3];
+    for (int i = 0; i < 3; i++)
+    {
+        maxs[i] = simdpp::fmsub(load(&bounds.max[load_permul_max[i]]),
+                                inv_dir[i],
+                                inv_dir_org[i]); //(bounds.max-org)/dir
+    }
+
+    bounds3d_hitpoints<N> hits;
+    hits.t_min = simdpp::max(mins[0], mins[1], mins[2], ray_t_min);
+    hits.t_max = simdpp::min(maxs[0], maxs[1], maxs[3], ray_t_max);
+    auto mask = hits.t_min <= hits.t_max;
+    hits.mask = mask.to_int();
+    return hits;
+}
 
 inline float sphere_intersect(ray_trav_t ray, vec3 center, float radius)
 {
@@ -195,19 +243,19 @@ inline bool does_intersect(const float& x, const T& intervall)
     return t_min(intervall) < x && x < t_max(intervall);
 }
 
-float& t_min(float& x)
+inline float& t_min(float& x)
 {
     return x;
 }
-float& t_max(float& x)
+inline float& t_max(float& x)
 {
     return x;
 }
-float t_min(const float& x)
+inline float t_min(const float& x)
 {
     return x;
 }
-float t_max(const float& x)
+inline float t_max(const float& x)
 {
     return x;
 }
@@ -263,20 +311,26 @@ inline triangle_hitpoint triangle_intersect2(ray_trav_t ray,
 template <class T>
 inline bool does_intersect(const triangle_hitpoint& x, const T& intervall)
 {
-    return x.uv[0] > -ERROR_THICKNESS && x.uv[0] < 1 + ERROR_THICKNESS
-           && x.uv[1] > -ERROR_THICKNESS
-           && x.uv[0] + x.uv[1] < 1 + ERROR_THICKNESS
-           && does_intersect(x.distance, intervall);
+    return does_intersect(x.distance, intervall) && x.uv[0] > -ERROR_THICKNESS
+           && x.uv[0] < 1 + ERROR_THICKNESS && x.uv[1] > -ERROR_THICKNESS
+           && x.uv[0] + x.uv[1] < 1 + ERROR_THICKNESS;
 }
-float& t_min(triangle_hitpoint& x)
+inline float& t_min(triangle_hitpoint& x)
 {
     return x.distance;
 }
-float& t_max(triangle_hitpoint& x)
+inline float& t_max(triangle_hitpoint& x)
 {
     return x.distance;
 }
-
+inline float t_min(const triangle_hitpoint& x)
+{
+    return x.distance;
+}
+inline float t_max(const triangle_hitpoint& x)
+{
+    return x.distance;
+}
 inline hit_point_t finalize(const triangle_hitpoint& x,
                             uint                     id,
                             ray_trav_t               ray,

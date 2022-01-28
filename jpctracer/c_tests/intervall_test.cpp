@@ -1,3 +1,6 @@
+#include "intersect.hpp"
+#include "lbvh.hpp"
+#include "simdpp/simd.h"
 #include "traverse.hpp"
 #include <array>
 #include <cstdio>
@@ -11,32 +14,32 @@ struct intervall_node
     pair<float, float>       i; // intervall
 
     std::vector<intervall_node> c; // childs
-
-    bool is_leaf() const
-    {
-        return 0 == c.size();
-    }
-    auto childs_begin() const
-    {
-        return c.begin();
-    }
-    auto childs_end() const
-    {
-        return c.end();
-    }
 };
+bool is_leaf(const intervall_node& node)
+{
+    return 0 == node.c.size();
+}
+
 struct node_intersector
 {
-    using intervall_type = pair<float, float>;
-    template <typename I, typename O> O operator()(I first, I last, O out) const
+
+    template <typename Intervall, typename O>
+    O operator()(const intervall_node& node,
+                 const Intervall&      intervall,
+                 O                     out) const
     {
-        while (first != last)
+
+        std::cout << "Node Intersection: [" << node.i.first << ","
+                  << node.i.second << "]\n";
+        for (const auto& child : node.c)
         {
-            *out = first->i;
-            std::cout << "Node Intersection: [" << first->i.first << ","
-                      << first->i.second << "]\n";
-            first++;
-            out++;
+            std::cout << "     Child Intersection: [" << child.i.first << ","
+                      << child.i.second << "]\n";
+            if (does_intersect(child.i, intervall))
+            {
+                *out = {child, t_min(child.i), t_max(child.i)};
+                out++;
+            }
         }
         return out;
     }
@@ -45,12 +48,19 @@ struct node_intersector
 struct leaf_intersector
 {
     using intervall_type = float;
-
-    float operator()(const intervall_node& node) const
+    template <class Intervall>
+    float operator()(const intervall_node& node,
+                     Intervall             intervall,
+                     intervall_type        init) const
     {
         std::cout << "Leaf Intersection: [" << node.i.first << ","
                   << node.i.second << "]\n";
-        return (node.i.second + node.i.first) / 2;
+        float tmp = (node.i.second + node.i.first) / 2;
+        if (does_intersect(tmp, intervall))
+        {
+            return tmp;
+        }
+        return init;
     }
 };
 

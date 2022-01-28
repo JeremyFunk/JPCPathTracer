@@ -18,9 +18,9 @@ endif()
 set(AUTOSRC
 "test.c"
 "src/bsdf.cpp"
+"src/lbvh.cpp"
 "src/renderer.h"
 "src/bvh.h"
-"src/maths.h"
 "src/lights.h"
 "src/camera.h"
 "src/scattering.h"
@@ -30,6 +30,7 @@ set(AUTOSRC
 "src/sampling.h"
 "src/types.h"
 "src/texture.h"
+"src/maths.h"
 "src/shaders.h"
 "src/integrator.h"
 "src/iterator.h"
@@ -48,7 +49,9 @@ set(AUTOSRC
 "src/lbvh.c"
 "src/lights.c"
 "src/camera.c"
+"src/lbvh.hpp"
 "src/traverse.hpp"
+"src/sort.hpp"
 "src/bsdf.hpp"
 "src/intersect.hpp"
 "src/allocators.hpp"
@@ -65,6 +68,7 @@ log
 pcg_basic
 m
 sorting
+libsimdpp
 )
 
 add_library(tracer SHARED "${AUTOSRC}")

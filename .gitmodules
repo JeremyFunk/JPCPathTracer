@@ -4,3 +4,6 @@
 [submodule "jpctracer/c/libs/cglm"]
 	path = jpctracer/c/libs/cglm
 	url = https://github.com/recp/cglm.git
+[submodule "jpctracer/c/libs/libsimdpp"]
+	path = jpctracer/c/libs/libsimdpp
+	url = https://github.com/p12tic/libsimdpp.git
