@@ -1,16 +1,10 @@
 #include "bvh.h"
-#include "bsdf.h"
-#include "cglm/affine.h"
-#include "cglm/box.h"
-#include "cglm/call/vec3.h"
-#include "cglm/io.h"
-#include "cglm/mat4.h"
-#include "cglm/struct/mat4.h"
+#include "../bsdf.h"
+#include "../utils.h"
+#include "cglm/cglm.h"
 #include "cglm/vec3.h"
-#include "cglm/vec4.h"
 #include "jpc_api.h"
 #include "sorting/sort.h"
-#include "utils.h"
 #include <assert.h>
 #include <log/log.h>
 #include <stdint.h>
@@ -54,8 +48,12 @@ void spheres_create_bounds(const spheres_t* spheres, bounds3d_t* bounds)
 {
     for (int i = 0; i < spheres->count; i++)
     {
-        glm_vec3_adds(spheres->positions[i], -spheres->radii[i], bounds[i].min);
-        glm_vec3_adds(spheres->positions[i], spheres->radii[i], bounds[i].max);
+        glm_vec3_adds(spheres->positions[i],
+                      -spheres->radii[i] - ERROR_THICKNESS,
+                      bounds[i].min);
+        glm_vec3_adds(spheres->positions[i],
+                      spheres->radii[i] + ERROR_THICKNESS,
+                      bounds[i].max);
     }
 }
 
@@ -69,16 +67,16 @@ void triangles_get_centers(const triangles_t* triangles, vec3* centers)
         float*      v2 = triangles->verticies[vert_ids[1]];
         float*      v3 = triangles->verticies[vert_ids[2]];
 
-        glmc_vec3_add(v1, v2, centers[i]);
-        glmc_vec3_add(v3, centers[i], centers[i]);
-        glmc_vec3_scale(centers[i], 1. / 3., centers[i]);
+        glm_vec3_add(v1, v2, centers[i]);
+        glm_vec3_add(v3, centers[i], centers[i]);
+        glm_vec3_scale(centers[i], 1. / 3., centers[i]);
     }
 }
 
 void spheres_get_centers(const spheres_t* spheres, vec3* centers)
 {
     for (int i = 0; i < spheres->count; i++)
-        glmc_vec3_copy(spheres->positions[i], centers[i]);
+        glm_vec3_copy(spheres->positions[i], centers[i]);
 }
 
 void bounds3d_t_merge(bounds3d_t* bounds, uint n, bounds3d_t* dst)
@@ -135,11 +133,14 @@ bvh_tree_t* bvhtree_build_triangles(triangles_t tris)
         lbvh_build(temp_tree, centers + start, temp_perm);
         temp_perm[0] = 0;
 
-        apply_permutation(temp_perm, tris.verticies_ids, n, sizeof(uint3));
+        apply_permutation(
+            temp_perm, tris.verticies_ids + start, n, sizeof(uint3));
 
-        apply_permutation(temp_perm, tris.normals_ids, n, sizeof(uint3));
-        apply_permutation(temp_perm, tris.uvs_ids, n, sizeof(uint2));
-        apply_permutation(temp_perm, tris.material_slots, n, sizeof(uint));
+        apply_permutation(
+            temp_perm, tris.normals_ids + start, n, sizeof(uint3));
+        apply_permutation(temp_perm, tris.uvs_ids + start, n, sizeof(uint2));
+        apply_permutation(
+            temp_perm, tris.material_slots + start, n, sizeof(uint));
 
         uint start = end;
     }
@@ -176,9 +177,10 @@ bvh_tree_t* bvhtree_build_spheres(spheres_t sphs)
 
         lbvh_build(temp_tree, centers + start, temp_perm);
 
-        apply_permutation(temp_perm, sphs.positions, n, sizeof(float3));
-        apply_permutation(temp_perm, sphs.radii, n, sizeof(float));
-        apply_permutation(temp_perm, sphs.material_slot_id, n, sizeof(uint));
+        apply_permutation(temp_perm, sphs.positions + start, n, sizeof(float3));
+        apply_permutation(temp_perm, sphs.radii + start, n, sizeof(float));
+        apply_permutation(
+            temp_perm, sphs.material_slot_id + start, n, sizeof(uint));
 
         start = end;
     }
@@ -190,7 +192,14 @@ bvh_tree_t* bvhtree_build_spheres(spheres_t sphs)
 bvh_tree_t* bvhtree_build_instances(geometries_t* geometries)
 {
     printf("Inst Vert ids:");
-    printf_arrayui(3, *geometries->triangles.verticies_ids);
+    if (geometries->triangles.verticies_count > 0)
+    {
+        printf_arrayui(3, *geometries->triangles.verticies_ids);
+    }
+    else
+    {
+        printf("Null");
+    }
     printf("\n");
     bvh_tree_t* tree = bvhtree_alloc(geometries->instances_count);
     vec3*       centers = malloc(sizeof(vec3) * geometries->instances_count);
@@ -214,8 +223,9 @@ bvh_tree_t* bvhtree_build_instances(geometries_t* geometries)
             mesh_tree = geometries->bvhtree_triangles;
             break;
         case JPC_SPHERE:
-            mesh_start_i
-                = i > 0 ? geometries->spheres.mesh_end_idx[mesh_id - 1] : 0;
+            mesh_start_i = mesh_id > 0
+                               ? geometries->spheres.mesh_end_idx[mesh_id - 1]
+                               : 0;
             mesh_end_i = geometries->spheres.mesh_end_idx[mesh_id];
             mesh_tree = geometries->bvhtree_spheres;
             break;
@@ -309,8 +319,6 @@ bool bounds3d_intersect(bounds3d_t* bound,
         z_max = temp;
     }
 
-    float distance = MAX(x_min, MAX(y_min, z_min));
-
     x_min *= inverse_direction[0];
     x_max *= inverse_direction[0];
     y_min *= inverse_direction[1];
@@ -326,7 +334,7 @@ bool bounds3d_intersect(bounds3d_t* bound,
     printf("distance: %f\n", distance);
 #endif
 
-    if (t_min > t_max || t_max <= 0 || distance > max_distance)
+    if (t_min > t_max || t_max <= 0 || t_min > max_distance)
     {
 #ifdef LOG_TRAVERSAL
         printf("Inter false\n");
@@ -377,7 +385,10 @@ bool traverse_bvh(const bvh_tree_t* tree,
     }
     do
     {
-
+        if (current_idx == 10)
+        {
+            int test = 0;
+        }
         if (bounds3d_intersect(&tree->node_bounds[current_idx],
                                origin,
                                inv_dir,
@@ -386,6 +397,19 @@ bool traverse_bvh(const bvh_tree_t* tree,
 #ifdef LOG_TRAVERSAL
             printf("Node intersect %d\n", current_idx);
 #endif
+            /*
+                        for (int i = 0; i < to_visit; i++)
+                        {
+                            if (nodes_to_visit[i] == current_idx ||
+               nodes_to_visit[i] == 7)
+                            {
+                                log_warn("Dupplicate");
+                            }
+                        }
+                        if (to_visit > 64)
+                        {
+                            log_warn("to large");
+                        }*/
             bvh_node_t node = tree->nodes[current_idx];
             if (node.first_idx == node.split_idx)
             {
@@ -440,6 +464,7 @@ bool traverse_bvh(const bvh_tree_t* tree,
 
         current_idx = nodes_to_visit[--to_visit];
     } while (to_visit >= 0);
+    // printf("traverse_bvh end\n");
     return is_inter;
 }
 
@@ -605,6 +630,10 @@ bool sphere_intersect_program(int sphs_id, ray_t* ray, void* _p)
 
     struct mesh_inter_params* p = _p;
     sphs_id += p->start_offset;
+    if (sphs_id == 12168)
+    {
+        int test = 0;
+    }
     float* center = p->spheres->positions[sphs_id];
 
     float radius = p->spheres->radii[sphs_id];
@@ -665,11 +694,17 @@ bool sphere_intersect_program(int sphs_id, ray_t* ray, void* _p)
 #endif
     if (t > ray->clip_end)
     {
+#ifdef LOG_TRAVERSAL
+        printf("inter false\n");
+#endif
         return false;
     }
 
     ray->clip_end = t;
     p->id = sphs_id;
+#ifdef LOG_TRAVERSAL
+    printf("inter true\n");
+#endif
     return true;
 }
 
@@ -686,8 +721,8 @@ void sphere_fill_hitpoint(hit_point_t*              hit,
     glm_vec3_sub(hit->location, center, hit->normal);
     glm_vec3_normalize(hit->normal);
 
-    hit->uvs[0] = hit->normal[0];
-    hit->uvs[1] = hit->normal[1];
+    hit->uvs[0] = 0; // hit->normal[0];
+    hit->uvs[1] = 0; // hit->normal[1];
 
     uint slot_id = p->spheres->material_slot_id[p->id];
     hit->material_id = mat_slots_bindings[slot_id];
@@ -705,6 +740,10 @@ bool instances_intersect_program(int inst_id, ray_t* ray, void* param)
 #ifdef LOG_TRAVERSAL
     printf("intersect instance:\n");
 #endif
+    if (inst_id == 72)
+    {
+        int tes = 0;
+    }
     struct inst_inter_param* p = param;
 
     instance_t inst = p->geom->instances[inst_id];
@@ -729,7 +768,7 @@ bool instances_intersect_program(int inst_id, ray_t* ray, void* param)
     glm_vec3_copy(origin, ray_local.origin);
 
     ray_local.clip_end = glm_vec3_norm(direction);
-    glm_vec3_scale(direction, 1. / ray_local.clip_end, direction);
+    glm_vec3_scale(direction, 1. / ray_local.clip_end, ray_local.direction);
 #ifdef LOG_TRAVERSAL
     printf("dist local: %f dist max: %f\n", ray_local.clip_end, ray->clip_end);
 #endif
@@ -792,6 +831,8 @@ bool instances_intersect_program(int inst_id, ray_t* ray, void* param)
 
     inter_params.start_offset = mesh_start;
 
+    // printf("Inst traverse_bvh\n");
+    // printf("local bvh: n=%d\n", local_bvh.n);
     if (traverse_bvh(
             &local_bvh, &ray_local, inter_prog, &inter_params, p->shadow_test))
     {
@@ -806,7 +847,13 @@ bool instances_intersect_program(int inst_id, ray_t* ray, void* param)
 
         ray->clip_end = glm_vec3_norm(direction);
         p->hit->location[3] = 1;
-        glm_mat4_mulv(trans, p->hit->location, p->hit->location);
+        vec4 tmp;
+        glm_mat4_mulv(trans, p->hit->location, tmp);
+        glm_vec4_copy(tmp, p->hit->location);
+        vec3 tmp2;
+        glm_mat4_mulv3(trans, p->hit->normal, 0, tmp2);
+        glm_vec3_normalize(tmp2);
+        glm_vec3_copy(tmp2, p->hit->normal);
 
         return true;
     }
@@ -828,6 +875,7 @@ bool ray_intersect(const geometries_t* geometries,
         .shadow_test = false,
     };
 
+    // printf("Ray traverse_bvh\n");
     bool is_hit = traverse_bvh(geometries->bvhtree_instances,
                                ray,
                                instances_intersect_program,
@@ -836,6 +884,7 @@ bool ray_intersect(const geometries_t* geometries,
 
     if (is_hit)
     {
+        glm_vec3_normalize(out_hitpoint->normal);
         // offset location by normal
         vec3 temp;
         glm_vec3_scale(out_hitpoint->normal, ERROR_THICKNESS * 2, temp);
@@ -867,6 +916,8 @@ uint64_t rays_shadow_test(const geometries_t* geometries,
     {
         glm_vec3_copy(dirs[i], ray.direction);
         ray.clip_end = distances[i];
+
+        // printf("Shadow traverse_bvh\n");
         if (traverse_bvh(geometries->bvhtree_instances,
                          &ray,
                          instances_intersect_program,

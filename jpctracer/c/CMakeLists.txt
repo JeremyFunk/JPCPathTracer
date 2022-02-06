@@ -1,6 +1,6 @@
 
 
-
+set(clang_gnu ${CMAKE_CXX_COMPILER_ID} MATCHES "clang|GNU" OR ${CMAKE_C_COMPILER_ID} MATCHES "clang|GNU" )
 # include(cmake/macros.cmake) benutze ich noch nicht
 add_subdirectory(libs)
 if(MSVC)
@@ -10,17 +10,16 @@ if(MSVC)
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   endif()
-elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+elseif(&{clang_gnu})
   # Update if necessary
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
+  message("GNU or Clang compiler!")
 endif()
 
 set(AUTOSRC
 "test.c"
 "src/bsdf.cpp"
-"src/lbvh.cpp"
 "src/renderer.h"
-"src/bvh.h"
 "src/lights.h"
 "src/camera.h"
 "src/scattering.h"
@@ -40,23 +39,29 @@ set(AUTOSRC
 "src/shaders.c"
 "src/renderer.c"
 "src/integrator.c"
-"src/bvh.c"
 "src/sampling.c"
 "src/scattering.c"
 "src/allocators.c"
 "src/texture.c"
 "src/sampler.c"
-"src/lbvh.c"
 "src/lights.c"
 "src/camera.c"
-"src/lbvh.hpp"
-"src/traverse.hpp"
-"src/sort.hpp"
 "src/bsdf.hpp"
-"src/intersect.hpp"
 "src/allocators.hpp"
 "src/shaders/shader2.c"
 "src/shaders/shader_diffuse.c"
+"src/bvh/lbvh.cpp"
+"src/bvh/bvh.h"
+"src/bvh/intersect.h"
+"src/bvh/lbvh.h"
+"src/bvh/bvh.c"
+"src/bvh/lbvh2.c"
+"src/bvh/lbvh.c"
+"src/bvh/naive.c"
+"src/bvh/lbvh.hpp"
+"src/bvh/traverse.hpp"
+"src/bvh/sort.hpp"
+"src/bvh/intersect.hpp"
 "src/bsdfs/diffuse.cpp"
 "include/jpc_api.h"
 )
@@ -74,8 +79,10 @@ libsimdpp
 add_library(tracer SHARED "${AUTOSRC}")
 target_include_directories(tracer PUBLIC "include")
 target_link_libraries(tracer ${LIBS} )
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+if(${clang_gnu})
   target_compile_options(tracer PRIVATE "-fms-extensions")
+
+  target_compile_options(tracer PRIVATE "-march=native")
 
 endif()
 add_executable(ctest "test.c")

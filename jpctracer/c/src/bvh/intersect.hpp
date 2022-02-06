@@ -2,17 +2,20 @@
 #include <bits/types/__locale_t.h>
 extern "C"
 {
+#include "../maths.h"
+#include "../types.h"
+#include "../utils.h"
 #include "bvh.h"
 #include "cglm/vec3.h"
 #include "jpc_api.h"
-#include "maths.h"
-#include "types.h"
 }
 #include "simdpp/simd.h"
 #include <algorithm>
 #include <cstddef>
 #include <limits>
 #include <utility>
+
+//#define LOG_TRAVERSAL
 
 struct ray_trav_t
 {
@@ -21,8 +24,8 @@ struct ray_trav_t
     ray_trav_t() = default;
     ray_trav_t(ray_t ray)
     {
-        glm_vec3_copy(ray.origin, origin);
-        glm_vec3_copy(ray.direction, origin);
+        glm_vec3_copy(ray.origin, this->origin);
+        glm_vec3_copy(ray.direction, this->direction);
     }
 };
 template <class T> class TD;
@@ -64,6 +67,7 @@ inline pair<float, float> bounds3d_intersect(const bounds3d_t& bound,
                                              const vec3&       origin,
                                              const vec3& inverse_direction)
 {
+
     float x_min = (bound.min[0] - origin[0]);
     float x_max = (bound.max[0] - origin[0]);
 
@@ -95,7 +99,7 @@ inline pair<float, float> bounds3d_intersect(const bounds3d_t& bound,
 
     float t_min = std::max(x_min, std::max(y_min, z_min));
 
-    float t_max = std::max(x_max, std::max(y_max, z_max));
+    float t_max = std::min(x_max, std::min(y_max, z_max));
 
     return {t_min, t_max};
 }
@@ -186,6 +190,7 @@ bounds3d_hitpoints<N> bounds3d_intersect(const bounds3dN_t<N>&     bounds,
 
 inline float sphere_intersect(ray_trav_t ray, vec3 center, float radius)
 {
+
     float radius2 = radius * radius;
 
     float t, t0, t1; // soluations for t if the ray intersects
@@ -227,12 +232,6 @@ inline float sphere_intersect(ray_trav_t ray, vec3 center, float radius)
 
     t = t0 - ERROR_THICKNESS;
 
-#ifdef LOG_TRAVERSAL
-    printf("t: %f, max_distance: %f norm: %f\n",
-           t,
-           ray->clip_end,
-           glm_vec3_norm(ray->direction));
-#endif
     return t;
 }
 
@@ -375,8 +374,8 @@ inline hit_point_t finalize(const double&    t,
     glm_vec3_sub(hit.location, center, hit.normal);
     glm_vec3_normalize(hit.normal);
 
-    hit.uvs[0] = hit.normal[0];
-    hit.uvs[1] = hit.normal[1];
+    hit.uvs[0] = 0; // hit.normal[0];
+    hit.uvs[1] = 0; // hit.normal[1];
 
     uint slot_id = sphs.material_slot_id[id];
     hit.material_id = mat_slots_bindings[slot_id];

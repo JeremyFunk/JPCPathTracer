@@ -1,14 +1,15 @@
 #pragma once
+#include "cglm/vec3.h"
 extern "C"
 {
+#include "../utils.h"
 #include "bvh.h"
-#include "cglm/call/vec3.h"
-#include "cglm/mat4.h"
+#include "cglm/cglm.h"
 #include "jpc_api.h"
 }
+#include "../types.h"
 #include "intersect.hpp"
 #include "traverse.hpp"
-#include "types.h"
 #include <limits>
 inline int left_node_idx(bvh_node_t node)
 {
@@ -57,6 +58,7 @@ struct lbvh_bounds3d_intersector
             inv_dir[i] = 1. / ray.direction[i];
         node_bounds = tree.node_bounds;
         shape_bounds = tree.shape_bounds;
+        nodes = tree.nodes;
     }
     template <typename Intervall, typename O>
     // I Forward Iterator with Valuetype bounds3d
@@ -82,15 +84,30 @@ struct lbvh_bounds3d_intersector
         auto hit1 = bounds3d_intersect(left_bound, origin, inv_dir);
 
         auto hit2 = bounds3d_intersect(right_bound, origin, inv_dir);
-
+#ifdef LOG_TRAVERSAL
+        printf("Bounds: ");
+        printf_arrayf(6, (float*)&left_bound);
+        printf("\n");
+#endif
         if (does_intersect(hit1, intervall))
         {
+#ifdef LOG_TRAVERSAL
+            printf("t_min: %f\nt_max: %f\n", t_min(hit1), t_max(hit1));
+#endif
             *out = {
                 lbvh_iterator{left_child, left_leaf}, t_min(hit1), t_max(hit1)};
             out++;
         }
+
+#ifdef LOG_TRAVERSAL
+        printf("Bounds: ");
+        printf_arrayf(6, (float*)&right_bound);
+#endif
         if (does_intersect(hit2, intervall))
         {
+#ifdef LOG_TRAVERSAL
+            printf("t_min: %f\nt_max: %f\n", t_min(hit2), t_max(hit2));
+#endif
             *out = {lbvh_iterator{right_child, right_leaf},
                     t_min(hit2),
                     t_max(hit2)};
@@ -137,9 +154,12 @@ struct triangle_intersector
 {
     ray_trav_t  ray;
     triangles_t tris;
+    int         idx_offset;
     using intervall_type = geom_hitpoint<triangle_hitpoint>;
-    triangle_intersector(const ray_trav_t& ray, const triangles_t& tris)
-        : ray(ray), tris(tris)
+    triangle_intersector(const ray_trav_t&  ray,
+                         const triangles_t& tris,
+                         int                idx_offset)
+        : ray(ray), tris(tris), idx_offset(idx_offset)
     {
     }
     template <typename Intervall>
@@ -147,14 +167,15 @@ struct triangle_intersector
                               const Intervall&      intervall,
                               const intervall_type& init) const
     {
-        auto ids = tris.verticies_ids[node.idx];
+        int  id = node.idx + idx_offset;
+        auto ids = tris.verticies_ids[id];
         auto tmp = triangle_intersect2(ray,
                                        tris.verticies[ids[0]],
                                        tris.verticies[ids[1]],
                                        tris.verticies[ids[2]]);
         if (does_intersect(tmp, intervall))
         {
-            return {node.idx, tmp};
+            return {id, tmp};
         }
         return init;
     }
@@ -164,9 +185,13 @@ struct sphere_intersector
 {
     ray_trav_t ray;
     spheres_t  sphs;
+
+    int idx_offset;
     using intervall_type = geom_hitpoint<float>;
-    sphere_intersector(const ray_trav_t& ray, const spheres_t& sphs)
-        : ray(ray), sphs(sphs)
+    sphere_intersector(const ray_trav_t& ray,
+                       const spheres_t&  sphs,
+                       int               idx_offset)
+        : ray(ray), sphs(sphs), idx_offset(idx_offset)
     {
     }
 
@@ -175,12 +200,31 @@ struct sphere_intersector
                               const Intervall&      intervall,
                               const intervall_type& init) const
     {
-        auto tmp = sphere_intersect(
-            ray, sphs.positions[node.idx], sphs.radii[node.idx]);
+
+        int id = node.idx + idx_offset;
+#ifdef LOG_TRAVERSAL
+        printf("sphere intersect\n");
+        printf("center: ");
+        printf_arrayf(3, sphs.positions[id]);
+        printf(" radius: %f\n", sphs.radii[id]);
+        printf("Ray: org: ");
+        printf_arrayf(3, ray.origin);
+        printf(" dir: ");
+        printf_arrayf(3, ray.direction);
+        printf("\n");
+        printf("intervall: %f,%f\n", t_min(intervall), t_max(intervall));
+#endif
+        auto tmp = sphere_intersect(ray, sphs.positions[id], sphs.radii[id]);
         if (does_intersect(tmp, intervall))
         {
-            return {node.idx, tmp};
+#ifdef LOG_TRAVERSAL
+            printf("Did intersect. Distance: %f\n", tmp);
+#endif
+            return {id, tmp};
         }
+#ifdef LOG_TRAVERSAL
+        printf("Did not intersect:\n");
+#endif
         return init;
     }
 };
@@ -211,32 +255,6 @@ inline float t_max(const instance_hitpoint& x)
     return t_min(x.geom_hitp);
 }
 
-hit_point_t finalize(const instance_hitpoint& hit,
-                     const ray_trav_t&        ray,
-                     const geometries_t&      geoms)
-{
-
-    uint* mat_slot_bindings
-        = &geoms.material_slots[hit.instance.material_slot_start];
-    switch (hit.instance.type)
-    {
-    case JPC_TRIANGLE:
-        return finalize(hit.geom_hitp.data,
-                        hit.geom_hitp.id,
-                        ray,
-                        geoms.triangles,
-                        mat_slot_bindings);
-    case JPC_SPHERE:
-
-        return finalize(hit.geom_hitp.data.distance,
-                        hit.geom_hitp.id,
-                        ray,
-                        geoms.spheres,
-                        mat_slot_bindings);
-    }
-    return hit_point_t{.material_id = -1};
-}
-
 // doesnt normalizes the direction
 inline ray_trav_t transform(ray_trav_t ray, mat4 mat)
 {
@@ -250,35 +268,100 @@ inline ray_trav_t transform(ray_trav_t ray, mat4 mat)
 inline pair<ray_trav_t, float> transform_normalized(ray_trav_t ray, mat4 mat)
 {
     ray_trav_t local_ray = transform(ray, mat);
-    float      norm = glmc_vec3_norm(local_ray.direction);
+    float      norm = glm_vec3_norm(local_ray.direction);
     float      inv_norm = 1. / norm;
-    glmc_vec3_scale(local_ray.direction, inv_norm, local_ray.direction);
+    glm_vec3_scale(local_ray.direction, inv_norm, local_ray.direction);
     return {local_ray, norm};
 }
-
-inline bvh_tree_t bvh_of_instance(instance_t inst,
-                                  bvh_tree_t bvh_of_mesh_type,
-                                  uint*      mesh_ends)
+hit_point_t finalize(instance_hitpoint   hit,
+                     const ray_trav_t&   ray,
+                     const geometries_t& geoms)
 {
-    int mesh_start, mesh_end;
+
+    uint* mat_slot_bindings
+        = &geoms.material_slots[hit.instance.material_slot_start];
+
+    instance_t inst = hit.instance;
+    mat4       trans, inv_trans;
+
+    mat4_ucopy(inst.transformations, trans);
+    glm_mat4_inv(trans, inv_trans);
+    auto [local_ray, norm] = transform_normalized(ray, inv_trans);
+
+    hit_point_t tmp = hit_point_t{.material_id = -1};
+    t_min(hit) *= norm;
+    switch (hit.instance.type)
+    {
+    case JPC_TRIANGLE:
+        tmp = finalize(hit.geom_hitp.data,
+                       hit.geom_hitp.id,
+                       local_ray,
+                       geoms.triangles,
+                       mat_slot_bindings);
+        break;
+    case JPC_SPHERE:
+
+        tmp = finalize(hit.geom_hitp.data.distance,
+                       hit.geom_hitp.id,
+                       local_ray,
+                       geoms.spheres,
+                       mat_slot_bindings);
+        break;
+    }
+
+    hit_point_t result = tmp;
+    glm_mat4_mulv3(trans, tmp.location, 1, result.location);
+    glm_mat4_mulv3(trans, tmp.normal, 0, result.normal);
+    // normalize
+    glm_vec3_scale(result.normal, norm, result.normal);
+
+    return result;
+}
+
+typedef struct
+{
+    uint min;
+    uint max;
+} intervallu32_t;
+static inline intervallu32_t get_mesh_range(const spheres_t&   sps,
+                                            const triangles_t& tris,
+                                            instance_t         inst)
+{
+    uint* mesh_ends;
+    switch (inst.type)
+    {
+    case JPC_SPHERE:
+        mesh_ends = sps.mesh_end_idx;
+        break;
+    case JPC_TRIANGLE:
+        mesh_ends = tris.mesh_end_idx;
+        break;
+    }
+    intervallu32_t res;
     if (inst.mesh_id > 0)
     {
-        mesh_start = mesh_ends[inst.mesh_id - 1];
+        res.min = mesh_ends[inst.mesh_id - 1];
     }
     else
     {
-        mesh_start = 0;
+        res.min = 0;
     }
-    mesh_end = mesh_ends[inst.mesh_id];
+    res.max = mesh_ends[inst.mesh_id];
+    return res;
+}
+inline bvh_tree_t bvh_of_instance(bvh_tree_t     bvh_of_mesh_type,
+                                  intervallu32_t range)
+{
 
-    return {
+    int mesh_end = range.max;
+    int mesh_start = range.min;
+    return bvh_tree_t{
         .n = mesh_end - mesh_start,
         .shape_bounds = bvh_of_mesh_type.shape_bounds + mesh_start,
         .nodes = bvh_of_mesh_type.nodes + mesh_start,
         .node_bounds = bvh_of_mesh_type.node_bounds + mesh_start,
     };
 }
-
 struct instance_intersector
 {
     spheres_t   sphs;
@@ -310,18 +393,35 @@ struct instance_intersector
         mat4_ucopy(inst.transformations, trans);
         glm_mat4_inv(trans, inv_trans);
         auto [local_ray, norm] = transform_normalized(world_ray, inv_trans);
+#ifdef LOG_TRAVERSAL
+
+        printf("world_ray: org: ");
+        printf_arrayf(3, world_ray.origin);
+        printf("dir: ");
+        printf_arrayf(3, world_ray.direction);
+        printf("\n");
+        printf("local_ray: org: ");
+        printf_arrayf(3, local_ray.origin);
+        printf("dir: ");
+        printf_arrayf(3, local_ray.direction);
+        printf("\n");
+#endif
 
         pair<float, float> local_intervall
             = {norm * t_min(intervall), norm * t_max(intervall)};
 
+        auto local_init = init.geom_hitp;
+        t_min(local_init) *= norm;
+
         instance_hitpoint result;
 
+        intervallu32_t range = get_mesh_range(sphs, tris, inst);
         switch (inst.type)
         {
         case JPC_SPHERE: {
-            auto       leaf_intersect = sphere_intersector(local_ray, sphs);
-            bvh_tree_t tree
-                = bvh_of_instance(inst, sphs_tree, sphs.mesh_end_idx);
+            auto leaf_intersect
+                = sphere_intersector(local_ray, sphs, range.min);
+            bvh_tree_t                tree = bvh_of_instance(sphs_tree, range);
             lbvh_bounds3d_intersector node_intersect(local_ray, tree);
             lbvh_iterator             root = get_root(tree);
             auto                      res = closest_intersect(root,
@@ -329,17 +429,17 @@ struct instance_intersector
                                          leaf_intersect,
                                          local_intervall,
                                          geom_hitpoint<float>{
-                                             init.geom_hitp.id,
-                                             init.geom_hitp.data.distance,
+                                             local_init.id,
+                                             local_init.data.distance,
                                          });
             result.geom_hitp.id = res.id;
             result.geom_hitp.data.distance = res.data;
             break;
         }
         case JPC_TRIANGLE: {
-            auto       leaf_intersect = triangle_intersector(local_ray, tris);
-            bvh_tree_t tree
-                = bvh_of_instance(inst, tris_tree, tris.mesh_end_idx);
+            auto leaf_intersect
+                = triangle_intersector(local_ray, tris, range.min);
+            bvh_tree_t                tree = bvh_of_instance(sphs_tree, range);
             lbvh_bounds3d_intersector node_intersect(local_ray, tree);
 
             lbvh_iterator root = get_root(tree);
@@ -347,15 +447,16 @@ struct instance_intersector
                                          node_intersect,
                                          leaf_intersect,
                                          local_intervall,
-                                         init.geom_hitp);
+                                         local_init);
             result.geom_hitp = res;
             break;
         }
         }
-        if (t_min(result) < t_min(local_intervall))
+        if (t_min(result) + ERROR_THICKNESS < t_max(local_intervall))
         {
             // intersected
             t_min(result) = t_min(result) / norm;
+            result.instance = inst;
         }
         else
         {
@@ -364,3 +465,7 @@ struct instance_intersector
         return result;
     }
 };
+
+bool ray_intersect_cpp(const geometries_t* geometries,
+                       ray_t*              ray,
+                       hit_point_t*        out_hitpoint);

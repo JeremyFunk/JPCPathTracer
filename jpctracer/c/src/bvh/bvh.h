@@ -1,11 +1,12 @@
 #pragma once
-#include "cglm/call/vec3.h"
 #include <jpc_api.h>
 
-#include "bsdf.h"
+#include "../bsdf.h"
+#include "../types.h"
 #include "cglm/cglm.h"
 #include "jpc_api.h"
-#include "types.h"
+
+//#define LOG_TRAVERSAL
 
 typedef struct
 {
@@ -35,7 +36,7 @@ void lbvh_build(bvh_tree_t tree, vec3* centers, uint* permutation);
 
 // updates the hitpoint
 bool ray_intersect(const geometries_t* geometries,
-                   ray_t*               ray,
+                   ray_t*              ray,
                    hit_point_t*        out_hitpoint);
 typedef bool (*intersect_f)(int id, ray_t* ray, void* param);
 

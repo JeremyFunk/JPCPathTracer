@@ -1,8 +1,8 @@
+#include "../utils.h"
 #include "bvh.h"
 #include "jpc_api.h"
 #include "log/log.h"
 #include "sorting/sort.h"
-#include "utils.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -157,7 +157,14 @@ void lbvh_build(bvh_tree_t tree, vec3* centers, uint* permutation)
 
     apply_permutation(
         permutation, tree.shape_bounds, tree.n, sizeof(bounds3d_t));
-
+//make morton code unique
+    for(int i = 1;i<tree.n;i++)
+    {
+        int diff=MAX((long)morton[i-1]-(long)morton[i]+1,0);
+//morton[i] >= morton[i] + (-morton[i] + morton[i-1]+1)=[morton[i-1]]+1
+//morton[i] >= morton[i]+0
+        morton[i]+=diff;
+    }
     // build binary radix tree
     // #pragma omp parallel for
     for (int idx = 0; idx < nodes_n; idx++)

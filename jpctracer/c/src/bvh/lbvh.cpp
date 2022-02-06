@@ -1,11 +1,16 @@
 #include "lbvh.hpp"
 #include "traverse.hpp"
 #include <limits>
-bool ray_intersect2(const geometries_t* geometries,
-                    ray_t*              ray,
-                    hit_point_t*        out_hitpoint)
+bool ray_intersect_cpp(const geometries_t* geometries,
+                       ray_t*              ray,
+                       hit_point_t*        out_hitpoint)
 {
-    ray_trav_t                ray_trav(*ray);
+#ifdef LOG_TRAVERSAL
+    printf("--------------------------------------------\n");
+
+#endif
+    ray_trav_t ray_trav(*ray);
+
     lbvh_bounds3d_intersector node_intersector{ray_trav,
                                                *geometries->bvhtree_instances};
 
