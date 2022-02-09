@@ -14,6 +14,10 @@ extern "C"
     bool ray_intersect_c(const geometries_t* geometries,
                          ray_t*              ray,
                          hit_point_t*        out_hitpoint);
+
+    bool ray_intersect_c2(const geometries_t* geometries,
+                          ray_t*              ray,
+                          hit_point_t*        out_hitpoint);
     bool ray_intersect_naive(const geometries_t* geometries,
                              ray_t*              ray,
                              hit_point_t*        out_hitpoint);
@@ -81,18 +85,18 @@ int main()
     std::uint32_t seed = rnd_device();
     // seed = 497162344;
     //  seed = 4159810338;
-    seed = 659995227;
+    // seed = 659995227;
     std::mt19937 engine{seed}; // Generates random integers
     std::cout << "seed: " << seed << "\n";
-    std::uniform_real_distribution<float> float_dist{-500, 500};
+    std::uniform_real_distribution<float> float_dist{-5000000, 50000000};
 
     std::uniform_real_distribution<float> float_dist_rad{0, 1. / 500.};
 
     auto fgen = [&]() { return float_dist(engine); };
 
-    uint  ray_n = 100000;
+    uint  ray_n = 10000;
     float clip_end = 400;
-    uint  sphs_n = 10000;
+    uint  sphs_n = 1000;
     uint  sphs_meshes_n = 50;
     uint  instances_n = 100;
     uint  mat_slots_n = 2;
@@ -198,6 +202,8 @@ int main()
 
     std::vector<hit_point_t> hit_c1(ray_n, default_hit);
     std::vector<hit_point_t> hit_c2(ray_n, default_hit);
+
+    std::vector<hit_point_t> hit_c3(ray_n, default_hit);
     std::vector<hit_point_t> hit_cpp(ray_n, default_hit);
 
     std::vector<hit_point_t> hit_naive(ray_n, default_hit);
@@ -210,6 +216,8 @@ int main()
                                       ray_n); // ray_intersect
     double          t_c2 = time_intersect_rays(
         ray_intersect_c, hit_c2.data(), &geoms, rays.data(), ray_n);
+    double t_c3 = time_intersect_rays(
+        ray_intersect_c2, hit_c3.data(), &geoms, rays.data(), ray_n);
 
     double t_cpp = time_intersect_rays(
         ray_intersect_cpp, hit_cpp.data(), &geoms, rays.data(), ray_n);
@@ -245,8 +253,9 @@ int main()
     {
 
         if (hit_naive[i] != hit_cpp[i] || hit_naive[i] != hit_c2[i]
-            || hit_cpp[i] != hit_c2[i])
+            || hit_cpp[i] != hit_c2[i] || hit_c2[i] != hit_c3[i])
         {
+            assert(hit_c2[i] != hit_c3[i]);
 
             std::cout << "hit naive:\n";
             print_hitp(hit_naive[i]);
@@ -280,6 +289,8 @@ int main()
     std::cout << "Ray count: " << ray_n << "\n";
     std::cout << "C1 : " << t_c1 << "\n";
     std::cout << "C2 : " << t_c2 << "\n";
+
+    std::cout << "C3 : " << t_c3 << "\n";
     std::cout << "Cpp: " << t_cpp << "\n";
 
     std::cout << "C naive: " << t_naive << "\n";

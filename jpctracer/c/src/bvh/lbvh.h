@@ -243,9 +243,10 @@ forceinline bool bvh_intersect_init(bvh_tree_t                tree,
     return true;
 }
 
-forceinline bool find_closest_leaf(int*                      id,
-                                   bvh_intersetor_closest_t* intersector,
-                                   float                     max_distance)
+__attribute__((noinline)) static bool find_closest_leaf(
+    int*                      id,
+    bvh_intersetor_closest_t* intersector,
+    float                     max_distance)
 {
     bvh_intersetor_closest_t* i = intersector;
     bvh_stack_item_cl_t       item;
@@ -410,3 +411,7 @@ bool instances_intersect_closest(const ray_trav_t*    world_ray,
 bool ray_intersect_c(const geometries_t* geometries,
                      ray_t*              ray,
                      hit_point_t*        out_hitpoint);
+
+bool ray_intersect_c2(const geometries_t* geometries,
+                      ray_t*              ray,
+                      hit_point_t*        out_hitpoint);

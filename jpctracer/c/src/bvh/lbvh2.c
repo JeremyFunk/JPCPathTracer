@@ -241,6 +241,64 @@ bool instance_intersect_closest(const ray_trav_t*    world_ray,
     {
     case JPC_SPHERE: {
         bvh_tree_t local_tree = bvh_of_instance(geom->bvhtree_spheres, range);
+        did_intersect = spheres_intesect_closest(&local_ray,
+                                                 &geom->spheres,
+                                                 local_intervall,
+                                                 &local_tree,
+                                                 range.min,
+                                                 &result->geom_id,
+                                                 &result->geom_hit.distance);
+
+        break;
+    }
+    case JPC_TRIANGLE: {
+        bvh_tree_t tree = bvh_of_instance(geom->bvhtree_triangles, range);
+        did_intersect = triangles_intersect_closest(&local_ray,
+                                                    &geom->triangles,
+                                                    local_intervall,
+                                                    &tree,
+                                                    range.min,
+                                                    &result->geom_id,
+                                                    &result->geom_hit);
+    }
+    };
+    if (did_intersect)
+    {
+        result->geom_hit.distance /= norm;
+        return true;
+    }
+    return false;
+}
+
+bool instance_intersect_closest2(const ray_trav_t*    world_ray,
+                                 const geometries_t*  geom,
+                                 int                  id,
+                                 intervall_t          intervall,
+                                 instance_hitpoint_t* result)
+{
+
+    if (id == 72)
+    {
+        int test = 0;
+    }
+    instance_t inst = geom->instances[id];
+    ray_trav_t local_ray;
+    // transformation
+    mat4 trans, inv_trans;
+    mat4_ucopy(inst.transformations, trans);
+    glm_mat4_inv(trans, inv_trans);
+    float norm = ray_transform(*world_ray, inv_trans, &local_ray);
+
+    intervall_t local_intervall = {norm * intervall.min, norm * intervall.max};
+    bool        did_intersect;
+#ifdef LOG_TRAVERSAL
+    printf("dist local: %f dist max: %f\n", local_intervall.max, intervall.max);
+#endif
+    intervallu32_t range = get_mesh_range(geom, inst);
+    switch (inst.type)
+    {
+    case JPC_SPHERE: {
+        bvh_tree_t local_tree = bvh_of_instance(geom->bvhtree_spheres, range);
         /*
         did_intersect = spheres_intesect_closest2(&local_ray,
                                                   &geom->spheres,
@@ -444,6 +502,25 @@ hit_point_t instances_finalize(instance_hitpoint_t hit,
 bool ray_intersect_c(const geometries_t* geometries,
                      ray_t*              ray,
                      hit_point_t*        out_hitpoint)
+{
+#ifdef LOG_TRAVERSAL
+    printf("--------------------------------------------\n");
+#endif
+    ray_trav_t          ray_trav = ray_trav_make(*ray);
+    int                 id;
+    instance_hitpoint_t hit
+        = {.geom_hit = {.distance = 0, .uv = {0, 0}}, .geom_id = -1};
+    if (!instances_intersect_closest(
+            &ray_trav, geometries, (intervall_t){0, ray->clip_end}, &id, &hit))
+        return false;
+
+    *out_hitpoint = instances_finalize(hit, id, ray_trav, *geometries);
+    return true;
+}
+
+bool ray_intersect_c2(const geometries_t* geometries,
+                      ray_t*              ray,
+                      hit_point_t*        out_hitpoint)
 {
 #ifdef LOG_TRAVERSAL
     printf("--------------------------------------------\n");
