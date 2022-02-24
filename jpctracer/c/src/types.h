@@ -24,7 +24,7 @@ typedef struct
     vec4 color;
     union {
         float pdf;
-        vec4  _; //alligment
+        vec4  _; // alligment
     };
 } sampled_color_t;
 
@@ -33,3 +33,9 @@ typedef struct
     vec2 min;
     vec2 max;
 } bounds2d_t;
+
+typedef struct
+{
+    vec3 min;
+    vec3 max;
+} bounds3d_t;

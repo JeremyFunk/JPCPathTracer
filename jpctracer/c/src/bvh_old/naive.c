@@ -13,10 +13,7 @@ bool instersect_closest_spheres_naive(ray_trav_t     ray,
     bool did_intersect = false;
     for (int i = sphs_range.min; i < sphs_range.max; i++)
     {
-        if (i == 12168)
-        {
-            int test = 0;
-        }
+
         float tmp = sphere_intersect(ray, sphs.positions[i], sphs.radii[i]);
         if (does_intersect_point(tmp, *intervall))
         {

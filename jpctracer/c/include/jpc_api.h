@@ -235,7 +235,10 @@ void render(const scene_t*          scene,
             const render_settings_t settings,
             image_t*                outputs);
 
-void        bvhtree_free(bvh_tree_t* tree);
-bvh_tree_t* bvhtree_build_triangles(triangles_t triangles);
-bvh_tree_t* bvhtree_build_spheres(spheres_t spheres);
-bvh_tree_t* bvhtree_build_instances(geometries_t* geometries);
+void bvhtree_triangles_free(geometries_t* geometries);
+void bvhtree_spheres_free(geometries_t* geometries);
+void bvhtree_instances_free(geometries_t* geometries);
+
+void bvhtree_triangles_build(geometries_t* geometries);
+void bvhtree_spheres_build(geometries_t* geometries);
+void bvhtree_instances_build(geometries_t* geometries);

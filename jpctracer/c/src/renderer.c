@@ -1,7 +1,7 @@
 #include "renderer.h"
 #include "allocators.h"
 #include "bsdf.h"
-#include "bvh/bvh.h"
+#include "bvh_old/bvh.h"
 #include "camera.h"
 #include "cglm/struct/vec3.h"
 #include "cglm/struct/vec4.h"

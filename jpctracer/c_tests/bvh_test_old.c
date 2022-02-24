@@ -1,12 +1,7 @@
-#include "bvh/bvh_builder.h"
-#include "bvh/traverse.h"
-
-#include "config.h"
-#include "geom_log.h"
+#include "bvh/lbvh.h"
 #include "jpc_api.h"
 #include "log/log.h"
 #include "types.h"
-#include "utils.h"
 #include <stdlib.h>
 
 spheres_t sphs_create(float* position_x, float* radii, uint n)
@@ -42,46 +37,42 @@ void sphs_free(spheres_t sps)
 void simple_spheres()
 {
     const int n = 6;
-    float     pos[] = {0, 1, 2, 3, 4, 5};
-    float     rad[] = {1, 1, 1, 1, 1, 1};
+    float     pos[] = {0, 2, 3, 4, 5};
+    float     rad[] = {1, 1, 1, 1, 1};
 
     ray_trav_t ray = {
-        .direction = {-1, ERROR_THICKNESS, ERROR_THICKNESS},
-        .origin = {7, ERROR_THICKNESS, ERROR_THICKNESS},
+        .direction = {-1, 0, 0},
+        .origin = {7, 0, 0},
     };
     intervall_t intervall = {0, 9};
 
     int   out_id;
     float out_dist;
 
-    spheres_t    sphs = sphs_create(pos, rad, n);
-    geometries_t geoms;
-    geoms.spheres = sphs;
+    spheres_t sphs = sphs_create(pos, rad, n);
 
-    bvhtree_spheres_build(&geoms);
-    geom_log_write("created_bounds.obj");
-    bvh_log(geoms.bvhtree_spheres);
-    geom_log_write("bvh sphs.obj");
+    bvh_tree_t* tree = bvhtree_build_spheres(sphs);
 
-    spheres_intersect_closest(
-        &ray, &sphs, intervall, geoms.bvhtree_spheres, 0, &out_id, &out_dist);
+    spheres_intesect_closest(
+        &ray, &sphs, intervall, tree, 0, &out_id, &out_dist);
 
     assert_near(out_dist, 1);
     assert(out_id == 5);
-    bvhtree_spheres_free(&geoms);
+
     sphs_free(sphs);
 
     log_debug("Test Passed");
 }
+
 void simple_instances()
 {
     const int n = 6;
-    float     pos[] = {0, 1, 2, 3, 4, 5};
-    float     rad[] = {1, 1, 1, 1, 1, 1};
+    float     pos[] = {0, 2, 3, 4, 5};
+    float     rad[] = {1, 1, 1, 1, 1};
 
     ray_trav_t ray = {
-        .direction = {-1, ERROR_THICKNESS, ERROR_THICKNESS},
-        .origin = {13, ERROR_THICKNESS, ERROR_THICKNESS},
+        .direction = {-1, 0, 0},
+        .origin = {13, 0, 0},
     };
     intervall_t intervall = {0, 20};
 
@@ -100,6 +91,8 @@ void simple_instances()
 
     spheres_t sphs = sphs_create(pos, rad, n);
 
+    bvh_tree_t* sphs_tree = bvhtree_build_spheres(sphs);
+
     uint         mat_slots = 0;
     geometries_t geom = {
         .instances_count = 1,
@@ -108,17 +101,12 @@ void simple_instances()
         .spheres = sphs,
         .material_slots = &mat_slots,
         .material_slots_count = 0,
-        .bvhtree_spheres = NULL,
+        .bvhtree_spheres = sphs_tree,
         .bvhtree_triangles = NULL,
     };
+    geom.bvhtree_instances = bvhtree_build_instances(&geom);
 
-    bvhtree_spheres_build(&geom);
-    bvhtree_triangles_build(&geom);
-    bvhtree_instances_build(&geom);
-    bvh_log(geom.bvhtree_instances);
-    geom_log_write("instance_bvh.obj");
-
-    instances_intersect_closest(&ray, &geom, intervall, &out_id, &out_hit);
+    instances_intersect_closest_old(&ray, &geom, intervall, &out_id, &out_hit);
 
     assert_near(out_hit.geom_hit.distance, 1);
     assert(out_hit.geom_id == 5);
@@ -130,7 +118,7 @@ void simple_instances()
 
     glm_vec3_copy(ray.direction, ray2.direction);
     ray2.clip_end = intervall.max;
-    ray_intersect_c3(&geom, &ray2, &hitp);
+    ray_intersect_c(&geom, &ray2, &hitp);
     assert_near(hitp.location[0], 12);
     assert_near(hitp.location[1], 0);
     assert_near(hitp.location[2], 0);

@@ -4,7 +4,7 @@
 extern "C"
 {
 #define GLM_FLT_EPSILON 1e-3
-#include "bvh/bvh.h"
+#include "bvh_old/bvh.h"
 #include "jpc_api.h"
 #include "types.h"
 
@@ -16,6 +16,9 @@ extern "C"
                          hit_point_t*        out_hitpoint);
 
     bool ray_intersect_c2(const geometries_t* geometries,
+                          ray_t*              ray,
+                          hit_point_t*        out_hitpoint);
+    bool ray_intersect_c3(const geometries_t* geometries,
                           ray_t*              ray,
                           hit_point_t*        out_hitpoint);
     bool ray_intersect_naive(const geometries_t* geometries,
@@ -94,11 +97,11 @@ int main()
 
     auto fgen = [&]() { return float_dist(engine); };
 
-    uint  ray_n = 10000;
+    uint  ray_n = 200;
     float clip_end = 400;
-    uint  sphs_n = 1000;
-    uint  sphs_meshes_n = 50;
-    uint  instances_n = 100;
+    uint  sphs_n = 10000;
+    uint  sphs_meshes_n = 10;
+    uint  instances_n = 1000;
     uint  mat_slots_n = 2;
     uint  mat_slots_per_mesh_n = 1;
     assert(mat_slots_per_mesh_n < mat_slots_n);
@@ -207,6 +210,7 @@ int main()
     std::vector<hit_point_t> hit_cpp(ray_n, default_hit);
 
     std::vector<hit_point_t> hit_naive(ray_n, default_hit);
+    std::vector<hit_point_t> hit_c4(ray_n, default_hit);
 
     ray_intersect_f f = ray_intersect_c;
     double          t_c1 = time_intersect_rays(ray_intersect,
@@ -228,24 +232,25 @@ int main()
                                          rays.data(),
                                          ray_n); // ray_intersect_naive
 
+    bvhtree_free(geoms.bvhtree_spheres);
+    bvhtree_free(geoms.bvhtree_instances);
+    bvhtree_free(geoms.bvhtree_triangles);
+    bvhtree_spheres_build(&geoms);
+    bvhtree_triangles_build(&geoms);
+    bvhtree_instances_build(&geoms);
+
+    double t_c4 = time_intersect_rays(
+        ray_intersect_c3, hit_c4.data(), &geoms, rays.data(), ray_n);
+
+    bvhtree_spheres_free(&geoms);
+    bvhtree_triangles_free(&geoms);
+    bvhtree_instances_free(&geoms);
     /*
         double t_c1 = time_intersect_rays(f,
                                           hit_c1.data(),
                                           &geoms,
                                           rays.data(),
                                           ray_n); // ray_intersect
-        double t_c2
-            = time_intersect_rays(f, hit_c2.data(), &geoms, rays.data(), ray_n);
-
-        double t_cpp
-            = time_intersect_rays(f, hit_cpp.data(), &geoms, rays.data(),
-    ray_n);
-
-        double t_naive = time_intersect_rays(f,
-                                             hit_naive.data(),
-                                             &geoms,
-                                             rays.data(),
-                                             ray_n); // ray_intersect
     */
 
     vec3 tmp;
@@ -253,7 +258,8 @@ int main()
     {
 
         if (hit_naive[i] != hit_cpp[i] || hit_naive[i] != hit_c2[i]
-            || hit_cpp[i] != hit_c2[i] || hit_c2[i] != hit_c3[i])
+            || hit_cpp[i] != hit_c2[i] || hit_c2[i] != hit_c3[i]
+            || hit_c4[i] != hit_c2[i])
         {
             assert(hit_c2[i] != hit_c3[i]);
 
@@ -271,6 +277,16 @@ int main()
 
             std::cout << "hit2: \n";
             print_hitp(hit_c2[i]);
+
+            std::cout << "hit3: \n";
+            print_hitp(hit_c3[i]);
+
+            std::cout << "hit4: \n";
+            print_hitp(hit_c4[i]);
+
+            glm_vec3_sub(rays[i].origin, hit_c4[i].location, tmp);
+            std::cout << "Dist4: " << glm_vec3_norm(tmp) << "\n";
+
             std::cout << "hitcpp: \n";
             print_hitp(hit_cpp[i]);
 
@@ -294,4 +310,6 @@ int main()
     std::cout << "Cpp: " << t_cpp << "\n";
 
     std::cout << "C naive: " << t_naive << "\n";
+
+    std::cout << "C4: " << t_c4 << "\n";
 }

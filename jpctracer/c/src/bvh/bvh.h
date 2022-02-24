@@ -1,56 +1,67 @@
 #pragma once
-#include <jpc_api.h>
-
-#include "../bsdf.h"
+#include "../config.h"
 #include "../types.h"
-#include "cglm/cglm.h"
+#include "bounds4.h"
+#include "bvh_ref.h"
 #include "jpc_api.h"
-
-//#define LOG_TRAVERSAL
-
-typedef struct
-{
-    vec3 min;
-    vec3 max;
-} bounds3d_t;
+#include "shapes.h"
 
 typedef struct
 {
-    uint first_idx;
-    uint last_idx;
-    uint split_idx;
+    uint32_t   idx;
+    bool       is_leaf;
+    bounds3d_t bound;
 } bvh_node_t;
 
 typedef struct bvh_tree_s
 {
-    int         n;
-    bounds3d_t* shape_bounds; // size n
-    bvh_node_t* nodes;        // size n-1
-    bounds3d_t* node_bounds;  // size n-1
+    uint               nodes_max_count;
+    uint               nodes_count;
+    bvh_node_intern_t* nodes;
+    bounds3d_t         root_bound;
 
 } bvh_tree_t;
 
-void bounds3d_t_merge(bounds3d_t* bounds, uint n, bounds3d_t* dst);
-// tree.shape_bounds should always be set
-void lbvh_build(bvh_tree_t tree, vec3* centers, uint* permutation);
+bvh_tree_t bvh_create(int max_nodes, int max_leafs);
 
-// updates the hitpoint
-bool ray_intersect(const geometries_t* geometries,
-                   ray_t*              ray,
-                   hit_point_t*        out_hitpoint);
-typedef bool (*intersect_f)(int id, ray_t* ray, void* param);
+void bvh_log(const bvh_tree_t* tree);
 
-// updates the clip_end of the ray
-bool traverse_bvh(const bvh_tree_t* tree,
-                  ray_t*            ray,
-                  intersect_f       intersect,
-                  void*             param,
-                  bool              shadow_test);
+typedef struct
+{
+    float          min_distance;
+    bvh_node_ref_t node;
+} bvh_stack_item_cl_t;
 
-#define ERROR_THICKNESS 1e-6
+#define BVH_NUM_CHILDS 4
 
-uint64_t rays_shadow_test(const geometries_t* geometries,
-                          vec3*               dirs,
-                          float*              distances,
-                          vec3                origin,
-                          uint                n);
+void bvh_set_node(bvh_tree_t* tree, uint id, const bvh_node_t* childs);
+
+uint bvh_push_back(bvh_tree_t* tree);
+
+void bvh_finish(bvh_tree_t* tree);
+
+void bvh_free(bvh_tree_t tree);
+
+typedef struct
+{
+
+    bvh_stack_item_cl_t stack_data[64];
+
+    bvh_stack_item_cl_t* stack_begin;
+    bvh_stack_item_cl_t* stack;
+    float                min_distance;
+    ray_trav_bounds_t    ray;
+} bvh_intersetor_closest_t;
+
+bool bvh_intersect_init(const bvh_tree_t*         tree,
+                        float                     min_distance,
+                        const ray_trav_t*         ray,
+                        bvh_intersetor_closest_t* result);
+
+bool find_closest_leaf(int*                      id,
+                       bvh_intersetor_closest_t* intersector,
+                       float                     max_distance);
+
+bvh_stack_item_cl_t* bounds_intersect_closest(const bvh_node_intern_t*  node,
+                                              const ray_trav_bounds4_t* ray,
+                                              bvh_stack_item_cl_t*      stack);

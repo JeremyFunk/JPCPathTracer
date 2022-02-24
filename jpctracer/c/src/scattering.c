@@ -1,6 +1,6 @@
 #include "scattering.h"
 #include "bsdf.h"
-#include "bvh/bvh.h"
+#include "bvh_old/bvh.h"
 #include "cglm/call/vec3.h"
 #include "jpc_api.h"
 #include "lights.h"

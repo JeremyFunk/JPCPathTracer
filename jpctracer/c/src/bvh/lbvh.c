@@ -1,3 +1,4 @@
+#include "../types.h"
 #include "../utils.h"
 #include "bvh.h"
 #include "jpc_api.h"
@@ -77,20 +78,12 @@ int number_leading_zeros(uint32_t*    morton_codes,
 
     return count_leading_zeros_combined(morton_a, morton_b);
 }
-
-int calc_direction(uint32_t* morton, int idx, size_t number_nodes)
+// interval
+// [start,end)
+uint calc_split_idx(uint32_t* morton, int start, int end, size_t number_nodes)
 {
-    int dir_forward = number_leading_zeros(morton, idx, 1, number_nodes);
-    int dir_backward = number_leading_zeros(morton, idx, -1, number_nodes);
-    return (dir_forward - dir_backward < 0) ? -1 : 1;
-}
-
-uint calc_split_idx(uint32_t* morton,
-                    int       min_idx,
-                    int       max_idx,
-                    int       dir,
-                    size_t    number_nodes)
-{
+    int      min_idx = start;
+    int      max_idx = end - 1;
     uint32_t morton_first = morton[min_idx];
     uint32_t morton_last = morton[max_idx];
 
@@ -121,74 +114,168 @@ uint calc_split_idx(uint32_t* morton,
     return split_idx;
 }
 
-int calc_last_idx(uint32_t* morton, int idx, int dir, size_t number_nodes)
+void bounds3d_t_merge(bounds3d_t* bounds, uint n, bounds3d_t* dst)
 {
-    int min_diff = number_leading_zeros(morton, idx, -dir, number_nodes);
-
-    int upper_range = 2;
-    while (number_leading_zeros(morton, idx, dir * upper_range, number_nodes)
-           > min_diff)
-        upper_range *= 2;
-
-    int lower_range = 0;
-    for (int i = upper_range / 2; i >= 1; i /= 2)
+    assert(n > 0);
+    dst[0] = bounds[0];
+    for (int i = 1; i < n; i++)
     {
-        if (number_leading_zeros(
-                morton, idx, (lower_range + i) * dir, number_nodes)
-            > min_diff)
-            lower_range += i;
+        glm_aabb_merge((vec3*)(bounds + i), (vec3*)dst, (vec3*)dst);
     }
+}
+// interval
+// [start,end)
+// returns how many childs where found
+int eval_child_intervalls(int       start,
+                          int       end,
+                          uint32_t* morton,
+                          uint      max_nodes,
+                          uint*     intervalls)
+{
 
-    return idx + (lower_range * dir);
+    uint max_num_childs = MIN(BVH_NUM_CHILDS, end - start);
+    uint num_childs = 1;
+    do
+    {
+        // find max intervall
+        uint max_size = 0;
+        uint max_intervall_i = 0;
+        for (int i = 0; i < num_childs; i++)
+        {
+            uint size = intervalls[i + 1] - intervalls[i];
+            if (max_size < size)
+            {
+                max_intervall_i = i;
+                max_size = size;
+            }
+        }
+        // shift
+        for (int i = num_childs + 1; i > max_intervall_i + 1; i--)
+        {
+            assert(i < BVH_NUM_CHILDS + 1);
+            intervalls[i] = intervalls[i - 1];
+        }
+
+        intervalls[max_intervall_i + 1]
+            = calc_split_idx(morton,
+                             intervalls[max_intervall_i],
+                             intervalls[max_intervall_i + 2],
+                             max_nodes)
+              + 1;
+        num_childs++;
+
+    } while (num_childs < max_num_childs);
+    return max_num_childs;
 }
 
-void lbvh_build(bvh_tree_t tree, vec3* centers, uint* permutation)
+void bvh_nodes_fill_empty(bvh_node_t* nodes, uint count)
 {
-    log_info("build lbvh");
-    const size_t nodes_n = tree.n - 1;
+    for (int i = 0; i < count; i++)
+    {
+        nodes[i].is_leaf = true;
+        nodes[i].idx = 0;
+        for (int j = 0; j < 3; j++)
+            nodes[i].bound.min[j] = INFINITY;
 
-    uint32_t* morton = malloc(sizeof(uint32_t) * tree.n);
-    for (int i = 0; i < tree.n; i++)
+        for (int j = 0; j < 3; j++)
+            nodes[i].bound.max[j] = INFINITY;
+    }
+}
+
+// interval
+// [start,end)
+bvh_node_t lbvh_build_recursiv(uint        start,
+                               uint        end,
+                               bvh_tree_t* tree,
+                               uint32_t*   morton,
+                               bounds3d_t* bounds,
+                               uint*       permutation,
+                               uint        max_nodes)
+{
+    assert(start <= end);
+    assert(start != end);
+    if (start + 1 == end)
+    {
+        // assert(fabs(bounds[start].min[0]) > 0.001);
+        return (bvh_node_t){
+            .bound = bounds[start],
+            .idx = permutation[start],
+            .is_leaf = true,
+        };
+    }
+
+    // always split the largest intervall
+    uint childs_intervalls[BVH_NUM_CHILDS + 1] = {start, end};
+
+    uint num_childs = eval_child_intervalls(
+        start, end, morton, max_nodes, childs_intervalls);
+
+    int node_id = bvh_push_back(tree);
+
+    bvh_node_t child_nodes[BVH_NUM_CHILDS];
+    int        i = 0;
+    for (; i < num_childs; i++)
+    {
+        child_nodes[i] = lbvh_build_recursiv(childs_intervalls[i],
+                                             childs_intervalls[i + 1],
+                                             tree,
+                                             morton,
+                                             bounds,
+                                             permutation,
+                                             max_nodes);
+    }
+
+    bvh_nodes_fill_empty(child_nodes + i, BVH_NUM_CHILDS - i);
+    bvh_set_node(tree, node_id, child_nodes);
+
+    bounds3d_t node_bound = child_nodes[0].bound;
+    for (int i = 1; i < num_childs; i++)
+    {
+        glm_aabb_merge((vec3*)(&child_nodes[i].bound),
+                       (vec3*)&node_bound,
+                       (vec3*)&node_bound);
+    }
+    assert(!isnanf(node_bound.min[0]));
+
+    assert(!isinff(node_bound.min[0]));
+    return (bvh_node_t){.bound = node_bound, .idx = node_id, .is_leaf = false};
+};
+
+bvh_tree_t lbvh_build(uint n, bounds3d_t* bounds, vec3* centers)
+{
+    uint*      permutation = malloc(sizeof(uint) * n);
+    bvh_tree_t tree = bvh_create(n, n); // overestimate?
+
+    uint32_t* morton = malloc(sizeof(uint32_t) * n);
+    for (int i = 0; i < n; i++)
     {
         morton[i] = encode_morton(centers[i]);
     }
 
-    sort_permutation_uint(morton, permutation, tree.n);
-
-    apply_permutation(
-        permutation, tree.shape_bounds, tree.n, sizeof(bounds3d_t));
-//make morton code unique
-    for(int i = 1;i<tree.n;i++)
+    // make morton code unique
+    for (int i = 1; i < n; i++)
     {
-        int diff=MAX((long)morton[i-1]-(long)morton[i]+1,0);
-//morton[i] >= morton[i] + (-morton[i] + morton[i-1]+1)=[morton[i-1]]+1
-//morton[i] >= morton[i]+0
-        morton[i]+=diff;
+        int diff = MAX((long)morton[i - 1] - (long)morton[i] + 1, 0);
+        // morton[i] >= morton[i] + (-morton[i] + morton[i-1]+1)=[morton[i-1]]+1
+        // morton[i] >= morton[i]+0
+        morton[i] += diff;
     }
-    // build binary radix tree
-    // #pragma omp parallel for
-    for (int idx = 0; idx < nodes_n; idx++)
+
+    sort_permutation_uint(morton, permutation, n);
+    bvh_node_t root = lbvh_build_recursiv(
+        0, n, &tree, morton, bounds, permutation, n - BVH_NUM_CHILDS);
+    tree.root_bound = root.bound;
+    if (root.is_leaf)
     {
-        int direction = calc_direction(morton, idx, nodes_n);
-
-        uint last_idx = calc_last_idx(morton, idx, direction, nodes_n);
-
-        int min_idx = MIN(idx, last_idx);
-        int max_idx = MAX(idx, last_idx);
-
-        uint split_idx
-            = calc_split_idx(morton, min_idx, max_idx, direction, nodes_n);
-
-        bounds3d_t* bounds = tree.shape_bounds + min_idx;
-        bounds3d_t_merge(bounds, max_idx - min_idx + 1, tree.node_bounds + idx);
-
-        bvh_node_t node = {
-            .first_idx = min_idx,
-            .last_idx = max_idx,
-            .split_idx = split_idx,
-        };
-        tree.nodes[idx] = node;
+        uint       id = bvh_push_back(&tree);
+        bvh_node_t nodes[BVH_NUM_CHILDS];
+        nodes[0] = root;
+        bvh_nodes_fill_empty(nodes + 1, BVH_NUM_CHILDS - 1);
+        bvh_set_node(&tree, id, nodes);
     }
+    bvh_finish(&tree);
 
     free(morton);
+    free(permutation);
+    return tree;
 }

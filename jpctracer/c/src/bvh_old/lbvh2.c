@@ -2,11 +2,11 @@
 #include "jpc_api.h"
 #include "lbvh.h"
 
-bool spheres_intersect(const ray_trav_t* ray,
-                       const spheres_t*  sphs,
-                       intervall_t       intervall,
-                       int               id,
-                       float*            result)
+bool spheres_intersect_old(const ray_trav_t* ray,
+                           const spheres_t*  sphs,
+                           intervall_t       intervall,
+                           int               id,
+                           float*            result)
 {
 #ifdef LOG_TRAVERSAL
     printf("sphere intersect\n");
@@ -37,13 +37,13 @@ bool spheres_intersect(const ray_trav_t* ray,
     return false;
 }
 
-bool spheres_intesect_closest(const ray_trav_t* ray,
-                              const spheres_t*  sphs,
-                              intervall_t       intervall,
-                              const bvh_tree_t* tree,
-                              int               index_offset,
-                              int*              out_id,
-                              float*            out_distance)
+bool spheres_intesect_closest_old(const ray_trav_t* ray,
+                                  const spheres_t*  sphs,
+                                  intervall_t       intervall,
+                                  const bvh_tree_t* tree,
+                                  int               index_offset,
+                                  int*              out_id,
+                                  float*            out_distance)
 {
     bvh_intersetor_closest_t intersector;
     float                    max_distance = intervall.max;
@@ -54,7 +54,7 @@ bool spheres_intesect_closest(const ray_trav_t* ray,
     bool did_intersect = false;
     while (find_closest_leaf(&i, &intersector, intervall.max))
     {
-        did_intersect |= spheres_intersect(
+        did_intersect |= spheres_intersect_old(
             ray, sphs, intervall, i + index_offset, &intervall.max);
     }
     if (did_intersect)
@@ -126,16 +126,16 @@ bool spheres_intesect_any(const ray_trav_t* ray,
     while (find_any_leaf(&i, &intersector, intervall))
     {
         float tmp;
-        if (spheres_intersect(ray, sphs, intervall, i + index_offset, &tmp))
+        if (spheres_intersect_old(ray, sphs, intervall, i + index_offset, &tmp))
             return true;
     }
     return false;
 }
-bool triangles_intersect(const ray_trav_t*    ray,
-                         const triangles_t*   tris,
-                         int                  id,
-                         intervall_t          intervall,
-                         triangle_hitpoint_t* hitp)
+bool triangles_intersect_old(const ray_trav_t*    ray,
+                             const triangles_t*   tris,
+                             int                  id,
+                             intervall_t          intervall,
+                             triangle_hitpoint_t* hitp)
 {
     uint*               ids = tris->verticies_ids[id];
     triangle_hitpoint_t tmp = triangle_intersect2(*ray,
@@ -150,14 +150,14 @@ bool triangles_intersect(const ray_trav_t*    ray,
     return false;
 }
 
-bool triangles_intersect_closest(const ray_trav_t*  ray,
-                                 const triangles_t* tris,
-                                 intervall_t        intervall,
-                                 const bvh_tree_t*  tree,
+bool triangles_intersect_closest_old(const ray_trav_t*  ray,
+                                     const triangles_t* tris,
+                                     intervall_t        intervall,
+                                     const bvh_tree_t*  tree,
 
-                                 int                  index_offset,
-                                 int*                 out_id,
-                                 triangle_hitpoint_t* out_hitp)
+                                     int                  index_offset,
+                                     int*                 out_id,
+                                     triangle_hitpoint_t* out_hitp)
 {
     bvh_intersetor_closest_t intersector;
     bvh_intersect_init(*tree, intervall.min, *ray, &intersector);
@@ -166,7 +166,7 @@ bool triangles_intersect_closest(const ray_trav_t*  ray,
     int i;
     while (find_closest_leaf(&i, &intersector, intervall.max))
     {
-        if (triangles_intersect(
+        if (triangles_intersect_old(
                 ray, tris, i + index_offset, intervall, out_hitp))
             intervall.max = out_hitp->distance;
     }
@@ -192,7 +192,8 @@ bool triangles_intersect_any(const ray_trav_t*  ray,
     while (find_any_leaf(&i, &intersector, intervall))
     {
         triangle_hitpoint_t tmp;
-        if (triangles_intersect(ray, tris, i + index_offset, intervall, &tmp))
+        if (triangles_intersect_old(
+                ray, tris, i + index_offset, intervall, &tmp))
             return true;
     }
     return false;
@@ -212,11 +213,11 @@ bvh_tree_t bvh_of_instance(const bvh_tree_t* bvh_of_mesh_type,
     };
 }
 
-bool instance_intersect_closest(const ray_trav_t*    world_ray,
-                                const geometries_t*  geom,
-                                int                  id,
-                                intervall_t          intervall,
-                                instance_hitpoint_t* result)
+bool instance_intersect_closest_old(const ray_trav_t*    world_ray,
+                                    const geometries_t*  geom,
+                                    int                  id,
+                                    intervall_t          intervall,
+                                    instance_hitpoint_t* result)
 {
 
     if (id == 72)
@@ -241,25 +242,26 @@ bool instance_intersect_closest(const ray_trav_t*    world_ray,
     {
     case JPC_SPHERE: {
         bvh_tree_t local_tree = bvh_of_instance(geom->bvhtree_spheres, range);
-        did_intersect = spheres_intesect_closest(&local_ray,
-                                                 &geom->spheres,
-                                                 local_intervall,
-                                                 &local_tree,
-                                                 range.min,
-                                                 &result->geom_id,
-                                                 &result->geom_hit.distance);
+        did_intersect
+            = spheres_intesect_closest_old(&local_ray,
+                                           &geom->spheres,
+                                           local_intervall,
+                                           &local_tree,
+                                           range.min,
+                                           &result->geom_id,
+                                           &result->geom_hit.distance);
 
         break;
     }
     case JPC_TRIANGLE: {
         bvh_tree_t tree = bvh_of_instance(geom->bvhtree_triangles, range);
-        did_intersect = triangles_intersect_closest(&local_ray,
-                                                    &geom->triangles,
-                                                    local_intervall,
-                                                    &tree,
-                                                    range.min,
-                                                    &result->geom_id,
-                                                    &result->geom_hit);
+        did_intersect = triangles_intersect_closest_old(&local_ray,
+                                                        &geom->triangles,
+                                                        local_intervall,
+                                                        &tree,
+                                                        range.min,
+                                                        &result->geom_id,
+                                                        &result->geom_hit);
     }
     };
     if (did_intersect)
@@ -319,13 +321,13 @@ bool instance_intersect_closest2(const ray_trav_t*    world_ray,
     }
     case JPC_TRIANGLE: {
         bvh_tree_t tree = bvh_of_instance(geom->bvhtree_triangles, range);
-        did_intersect = triangles_intersect_closest(&local_ray,
-                                                    &geom->triangles,
-                                                    local_intervall,
-                                                    &tree,
-                                                    range.min,
-                                                    &result->geom_id,
-                                                    &result->geom_hit);
+        did_intersect = triangles_intersect_closest_old(&local_ray,
+                                                        &geom->triangles,
+                                                        local_intervall,
+                                                        &tree,
+                                                        range.min,
+                                                        &result->geom_id,
+                                                        &result->geom_hit);
     }
     };
     if (did_intersect)
@@ -368,11 +370,11 @@ bool instance_intersect_any(const ray_trav_t*   world_ray,
     };
     return false;
 }
-bool instances_intersect_closest(const ray_trav_t*    world_ray,
-                                 const geometries_t*  geom,
-                                 intervall_t          intervall,
-                                 int*                 id,
-                                 instance_hitpoint_t* result)
+bool instances_intersect_closest_old(const ray_trav_t*    world_ray,
+                                     const geometries_t*  geom,
+                                     intervall_t          intervall,
+                                     int*                 id,
+                                     instance_hitpoint_t* result)
 {
     bvh_intersetor_closest_t intersector;
     if (!bvh_intersect_init(
@@ -384,7 +386,8 @@ bool instances_intersect_closest(const ray_trav_t*    world_ray,
     int i;
     while (find_closest_leaf(&i, &intersector, intervall.max))
     {
-        if (instance_intersect_closest(world_ray, geom, i, intervall, result))
+        if (instance_intersect_closest_old(
+                world_ray, geom, i, intervall, result))
         {
             intervall.max = result->geom_hit.distance;
             did_intersect = true;
@@ -414,7 +417,7 @@ bool _inst_intersect(void* params,
 {
     _inst_params* p = params;
     id += p->offset;
-    if (instance_intersect_closest(
+    if (instance_intersect_closest_old(
             world_ray, p->geom, id, intervall, p->out_hit))
     {
         *p->out_id = id;
@@ -510,7 +513,7 @@ bool ray_intersect_c(const geometries_t* geometries,
     int                 id;
     instance_hitpoint_t hit
         = {.geom_hit = {.distance = 0, .uv = {0, 0}}, .geom_id = -1};
-    if (!instances_intersect_closest(
+    if (!instances_intersect_closest_old(
             &ray_trav, geometries, (intervall_t){0, ray->clip_end}, &id, &hit))
         return false;
 

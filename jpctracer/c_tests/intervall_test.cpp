@@ -1,6 +1,6 @@
-#include "bvh/intersect.hpp"
-#include "bvh/lbvh.hpp"
-#include "bvh/traverse.hpp"
+#include "bvh_old/intersect.hpp"
+#include "bvh_old/lbvh.hpp"
+#include "bvh_old/traverse.hpp"
 #include "simdpp/simd.h"
 #include <array>
 #include <cstdio>

@@ -61,7 +61,7 @@ static inline void log_intervall(intervall_t inter)
     printf("min: %f, %f\n", inter.min, inter.max);
 #endif
 };
-static inline ray_trav_bounds_t ray_trav_bounds_make(ray_trav_t ray)
+static inline ray_trav_bounds_t ray_trav_bounds_make_old(ray_trav_t ray)
 {
     ray_trav_bounds_t result;
     glm_vec3_copy(ray.origin, result.origin);
