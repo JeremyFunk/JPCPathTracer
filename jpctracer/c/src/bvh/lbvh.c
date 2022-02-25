@@ -42,6 +42,7 @@ int count_leading_zeros_combined(uint32_t a, uint32_t b)
     return 0;
 #endif
 }
+
 int number_leading_zeros(uint32_t*    morton_codes,
                          int          idx_a,
                          int          offset,

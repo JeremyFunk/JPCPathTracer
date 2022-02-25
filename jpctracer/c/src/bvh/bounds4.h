@@ -126,6 +126,7 @@ static inline __m128 max4(__m128 a, __m128 b, __m128 c, __m128 d)
 static inline hits_bounds4_t bounds3d_intersect4(const ray_trav_bounds4_t* ray,
                                                  const bounds4_t* bounds)
 {
+
     __m128 mins[3];
     __m128 maxs[3];
 
@@ -142,6 +143,7 @@ static inline hits_bounds4_t bounds3d_intersect4(const ray_trav_bounds4_t* ray,
                                ray->inv_dir[i],
                                ray->inv_dir_org[i]); //(bounds.min-org)/dir
     }
+
     hits_bounds4_t hits;
     hits.min = max4(mins[0], mins[1], mins[2], ray->t_min);
     hits.max = min4(maxs[0], maxs[1], maxs[2], ray->t_max);

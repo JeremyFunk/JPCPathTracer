@@ -67,42 +67,21 @@ void bvh_set_node(bvh_tree_t* tree, uint id, const bvh_node_t* childs)
         // LOG_BOUNDS("bound", childs[i].bound.min, childs[i].bound.max);
     }
     assert(id < tree->nodes_max_count);
-
-    // min_x
-    tree->nodes[id].bounds.borders[0] = _mm_set_ps(childs[3].bound.min[0],
-                                                   childs[2].bound.min[0],
-                                                   childs[1].bound.min[0],
-                                                   childs[0].bound.min[0]);
-
-    // max_x
-    tree->nodes[id].bounds.borders[1] = _mm_set_ps(childs[3].bound.max[0],
-                                                   childs[2].bound.max[0],
-                                                   childs[1].bound.max[0],
-                                                   childs[0].bound.max[0]);
-
-    // min_y
-    tree->nodes[id].bounds.borders[2] = _mm_set_ps(childs[3].bound.min[1],
-                                                   childs[2].bound.min[1],
-                                                   childs[1].bound.min[1],
-                                                   childs[0].bound.min[1]);
-
-    // max_y
-    tree->nodes[id].bounds.borders[3] = _mm_set_ps(childs[3].bound.max[1],
-                                                   childs[2].bound.max[1],
-                                                   childs[1].bound.max[1],
-                                                   childs[0].bound.max[1]);
-
-    // min_z
-    tree->nodes[id].bounds.borders[4] = _mm_set_ps(childs[3].bound.min[2],
-                                                   childs[2].bound.min[2],
-                                                   childs[1].bound.min[2],
-                                                   childs[0].bound.min[2]);
-
-    // max_z
-    tree->nodes[id].bounds.borders[5] = _mm_set_ps(childs[3].bound.max[2],
-                                                   childs[2].bound.max[2],
-                                                   childs[1].bound.max[2],
-                                                   childs[0].bound.max[2]);
+    for (int i = 0; i < 3; i++)
+    {
+        // min
+        tree->nodes[id].bounds.borders[2 * i]
+            = _mm_set_ps(childs[3].bound.min[i],
+                         childs[2].bound.min[i],
+                         childs[1].bound.min[i],
+                         childs[0].bound.min[i]);
+        // max
+        tree->nodes[id].bounds.borders[2 * i + 1]
+            = _mm_set_ps(childs[3].bound.max[i],
+                         childs[2].bound.max[i],
+                         childs[1].bound.max[i],
+                         childs[0].bound.max[i]);
+    }
     for (int i = 0; i < BVH_NUM_CHILDS; i++)
     {
         tree->nodes[id].childs[i] = node_ref_create(&childs[i], tree->nodes);
@@ -172,35 +151,38 @@ int next_mask_idx(int* mask)
     *mask &= *mask - 1;
     return r;
 }
+
+bvh_stack_item_cl_t* hit_push_to_stack(hits_bounds4_t*          hits,
+                                       bvh_stack_item_cl_t*     stack,
+                                       const bvh_node_intern_t* node)
+{
+    int i = next_mask_idx(&hits->mask);
+    stack->min_distance = hits->min[i];
+    stack->node = node->childs[i];
+    stack++;
+    return stack;
+}
+
 bvh_stack_item_cl_t* bounds_intersect_closest(const bvh_node_intern_t*  node,
                                               const ray_trav_bounds4_t* ray,
                                               bvh_stack_item_cl_t*      stack)
 {
     hits_bounds4_t hits = bounds3d_intersect4(ray, &node->bounds);
-    float          dist_mins[4];
 
-    for (int i = 0; i < 4; i++)
-        dist_mins[i] = hits.min[i];
     if (hits.mask == 0)
     {
         return stack;
     }
     bvh_stack_item_cl_t* stack_begin = stack;
-    int                  i;
-    i = next_mask_idx(&hits.mask);
-    stack->min_distance = dist_mins[i];
-    stack->node = node->childs[i];
-    stack++;
+
+    stack = hit_push_to_stack(&hits, stack, node);
 
     if (hits.mask == 0)
     {
         return stack;
     }
 
-    i = next_mask_idx(&hits.mask);
-    stack->min_distance = dist_mins[i];
-    stack->node = node->childs[i];
-    stack++;
+    stack = hit_push_to_stack(&hits, stack, node);
 
     if (hits.mask == 0)
     {
@@ -208,10 +190,7 @@ bvh_stack_item_cl_t* bounds_intersect_closest(const bvh_node_intern_t*  node,
         return stack;
     }
 
-    i = next_mask_idx(&hits.mask);
-    stack->min_distance = dist_mins[i];
-    stack->node = node->childs[i];
-    stack++;
+    stack = hit_push_to_stack(&hits, stack, node);
 
     if (hits.mask == 0)
     {
@@ -219,10 +198,7 @@ bvh_stack_item_cl_t* bounds_intersect_closest(const bvh_node_intern_t*  node,
         return stack;
     }
 
-    i = next_mask_idx(&hits.mask);
-    stack->min_distance = dist_mins[i];
-    stack->node = node->childs[i];
-    stack++;
+    stack = hit_push_to_stack(&hits, stack, node);
 
     sort4(stack_begin);
     return stack;

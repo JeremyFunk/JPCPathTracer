@@ -9,6 +9,13 @@ bool spheres_intersect_closest(const ray_trav_t* ray,
                                int               offset_id,
                                int*              out_id,
                                float*            out_distance);
+bool triangles_intersect_closest(const ray_trav_t*    ray,
+                                 const triangles_t*   tris,
+                                 intervall_t          search_intervall,
+                                 const bvh_tree_t*    tree,
+                                 int                  offset_id,
+                                 int*                 out_id,
+                                 triangle_hitpoint_t* out_hit);
 typedef struct
 {
     int                 geom_id;

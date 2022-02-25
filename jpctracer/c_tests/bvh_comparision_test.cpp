@@ -91,13 +91,13 @@ int main()
     // seed = 659995227;
     std::mt19937 engine{seed}; // Generates random integers
     std::cout << "seed: " << seed << "\n";
-    std::uniform_real_distribution<float> float_dist{-5000000, 50000000};
+    std::uniform_real_distribution<float> float_dist{-500, 500};
 
-    std::uniform_real_distribution<float> float_dist_rad{0, 1. / 500.};
+    std::uniform_real_distribution<float> float_dist_rad{0, 1};
 
     auto fgen = [&]() { return float_dist(engine); };
 
-    uint  ray_n = 200;
+    uint  ray_n = 100;
     float clip_end = 400;
     uint  sphs_n = 10000;
     uint  sphs_meshes_n = 10;
@@ -231,10 +231,10 @@ int main()
                                          &geoms,
                                          rays.data(),
                                          ray_n); // ray_intersect_naive
-
     bvhtree_free(geoms.bvhtree_spheres);
     bvhtree_free(geoms.bvhtree_instances);
     bvhtree_free(geoms.bvhtree_triangles);
+
     bvhtree_spheres_build(&geoms);
     bvhtree_triangles_build(&geoms);
     bvhtree_instances_build(&geoms);
