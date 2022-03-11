@@ -1,7 +1,7 @@
 #pragma once
 #include "../config.h"
 #include "../types.h"
-#include "bounds4.h"
+#include "bounds3d.h"
 #include "bvh_ref.h"
 #include "jpc_api.h"
 #include "shapes.h"
@@ -32,8 +32,6 @@ typedef struct
     bvh_node_ref_t node;
 } bvh_stack_item_cl_t;
 
-#define BVH_NUM_CHILDS 4
-
 void bvh_set_node(bvh_tree_t* tree, uint id, const bvh_node_t* childs);
 
 uint bvh_push_back(bvh_tree_t* tree);
@@ -61,7 +59,3 @@ bool bvh_intersect_init(const bvh_tree_t*         tree,
 bool find_closest_leaf(int*                      id,
                        bvh_intersetor_closest_t* intersector,
                        float                     max_distance);
-
-bvh_stack_item_cl_t* bounds_intersect_closest(const bvh_node_intern_t*  node,
-                                              const ray_trav_bounds4_t* ray,
-                                              bvh_stack_item_cl_t*      stack);

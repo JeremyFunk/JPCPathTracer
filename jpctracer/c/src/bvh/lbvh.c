@@ -134,7 +134,7 @@ int eval_child_intervalls(int       start,
                           uint*     intervalls)
 {
 
-    uint max_num_childs = MIN(BVH_NUM_CHILDS, end - start);
+    uint max_num_childs = MIN(BVH_WIDTH, end - start);
     uint num_childs = 1;
     do
     {
@@ -153,7 +153,7 @@ int eval_child_intervalls(int       start,
         // shift
         for (int i = num_childs + 1; i > max_intervall_i + 1; i--)
         {
-            assert(i < BVH_NUM_CHILDS + 1);
+            assert(i < BVH_WIDTH + 1);
             intervalls[i] = intervalls[i - 1];
         }
 
@@ -206,14 +206,14 @@ bvh_node_t lbvh_build_recursiv(uint        start,
     }
 
     // always split the largest intervall
-    uint childs_intervalls[BVH_NUM_CHILDS + 1] = {start, end};
+    uint childs_intervalls[BVH_WIDTH + 1] = {start, end};
 
     uint num_childs = eval_child_intervalls(
         start, end, morton, max_nodes, childs_intervalls);
 
     int node_id = bvh_push_back(tree);
 
-    bvh_node_t child_nodes[BVH_NUM_CHILDS];
+    bvh_node_t child_nodes[BVH_WIDTH];
     int        i = 0;
     for (; i < num_childs; i++)
     {
@@ -226,7 +226,7 @@ bvh_node_t lbvh_build_recursiv(uint        start,
                                              max_nodes);
     }
 
-    bvh_nodes_fill_empty(child_nodes + i, BVH_NUM_CHILDS - i);
+    bvh_nodes_fill_empty(child_nodes + i, BVH_WIDTH - i);
     bvh_set_node(tree, node_id, child_nodes);
 
     bounds3d_t node_bound = child_nodes[0].bound;
@@ -264,14 +264,14 @@ bvh_tree_t lbvh_build(uint n, bounds3d_t* bounds, vec3* centers)
 
     sort_permutation_uint(morton, permutation, n);
     bvh_node_t root = lbvh_build_recursiv(
-        0, n, &tree, morton, bounds, permutation, n - BVH_NUM_CHILDS);
+        0, n, &tree, morton, bounds, permutation, n - BVH_WIDTH);
     tree.root_bound = root.bound;
     if (root.is_leaf)
     {
         uint       id = bvh_push_back(&tree);
-        bvh_node_t nodes[BVH_NUM_CHILDS];
+        bvh_node_t nodes[BVH_WIDTH];
         nodes[0] = root;
-        bvh_nodes_fill_empty(nodes + 1, BVH_NUM_CHILDS - 1);
+        bvh_nodes_fill_empty(nodes + 1, BVH_WIDTH - 1);
         bvh_set_node(&tree, id, nodes);
     }
     bvh_finish(&tree);

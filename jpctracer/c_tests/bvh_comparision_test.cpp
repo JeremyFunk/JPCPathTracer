@@ -257,11 +257,13 @@ int main()
     for (int i = 0; i < ray_n; i++)
     {
 
-        if (hit_naive[i] != hit_cpp[i] || hit_naive[i] != hit_c2[i]
-            || hit_cpp[i] != hit_c2[i] || hit_c2[i] != hit_c3[i]
-            || hit_c4[i] != hit_c2[i])
+        /*
+        if (hit_naive[i] != hit_c2[i] || hit_naive[i] != hit_c3[i]
+            || hit_c4[i] != hit_naive[i])*/
+        if (hit_naive[i] != hit_c4[i])
         {
             assert(hit_c2[i] != hit_c3[i]);
+            assert(hit_c4[i] != hit_naive[i]);
 
             std::cout << "hit naive:\n";
             print_hitp(hit_naive[i]);

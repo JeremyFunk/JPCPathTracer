@@ -1,6 +1,7 @@
 #pragma once
 #include "../config.h"
 #include "../types.h"
+#include "bounds3d.h"
 #include "cglm/cglm.h"
 #include "jpc_api.h"
 #include <assert.h>
@@ -16,12 +17,6 @@ typedef struct
     uint min;
     uint max;
 } intervallu32_t;
-
-typedef struct
-{
-    vec3 origin;
-    vec3 direction;
-} ray_trav_t;
 
 typedef struct
 {

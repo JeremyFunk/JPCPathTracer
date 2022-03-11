@@ -1,16 +1,18 @@
 
 #include "bvh.h"
-#include "bounds4.h"
 #include "bvh_ref.h"
 #include "jpc_api.h"
 #include <stdlib.h>
 #include <string.h>
 #include <xmmintrin.h>
 
+#define SIMD_WIDTH BVH_WIDTH
+#include "boundsN.h"
+
 typedef struct bvh_node_intern_s
 {
-    bounds4_t      bounds;
-    bvh_node_ref_t childs[4];
+    boundsN_t      bounds;
+    bvh_node_ref_t childs[BVH_WIDTH];
 } bvh_node_intern_t;
 
 bvh_tree_t bvh_create(int max_nodes, int max_leafs)
@@ -61,7 +63,7 @@ bool check_node(const bvh_tree_t* tree, const bvh_node_t* node)
 
 void bvh_set_node(bvh_tree_t* tree, uint id, const bvh_node_t* childs)
 {
-    for (int i = 0; i < BVH_NUM_CHILDS; i++)
+    for (int i = 0; i < BVH_WIDTH; i++)
     {
         assert(check_node(tree, &childs[i]));
         // LOG_BOUNDS("bound", childs[i].bound.min, childs[i].bound.max);
@@ -69,20 +71,18 @@ void bvh_set_node(bvh_tree_t* tree, uint id, const bvh_node_t* childs)
     assert(id < tree->nodes_max_count);
     for (int i = 0; i < 3; i++)
     {
+
         // min
-        tree->nodes[id].bounds.borders[2 * i]
-            = _mm_set_ps(childs[3].bound.min[i],
-                         childs[2].bound.min[i],
-                         childs[1].bound.min[i],
-                         childs[0].bound.min[i]);
+        for (int j = 0; j < BVH_WIDTH; j++)
+        {
+            tree->nodes[id].bounds.borders[2 * i].m[j] = childs[j].bound.min[i];
+        }
         // max
-        tree->nodes[id].bounds.borders[2 * i + 1]
-            = _mm_set_ps(childs[3].bound.max[i],
-                         childs[2].bound.max[i],
-                         childs[1].bound.max[i],
-                         childs[0].bound.max[i]);
+        for (int j = 0; j < BVH_WIDTH; j++)
+            tree->nodes[id].bounds.borders[2 * i + 1].m[j]
+                = childs[j].bound.max[i];
     }
-    for (int i = 0; i < BVH_NUM_CHILDS; i++)
+    for (int i = 0; i < BVH_WIDTH; i++)
     {
         tree->nodes[id].childs[i] = node_ref_create(&childs[i], tree->nodes);
     }
@@ -106,7 +106,7 @@ void bvh_finish(bvh_tree_t* tree)
     tree->nodes_max_count = tree->nodes_count;
     for (int i = 0; i < tree->nodes_count; i++)
     {
-        for (int j = 0; j < BVH_NUM_CHILDS; j++)
+        for (int j = 0; j < BVH_WIDTH; j++)
         {
             bvh_node_ref_t* ref = &tree->nodes[i].childs[j];
             *ref = node_ref_move(*ref, old_nodes, tree->nodes);
@@ -145,6 +145,30 @@ void sort4(bvh_stack_item_cl_t* first)
     sort2(first + 1, first + 3);
     sort2(first + 1, first + 2);
 }
+
+void insertion_sort(bvh_stack_item_cl_t* first, bvh_stack_item_cl_t* last)
+{
+    int size = last - first;
+
+    // Insertion Sort
+    for (int i = 1; i < size; i++)
+    {
+
+        bvh_stack_item_cl_t temp = first[i];
+        int                 j = i - 1;
+
+        while ((temp.min_distance > first[j].min_distance) && (j >= 0))
+        {
+
+            // swap
+            first[j + 1] = first[j];
+            j = j - 1;
+        }
+
+        first[j + 1] = temp;
+    }
+}
+
 int next_mask_idx(int* mask)
 {
     int r = __builtin_ctz(*mask);
@@ -152,22 +176,22 @@ int next_mask_idx(int* mask)
     return r;
 }
 
-bvh_stack_item_cl_t* hit_push_to_stack(hits_bounds4_t*          hits,
+bvh_stack_item_cl_t* hit_push_to_stack(hits_boundsN_t*          hits,
                                        bvh_stack_item_cl_t*     stack,
                                        const bvh_node_intern_t* node)
 {
     int i = next_mask_idx(&hits->mask);
-    stack->min_distance = hits->min[i];
+    stack->min_distance = hits->min.m[i];
     stack->node = node->childs[i];
     stack++;
     return stack;
 }
 
 bvh_stack_item_cl_t* bounds_intersect_closest(const bvh_node_intern_t*  node,
-                                              const ray_trav_bounds4_t* ray,
+                                              const ray_trav_boundsN_t* ray,
                                               bvh_stack_item_cl_t*      stack)
 {
-    hits_bounds4_t hits = bounds3d_intersect4(ray, &node->bounds);
+    hits_boundsN_t hits = bounds3d_intersectN(ray, &node->bounds);
 
     if (hits.mask == 0)
     {
@@ -183,13 +207,17 @@ bvh_stack_item_cl_t* bounds_intersect_closest(const bvh_node_intern_t*  node,
     }
 
     stack = hit_push_to_stack(&hits, stack, node);
+#if BVH_WIDTH == 2
 
+    sort2(stack_begin, stack_begin + 1);
+#endif
+
+#if BVH_WIDTH >= 4
     if (hits.mask == 0)
     {
         sort2(stack_begin, stack_begin + 1);
         return stack;
     }
-
     stack = hit_push_to_stack(&hits, stack, node);
 
     if (hits.mask == 0)
@@ -200,7 +228,23 @@ bvh_stack_item_cl_t* bounds_intersect_closest(const bvh_node_intern_t*  node,
 
     stack = hit_push_to_stack(&hits, stack, node);
 
+#endif
+#if BVH_WIDTH == 4
     sort4(stack_begin);
+#endif
+#if BVH_WIDTH > 4
+    if (hits.mask == 0)
+    {
+        sort4(stack_begin);
+        return stack;
+    }
+    for (int i = 4; i < 8 && hits.mask != 0; i++)
+    {
+        stack = hit_push_to_stack(&hits, stack, node);
+    }
+    insertion_sort(stack_begin, stack);
+#endif
+
     return stack;
 }
 
@@ -211,7 +255,7 @@ bool find_closest_leaf(int*                      id,
     bvh_intersetor_closest_t* i = intersector;
     bvh_stack_item_cl_t       item;
     intervall_t               intervall = {i->min_distance, max_distance};
-    ray_trav_bounds4_t        ray
+    ray_trav_boundsN_t        ray
         = ray_trav_bounds4_make(&i->ray, i->ray.t_min, max_distance);
 
     int _test_id = 5; //
@@ -255,7 +299,7 @@ bvh_node_ref_t bvh_get_root(const bvh_tree_t* tree)
 
     bvh_node_t root = {
         .idx = 0,
-        .is_leaf = (int)(tree->nodes_count == 1),
+        .is_leaf = false,
     };
     return node_ref_create(&root, tree->nodes);
 }
@@ -281,11 +325,9 @@ bool bvh_intersect_init(const bvh_tree_t*         tree,
 }
 
 // returnes the identifier
-int bvh_node4_log_recursive(const bvh_inode_ref_t ref,
-                            int                   depth,
-                            int                   identifier)
+int bvh_node_log_recursive(const bvh_inode_ref_t ref, int depth, int identifier)
 {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < BVH_WIDTH; i++)
     {
 
         char           name[256];
@@ -299,7 +341,7 @@ int bvh_node4_log_recursive(const bvh_inode_ref_t ref,
                     i,
                     depth,
                     child_ref.leaf.idx);
-            if (isinff(ref.ptr->bounds.borders[0][i]))
+            if (isinff(ref.ptr->bounds.borders[0].m[i]))
             {
                 sprintf(name + strlen(name), "_empty");
             }
@@ -314,7 +356,7 @@ int bvh_node4_log_recursive(const bvh_inode_ref_t ref,
     {
         if (!is_leaf(ref.ptr->childs[i]))
         {
-            identifier = bvh_node4_log_recursive(
+            identifier = bvh_node_log_recursive(
                 ref.ptr->childs[i].inode, depth + 1, identifier + 1);
         }
     }
@@ -330,6 +372,6 @@ void bvh_log(const bvh_tree_t* tree)
     }
     else
     {
-        bvh_node4_log_recursive(root.inode, 0, 0);
+        bvh_node_log_recursive(root.inode, 0, 0);
     }
 }
