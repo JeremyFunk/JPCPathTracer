@@ -9,7 +9,7 @@ extern "C"
 #include "cglm/vec3.h"
 #include "jpc_api.h"
 }
-#include "simdpp/simd.h"
+//#include "simdpp/simd.h"
 #include <algorithm>
 #include <cstddef>
 #include <limits>
@@ -112,12 +112,12 @@ inline bool does_intersect(const pair<float, float>& x, const T& intervall)
     return x.first <= x.second && t_min(intervall) < x.second
            && x.first < t_max(intervall);
 }
-
+/*
 template <std::size_t N> struct bounds3dN_t
 {
     simdpp::float32<N> min[3];
     simdpp::float32<N> max[3];
-};
+};*/
 // returns the index of the the first 1
 // and removes this 1
 inline int next_mask_idx(std::uint32_t& mask)
@@ -143,6 +143,7 @@ S inline push_to_stack(H& hit, S stack)
     stack++;
     return stack;
 }
+/*
 template <size_t N>
 // I: randomaccess iterator
 struct bounds3d_hitpoints
@@ -151,7 +152,9 @@ struct bounds3d_hitpoints
     simdpp::float32<N> t_max;
     std::size_t        mask;
 };
+*/
 
+/*
 template <size_t N>
 // I must be semiregular
 bounds3d_hitpoints<N> bounds3d_intersect(const bounds3dN_t<N>&     bounds,
@@ -187,6 +190,7 @@ bounds3d_hitpoints<N> bounds3d_intersect(const bounds3dN_t<N>&     bounds,
     hits.mask = mask.to_int();
     return hits;
 }
+*/
 
 inline float sphere_intersect(ray_trav_t ray, vec3 center, float radius)
 {
