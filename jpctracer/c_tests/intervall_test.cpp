@@ -1,7 +1,7 @@
 #include "bvh_old/intersect.hpp"
 #include "bvh_old/lbvh.hpp"
 #include "bvh_old/traverse.hpp"
-#include "simdpp/simd.h"
+//#include "simdpp/simd.h"
 #include <array>
 #include <cstdio>
 #include <iostream>

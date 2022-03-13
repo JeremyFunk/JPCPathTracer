@@ -1,5 +1,5 @@
 #pragma once
-#define SIMD_WIDTH 4
+//#define SIMD_WIDTH 4
 #if (SIMD_WIDTH == 4)
 #include <emmintrin.h> //SSE2
 #include <xmmintrin.h> //SSE
@@ -18,7 +18,7 @@ static inline simdf simd_fmsub_ps(simdf a, simdf b, simdf c)
 #ifdef __FMA__
     return (simdf){_mm_fmsub_ps(a.m, b.m, c.m)};
 #else
-    return _mm_sub_ps(_mm_mul_ps(a, b), c);
+    return (simdf){_mm_sub_ps(_mm_mul_ps(a.m, b.m), c.m)};
 #endif
 }
 
