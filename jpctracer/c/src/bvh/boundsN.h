@@ -21,7 +21,7 @@ typedef struct
     simdf t_max;
 } ray_trav_boundsN_t;
 
-static inline ray_trav_boundsN_t ray_trav_bounds4_make(
+static inline ray_trav_boundsN_t ray_trav_boundsN_make(
     const ray_trav_bounds_t* ray,
     float                    t_min,
     float                    t_max)

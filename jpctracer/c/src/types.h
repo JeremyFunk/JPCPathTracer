@@ -14,11 +14,15 @@ typedef vec4 spectrum;
 
 typedef struct
 {
+    uint instance_id;
+    uint mesh_id; 
+    float distance;
     vec4 location;
     int  material_id;
-    vec2 uvs;
+    vec2 uv;
     vec3 normal;
 } hit_point_t;
+
 typedef struct
 {
     vec4 color;

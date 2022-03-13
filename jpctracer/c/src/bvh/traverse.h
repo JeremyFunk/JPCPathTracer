@@ -2,35 +2,36 @@
 #include "bvh.h"
 #include "jpc_api.h"
 
-bool spheres_intersect_closest(const ray_trav_t* ray,
-                               const spheres_t*  sphs,
-                               intervall_t       search_intervall,
-                               const bvh_tree_t* tree,
-                               int               offset_id,
-                               int*              out_id,
-                               float*            out_distance);
-bool triangles_intersect_closest(const ray_trav_t*    ray,
-                                 const triangles_t*   tris,
-                                 intervall_t          search_intervall,
-                                 const bvh_tree_t*    tree,
-                                 int                  offset_id,
-                                 int*                 out_id,
-                                 triangle_hitpoint_t* out_hit);
-typedef struct
-{
-    int                 geom_id;
-    triangle_hitpoint_t geom_hit;
-} instance_hitpoint_t;
-bool instance_intersect_closest(const ray_trav_t*    world_ray,
-                                const geometries_t*  geoms,
-                                uint                 id,
-                                intervall_t          intervall,
-                                instance_hitpoint_t* result);
-bool instances_intersect_closest(const ray_trav_t*    ray,
-                                 const geometries_t*  geoms,
-                                 intervall_t          search_intervall,
-                                 int*                 out_id,
-                                 instance_hitpoint_t* out_hit);
+
+typedef bool(*intersect_f)(const ray_t*ray,uint id,void* params,hit_point_t* out);
+
+bool intersect_closest(ray_t ray,const bvh_tree_t*tree,intersect_f intersect, void*params,hit_point_t* out);
+
+
+typedef struct{
+    vec3* positions;
+    float* radii;
+    int offset;
+}sphs_intersect_t;
+
+typedef struct{
+    float3* verticies;
+    uint3* verticies_ids;
+    int offset;
+}tris_intersect_t;
+
+//params of type sphs_intersect_t
+bool spheres_intersect(const ray_t* ray,uint id, void* params, hit_point_t* out);
+
+//params of type tris_intersect_t
+bool triangles_intersect(const ray_t* ray, uint id,void* params, hit_point_t* out);
+
+//params of type geometries_t
+bool instance_intersect_closest(const ray_t* world_ray,
+                                uint         id,
+                                void*        params,
+                                hit_point_t* result);
+
 bool ray_intersect_c3(const geometries_t* geometries,
                       ray_t*              ray,
                       hit_point_t*        out_hitpoint);

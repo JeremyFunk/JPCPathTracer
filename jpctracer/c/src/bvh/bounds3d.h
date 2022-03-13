@@ -2,11 +2,13 @@
 #include "../types.h"
 #include <cglm/cglm.h>
 
+
 typedef struct
 {
-    vec3 origin;
-    vec3 direction;
-} ray_trav_t;
+    float min;
+    float max;
+} intervall_t;
+
 
 typedef struct
 {
@@ -14,13 +16,10 @@ typedef struct
     vec3  inv_dir;
     int   load_permul_min[3];
     int   load_permul_max[3];
-    float t_min;
-    float t_max;
+    float clip_end;
 } ray_trav_bounds_t;
 
-static inline ray_trav_bounds_t ray_trav_bounds_make(const ray_trav_t* ray,
-                                                     float             t_min,
-                                                     float             t_max)
+static inline ray_trav_bounds_t ray_trav_bounds_make(const ray_t* ray)
 {
     ray_trav_bounds_t result;
     for (int i = 0; i < 3; i++)
@@ -45,7 +44,6 @@ static inline ray_trav_bounds_t ray_trav_bounds_make(const ray_trav_t* ray,
             result.load_permul_max[i] = i * 2 + 1;
         }
     }
-    result.t_max = t_max;
-    result.t_min = t_min;
+    result.clip_end = ray->clip_end;
     return result;
 }

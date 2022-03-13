@@ -8,25 +8,12 @@
 
 typedef struct
 {
-    float min;
-    float max;
-} intervall_t;
-
-typedef struct
-{
     uint min;
     uint max;
 } intervallu32_t;
 
-typedef struct
-{
-    float distance;
-    vec2  uv;
-} triangle_hitpoint_t;
 
-ray_trav_t ray_trav_make(const ray_t* ray);
-
-float ray_transform(const ray_trav_t* ray, mat4 mat, ray_trav_t* result);
+float ray_transform(const ray_t* ray, mat4 mat, ray_t* result);
 
 hit_point_t transform_hitp(const hit_point_t* hit, mat4 mat);
 
@@ -47,45 +34,34 @@ static inline bool does_intersect_point(float p, intervall_t x)
 {
     return x.min < p && p < x.max;
 }
-static inline bool does_intersect_triangle(triangle_hitpoint_t x,
+static inline bool does_intersect_triangle(float distance, vec2 uv,
                                            intervall_t         intervall)
 {
-    return does_intersect_point(x.distance, intervall)
-           && x.uv[0] > -ERROR_THICKNESS && x.uv[0] < 1 + ERROR_THICKNESS
-           && x.uv[1] > -ERROR_THICKNESS
-           && x.uv[0] + x.uv[1] < 1 + ERROR_THICKNESS;
+    return does_intersect_point(distance, intervall)
+           && uv[0] > -ERROR_THICKNESS && uv[0] < 1 + ERROR_THICKNESS
+           && uv[1] > -ERROR_THICKNESS
+           && uv[0] + uv[1] < 1 + ERROR_THICKNESS;
 }
 
-float sphere_intersect(ray_trav_t ray, vec3 center, float radius);
+bool sphere_intersect(const ray_t *ray, vec3 center, float radius, float* distance);
 
-triangle_hitpoint_t triangle_intersect(ray_trav_t ray,
-                                       vec3       v1,
-                                       vec3       v2,
-                                       vec3       v3);
+bool triangle_intersect(const ray_t*  ray,
+                        vec3   v1,
+                        vec3   v2,
+                        vec3   v3,
+                        float* out_distance,
+                        vec2   out_uv);
 
-hit_point_t triangle_finalize(const triangle_hitpoint_t* x,
-                              uint                       id,
-                              const ray_trav_t*          ray,
-                              const triangles_t*         tris,
-                              const uint*                mat_slots_bindings);
+hit_point_t triangle_finalize(hit_point_t        hitp,
+                              const ray_t*       ray,
+                              const triangles_t* tris,
+                              const uint*        mat_slots_bindings);
 
-hit_point_t sphere_finalize(float             t,
-                            uint              id,
-                            const ray_trav_t* ray,
-                            const spheres_t*  sphs,
-                            const uint*       mat_slots_bindings);
+hit_point_t sphere_finalize(hit_point_t      hitp,
+                            const ray_t*     ray,
+                            const spheres_t* sphs,
+                            const uint*      mat_slots_bindings);
 
-bool spheres_intersect(const ray_trav_t* ray,
-                       const spheres_t*  sphs,
-                       int               id,
-                       intervall_t       intervall,
-                       float*            result);
-
-bool triangles_intersect(const ray_trav_t*    ray,
-                         const triangles_t*   tris,
-                         int                  id,
-                         intervall_t          intervall,
-                         triangle_hitpoint_t* hitp);
 
 void triangles_get_bounds(const geometries_t* geoms, bounds3d_t* bounds);
 

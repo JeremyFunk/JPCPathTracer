@@ -256,7 +256,7 @@ bool find_closest_leaf(int*                      id,
     bvh_stack_item_cl_t       item;
     intervall_t               intervall = {i->min_distance, max_distance};
     ray_trav_boundsN_t        ray
-        = ray_trav_bounds4_make(&i->ray, i->ray.t_min, max_distance);
+        = ray_trav_boundsN_make(&i->ray, 0.f, max_distance);
 
     int _test_id = 5; //
 
@@ -305,17 +305,16 @@ bvh_node_ref_t bvh_get_root(const bvh_tree_t* tree)
 }
 
 bool bvh_intersect_init(const bvh_tree_t*         tree,
-                        float                     min_distance,
-                        const ray_trav_t*         ray,
+                        const ray_t*         ray,
                         bvh_intersetor_closest_t* result)
 {
     result->stack = result->stack_data;
     result->stack_begin = result->stack_data;
     result->stack->node = bvh_get_root(tree);
-    result->stack->min_distance = min_distance + ERROR_THICKNESS;
+    result->stack->min_distance = 0 + ERROR_THICKNESS;
     result->stack++;
-    result->min_distance = min_distance;
-    result->ray = ray_trav_bounds_make(ray, min_distance, INFINITY);
+    result->min_distance = 0;
+    result->ray = ray_trav_bounds_make(ray);
     /*
     bounds3d_t* bounds = tree.n == 1 ? tree.shape_bounds : tree.node_bounds;
     intervall_t hit = bounds3d_intersect(bounds, &result->ray);

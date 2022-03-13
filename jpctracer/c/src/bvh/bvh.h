@@ -52,8 +52,7 @@ typedef struct
 } bvh_intersetor_closest_t;
 
 bool bvh_intersect_init(const bvh_tree_t*         tree,
-                        float                     min_distance,
-                        const ray_trav_t*         ray,
+                        const ray_t*         ray,
                         bvh_intersetor_closest_t* result);
 
 bool find_closest_leaf(int*                      id,
