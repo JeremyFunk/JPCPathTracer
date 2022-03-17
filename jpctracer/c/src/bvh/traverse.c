@@ -105,11 +105,60 @@ bool instances_intersect_closest(const ray_t* world_ray,
     return false;
 }
 
-typedef bool (*intersect_f)(const ray_t* ray,
-                            uint         id,
-                            void*        params,
-                            hit_point_t* out);
+bool instances_intersect_any(const ray_t* world_ray,
+                             uint         id,
+                             void*        params,
+                             hit_point_t* result)
+{
 
+    const geometries_t* geoms = params;
+    instance_t          inst = geoms->instances[id];
+    ray_t               local_ray;
+    // transformation
+    mat4 trans, inv_trans;
+    mat4_ucopy(inst.transformations, trans);
+    glm_mat4_inv(trans, inv_trans);
+    float norm = ray_transform(world_ray, inv_trans, &local_ray);
+
+#ifdef LOG_TRAVERSAL
+    printf("dist local: %f dist max: %f\n", local_intervall.max, intervall.max);
+#endif
+    intervallu32_t range = instance_get_range(geoms, inst);
+    switch (inst.type)
+    {
+    case JPC_SPHERE: {
+        bvh_tree_t*      local_tree = geoms->bvhtree_spheres + inst.mesh_id;
+        sphs_intersect_t intersect_params = {
+            .positions = geoms->spheres.positions,
+            .radii = geoms->spheres.radii,
+            .offset = range.min,
+        };
+        return intersect_any(local_ray,
+                             local_tree,
+                             spheres_intersect,
+                             &intersect_params,
+                             result);
+        break;
+    }
+    case JPC_TRIANGLE: {
+
+        bvh_tree_t*      local_tree = geoms->bvhtree_triangles + inst.mesh_id;
+        tris_intersect_t intersect_params = {
+            .verticies = geoms->triangles.verticies,
+            .verticies_ids = geoms->triangles.verticies_ids,
+            .offset = range.min,
+        };
+        return intersect_any(local_ray,
+                             local_tree,
+                             triangles_intersect,
+                             &intersect_params,
+                             result);
+        break;
+    }
+    };
+    assert(false);
+    return false;
+}
 bool intersect_closest(ray_t             ray,
                        const bvh_tree_t* tree,
                        intersect_f       intersect,
@@ -117,8 +166,8 @@ bool intersect_closest(ray_t             ray,
                        hit_point_t*      out)
 {
 
-    bvh_intersetor_closest_t intersector;
-    bvh_intersect_init(tree, &ray, &intersector);
+    bvh_intersector_closest_t intersector;
+    bvh_intersect_closest_init(tree, &ray, &intersector);
 
     int  id;
     bool did_intersect = false;
@@ -131,6 +180,23 @@ bool intersect_closest(ray_t             ray,
         }
     }
     return did_intersect;
+}
+
+bool intersect_any(ray_t             ray,
+                   const bvh_tree_t* tree,
+                   intersect_f       intersect,
+                   void*             params,
+                   hit_point_t*      out)
+{
+    bvh_intersector_any_t intersector;
+    bvh_intersect_any_init(tree, &ray, &intersector);
+    int id;
+    while (find_any_leaf(&id, &intersector))
+    {
+        if (intersect(&ray, id, params, out))
+            return true;
+    }
+    return false;
 }
 
 hit_point_t instance_finalize(hit_point_t         hit,
@@ -190,4 +256,22 @@ bool ray_intersect_c3(const geometries_t* geometries,
 
     *out_hitpoint = instance_finalize(hit, ray, geometries);
     return true;
+}
+
+uint64_t rays_shadow_test_c3(const geometries_t* geometries,
+                             const vec3*               dirs,
+                             const float*              distances,
+                             const vec3                origin,
+                             uint                n)
+{
+    assert(n < 64);
+    uint64_t mask = 0;
+    for(int i=0;i<n;i++)
+    {
+        ray_t ray = make_ray(origin,dirs[i],distances[i]);
+        hit_point_t tmp;
+        int result = intersect_any(ray,geometries->bvhtree_instances,instances_intersect_any,(void*)geometries,&tmp);
+        mask |= (1<<i) * result;
+    }
+    return mask;
 }

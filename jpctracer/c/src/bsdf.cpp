@@ -197,7 +197,7 @@ void bsdf_init(bsdfcontext_t*       ctx,
 
     material_t material = matlib->materials[hit.material_id];
     void*      shader_param = material_load_params(
-        &material, matlib->textures, ctx->hit.uvs, &ctx->params_allocator);
+        &material, matlib->textures, ctx->hit.uv, &ctx->params_allocator);
 
     bsdfnode_t root_node = material.bsdf_creator(ctx, shader_param);
 

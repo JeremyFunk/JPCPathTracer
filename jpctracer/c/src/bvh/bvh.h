@@ -49,12 +49,29 @@ typedef struct
     bvh_stack_item_cl_t* stack;
     float                min_distance;
     ray_trav_bounds_t    ray;
-} bvh_intersetor_closest_t;
+} bvh_intersector_closest_t;
 
-bool bvh_intersect_init(const bvh_tree_t*         tree,
-                        const ray_t*         ray,
-                        bvh_intersetor_closest_t* result);
+bool bvh_intersect_closest_init(const bvh_tree_t*          tree,
+                                const ray_t*               ray,
+                                bvh_intersector_closest_t* result);
 
-bool find_closest_leaf(int*                      id,
-                       bvh_intersetor_closest_t* intersector,
-                       float                     max_distance);
+bool find_closest_leaf(int*                       id,
+                       bvh_intersector_closest_t* intersector,
+                       float                      max_distance);
+
+typedef struct
+{
+    bvh_node_ref_t    stack_data[64];
+    bvh_node_ref_t*   stack_begin;
+    bvh_node_ref_t*   stack;
+    float             min_distance;
+    float max_distance;
+    ray_trav_bounds_t ray;
+} bvh_intersector_any_t;
+
+bool bvh_intersect_any_init(const bvh_tree_t*      tree,
+                            const ray_t*           ray,
+                            bvh_intersector_any_t* result);
+
+bool find_any_leaf(int*                   id,
+                   bvh_intersector_any_t* intersector);

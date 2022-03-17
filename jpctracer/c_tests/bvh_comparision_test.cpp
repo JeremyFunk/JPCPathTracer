@@ -1,5 +1,6 @@
 #include "Timer.h"
 #include <cassert>
+#include <iomanip>
 
 extern "C"
 {
@@ -65,7 +66,7 @@ bool operator==(hit_point_t a, hit_point_t b)
     return glm_vec3_eqv_eps(a.location, b.location)
            //&& a.material_id == b.material_id
            //&& glm_vec3_eqv_eps(a.normal, b.normal)//changes when two overlap
-           && glm_vec2_eqv_eps(a.uvs, b.uvs);
+           && glm_vec2_eqv_eps(a.uv, b.uv);
 }
 
 void print_hitp(hit_point_t hit)
@@ -76,10 +77,68 @@ void print_hitp(hit_point_t hit)
     std::cout << "material_id: " << hit.material_id << "\n";
     std::cout << "normal: " << hit.normal[0] << "," << hit.normal[1] << ","
               << hit.normal[2] << "\n";
-    std::cout << "uv: " << hit.uvs[0] << "," << hit.uvs[1] << "\n";
+    std::cout << "uv: " << hit.uv[0] << "," << hit.uv[1] << "\n";
 }
 
-int main()
+struct geometry_params
+{
+
+    uint sphs_n = 10000;
+    uint sphs_meshes_n = 10;
+    uint instances_n = 1000;
+    uint mat_slots_n = 2;
+    uint mat_slots_per_mesh_n = 1;
+};
+
+struct geometry_data
+{
+
+    geometry_data(const geometry_params& p)
+        : mat_slots(p.mat_slots_n), sphs_radii(p.sphs_n),
+          sphs_positions(p.sphs_n), sphs_material_slot_ids(p.sphs_n),
+          sphs_mesh_end_idx(p.sphs_meshes_n), instances(p.instances_n),
+          params(p)
+    {
+    }
+    geometry_params            params;
+    std::vector<std::uint32_t> mat_slots;
+    std::vector<float>         sphs_radii;
+    std::vector<float3>        sphs_positions;
+    std::vector<std::uint32_t> sphs_material_slot_ids;
+    std::vector<std::uint32_t> sphs_mesh_end_idx;
+    std::vector<instance_t>    instances;
+
+    geometries_t to_geometries()
+    {
+
+        return 
+    {
+        .instances_count = params.instances_n,
+            .instances = instances.data(),
+        .triangles = {
+            .verticies_count=0,
+            .normal_count=0,
+            .uvs_count=0,
+            .faces_count=0,
+            .mesh_count=0,
+
+        },
+        .spheres
+            = {.count = params.sphs_n,
+               .positions = sphs_positions.data(),
+               .radii = sphs_radii.data(),
+               .material_slot_id = sphs_material_slot_ids.data(),
+               .mesh_count = params.sphs_meshes_n,
+               .mesh_end_idx = sphs_mesh_end_idx.data(),
+        },
+       
+        .material_slots = mat_slots.data(),
+        .material_slots_count = params.mat_slots_n,
+    };
+    }
+};
+
+geometry_data generate_geometry_data(geometry_params p)
 {
 
     // First create an instance of an engine.
@@ -97,55 +156,50 @@ int main()
 
     auto fgen = [&]() { return float_dist(engine); };
 
-    uint  ray_n = 100;
-    float clip_end = 400;
-    uint  sphs_n = 10000;
-    uint  sphs_meshes_n = 10;
-    uint  instances_n = 1000;
-    uint  mat_slots_n = 2;
-    uint  mat_slots_per_mesh_n = 1;
-    assert(mat_slots_per_mesh_n < mat_slots_n);
+    geometry_data data(p);
 
-    std::vector<std::uint32_t> mat_slots(mat_slots_n);
-    std::vector<float>         sphs_radii(sphs_n);
-    std::vector<float3>        sphs_positions(sphs_n);
-    std::vector<std::uint32_t> sphs_material_slot_ids(sphs_n);
-    std::vector<std::uint32_t> sphs_mesh_end_idx(sphs_meshes_n);
-    std::vector<instance_t>    instances(instances_n);
-
-    std::ranges::generate(sphs_radii, [&]() { return float_dist_rad(engine); });
-    for (float3& pos : sphs_positions)
+    std::ranges::generate(data.sphs_radii,
+                          [&]() { return float_dist_rad(engine); });
+    for (float3& pos : data.sphs_positions)
     {
         for (int i = 0; i < 3; i++)
             pos[i] = fgen();
     }
 
     std::uniform_int_distribution<std::uint32_t> uint_dist1{
-        0, static_cast<unsigned int>(mat_slots_per_mesh_n - 1)};
-    std::ranges::generate(sphs_material_slot_ids,
+        0, static_cast<unsigned int>(p.mat_slots_per_mesh_n - 1)};
+    std::ranges::generate(data.sphs_material_slot_ids,
                           [&]() { return uint_dist1(engine); });
 
     std::uniform_int_distribution<std::uint32_t> uint_dist2{
-        1, static_cast<unsigned int>(sphs_n)}; // sphs_n-1 ?
-    std::ranges::generate(sphs_mesh_end_idx,
-                          [&]() { return uint_dist2(engine); });
-    std::ranges::sort(sphs_mesh_end_idx);
-    auto mesh_end_idx_end
-        = std::unique(sphs_mesh_end_idx.begin(), sphs_mesh_end_idx.end());
-    sphs_meshes_n = std::distance(sphs_mesh_end_idx.begin(), mesh_end_idx_end);
+        1, static_cast<unsigned int>(p.sphs_n)}; // sphs_n-1 ?
+    std::ranges::generate(data.sphs_mesh_end_idx,
+                          [&]() {
+
+                          uint i =  uint_dist2(engine); 
+                            assert(i!=0);
+                            return i;
+                          });
+    std::ranges::sort(data.sphs_mesh_end_idx);
+    auto mesh_end_idx_end = std::unique(data.sphs_mesh_end_idx.begin(),
+                                        data.sphs_mesh_end_idx.end());
+    p.sphs_meshes_n
+        = std::distance(data.sphs_mesh_end_idx.begin(), mesh_end_idx_end);
 
     std::uniform_int_distribution<std::uint32_t> uint_mat_slots{
-        0, static_cast<unsigned int>(mat_slots_n - 1)};
-    std::ranges::generate(mat_slots, [&]() { return uint_mat_slots(engine); });
+        0, static_cast<unsigned int>(p.mat_slots_n - 1)};
+    std::ranges::generate(data.mat_slots,
+                          [&]() { return uint_mat_slots(engine); });
 
     std::uniform_int_distribution<std::uint32_t> uint_mat_slot_start{
-        0, static_cast<unsigned int>(mat_slots_n - mat_slots_per_mesh_n - 1)};
+        0,
+        static_cast<unsigned int>(p.mat_slots_n - p.mat_slots_per_mesh_n - 1)};
 
     std::uniform_real_distribution<float> float_scale{-2, 2};
 
     std::uniform_int_distribution<std::uint32_t> uint_mesh_id{
-        0, sphs_meshes_n - 1};
-    for (instance_t& inst : instances)
+        0, p.sphs_meshes_n - 1};
+    for (instance_t& inst : data.instances)
     {
         inst.mesh_id = uint_mesh_id(engine);
         inst.material_slot_start = uint_mat_slot_start(engine);
@@ -157,36 +211,18 @@ int main()
                 inst.transformations[i][j] = tmp[i][j] * scale;
         inst.type = JPC_SPHERE;
     }
+    data.params = p;
+    return data;
+}
 
-    geometries_t geoms = 
-    {
-        .instances_count = instances_n, .instances = instances.data(),
-        .triangles = {
-            .verticies_count=0,
-            .normal_count=0,
-            .uvs_count=0,
-            .faces_count=0,
-            .mesh_count=0,
+std::vector<ray_t> generate_rays(uint ray_n, float clip_end)
+{
 
-        },
-        .spheres
-            = {.count = sphs_n,
-               .positions = sphs_positions.data(),
-               .radii = sphs_radii.data(),
-               .material_slot_id = sphs_material_slot_ids.data(),
-               .mesh_count = sphs_meshes_n,
-               .mesh_end_idx = sphs_mesh_end_idx.data(),
-        },
-       
-        .material_slots = mat_slots.data(),
-        .material_slots_count = mat_slots_n,
-    };
-
-    geoms.bvhtree_spheres = bvhtree_build_spheres(geoms.spheres);
-    geoms.bvhtree_triangles = bvhtree_build_triangles(geoms.triangles);
-    geoms.bvhtree_instances = bvhtree_build_instances(&geoms);
-
-    std::vector<ray_t> rays(ray_n);
+    std::random_device rnd_device;
+    std::uint32_t      seed = rnd_device();
+    std::mt19937       engine{seed}; // Generates random integers
+    std::uniform_real_distribution<float> float_dist{-500, 500};
+    std::vector<ray_t>                    rays(ray_n);
     for (ray_t& ray : rays)
     {
         ray.clip_end = clip_end;
@@ -197,121 +233,145 @@ int main()
         }
         glm_vec3_normalize(ray.direction);
     }
+    return rays;
+}
 
-    hit_point_t default_hit{.location = {0, 0, 0, 0},
+struct bvh_builder
+{
+    void (*build)(geometries_t* geoms);
+    void (*free)(geometries_t* geoms);
+    bool operator==(const bvh_builder& b) const = default;
+};
+
+struct benchmark_case
+{
+    const char*     name;
+    ray_intersect_f intersect;
+    bvh_builder     builder;
+};
+
+void old_bvh_build(geometries_t* geoms)
+{
+    geoms->bvhtree_spheres = bvhtree_build_spheres(geoms->spheres);
+    geoms->bvhtree_triangles = bvhtree_build_triangles(geoms->triangles);
+    geoms->bvhtree_instances = bvhtree_build_instances(geoms);
+}
+
+void old_bvh_free(geometries_t* geoms)
+{
+    bvhtree_free(geoms->bvhtree_spheres);
+    bvhtree_free(geoms->bvhtree_instances);
+    bvhtree_free(geoms->bvhtree_triangles);
+}
+
+void new_bvh_build(geometries_t* geoms)
+{
+    bvhtree_spheres_build(geoms);
+    bvhtree_triangles_build(geoms);
+    bvhtree_instances_build(geoms);
+}
+void new_bvh_free(geometries_t* geoms)
+{
+    bvhtree_spheres_free(geoms);
+    bvhtree_triangles_free(geoms);
+    bvhtree_instances_free(geoms);
+}
+
+static bvh_builder old_bvh_builder = {
+    .build = old_bvh_build,
+    .free = old_bvh_free,
+};
+
+static bvh_builder new_bvh_builder = {
+    .build = new_bvh_build,
+    .free = new_bvh_build,
+};
+
+int main()
+{
+
+    uint            ray_n = 200;
+    float           clip_end = 400;
+    geometry_params p;
+    geometry_data   data=
+    generate_geometry_data(p);
+    geometries_t    geoms = data.to_geometries();
+
+    std::vector<ray_t> rays = generate_rays(ray_n, clip_end);
+
+    hit_point_t                 default_hit{.location = {0, 0, 0, 0},
                             .material_id = -1,
-                            .uvs = {0, 0},
+                            .uv = {0, 0},
                             .normal = {0, 0, 0}};
+    std::vector<benchmark_case> benchmarks = {
+        //{"naive", ray_intersect_naive, old_bvh_builder},
+        //{"old c1", ray_intersect, old_bvh_builder},
+        //{"old c2 loop", ray_intersect_c, old_bvh_builder},
+        //{"old c3 callback", ray_intersect_c2, old_bvh_builder},
+        //{"old cpp", ray_intersect_cpp, old_bvh_builder},
+        {"new c", ray_intersect_c3, new_bvh_builder},
+    };
 
-    std::vector<hit_point_t> hit_c1(ray_n, default_hit);
-    std::vector<hit_point_t> hit_c2(ray_n, default_hit);
+    std::vector<hit_point_t> hits(ray_n * benchmarks.size(), default_hit);
+    std::vector<double>      times(benchmarks.size());
 
-    std::vector<hit_point_t> hit_c3(ray_n, default_hit);
-    std::vector<hit_point_t> hit_cpp(ray_n, default_hit);
-
-    std::vector<hit_point_t> hit_naive(ray_n, default_hit);
-    std::vector<hit_point_t> hit_c4(ray_n, default_hit);
-
-    ray_intersect_f f = ray_intersect_c;
-    double          t_c1 = time_intersect_rays(ray_intersect,
-                                      hit_c1.data(),
-                                      &geoms,
-                                      rays.data(),
-                                      ray_n); // ray_intersect
-    double          t_c2 = time_intersect_rays(
-        ray_intersect_c, hit_c2.data(), &geoms, rays.data(), ray_n);
-    double t_c3 = time_intersect_rays(
-        ray_intersect_c2, hit_c3.data(), &geoms, rays.data(), ray_n);
-
-    double t_cpp = time_intersect_rays(
-        ray_intersect_cpp, hit_cpp.data(), &geoms, rays.data(), ray_n);
-
-    double t_naive = time_intersect_rays(ray_intersect_naive,
-                                         hit_naive.data(),
-                                         &geoms,
-                                         rays.data(),
-                                         ray_n); // ray_intersect_naive
-    bvhtree_free(geoms.bvhtree_spheres);
-    bvhtree_free(geoms.bvhtree_instances);
-    bvhtree_free(geoms.bvhtree_triangles);
-
-    bvhtree_spheres_build(&geoms);
-    bvhtree_triangles_build(&geoms);
-    bvhtree_instances_build(&geoms);
-
-    double t_c4 = time_intersect_rays(
-        ray_intersect_c3, hit_c4.data(), &geoms, rays.data(), ray_n);
-
-    bvhtree_spheres_free(&geoms);
-    bvhtree_triangles_free(&geoms);
-    bvhtree_instances_free(&geoms);
-    /*
-        double t_c1 = time_intersect_rays(f,
-                                          hit_c1.data(),
-                                          &geoms,
-                                          rays.data(),
-                                          ray_n); // ray_intersect
-    */
-
-    vec3 tmp;
-    for (int i = 0; i < ray_n; i++)
+    bvh_builder last_builder = {.build = NULL, .free = NULL};
+    for (int i = 0; i < benchmarks.size(); i++)
     {
-
-        /*
-        if (hit_naive[i] != hit_c2[i] || hit_naive[i] != hit_c3[i]
-            || hit_c4[i] != hit_naive[i])*/
-        if (hit_naive[i] != hit_c4[i])
+        if (last_builder != benchmarks[i].builder)
         {
-            assert(hit_c2[i] != hit_c3[i]);
-            assert(hit_c4[i] != hit_naive[i]);
-
-            std::cout << "hit naive:\n";
-            print_hitp(hit_naive[i]);
-
-            glm_vec3_sub(rays[i].origin, hit_naive[i].location, tmp);
-            std::cout << "Dist naive: " << glm_vec3_norm(tmp) << "\n";
-
-            std::cout << "hit1: \n";
-            print_hitp(hit_c1[i]);
-
-            glm_vec3_sub(rays[i].origin, hit_c1[i].location, tmp);
-            std::cout << "Dist1: " << glm_vec3_norm(tmp) << "\n";
-
-            std::cout << "hit2: \n";
-            print_hitp(hit_c2[i]);
-
-            std::cout << "hit3: \n";
-            print_hitp(hit_c3[i]);
-
-            std::cout << "hit4: \n";
-            print_hitp(hit_c4[i]);
-
-            glm_vec3_sub(rays[i].origin, hit_c4[i].location, tmp);
-            std::cout << "Dist4: " << glm_vec3_norm(tmp) << "\n";
-
-            std::cout << "hitcpp: \n";
-            print_hitp(hit_cpp[i]);
-
-            glm_vec3_sub(rays[i].origin, hit_c2[i].location, tmp);
-            std::cout << "Dist2: " << glm_vec3_norm(tmp) << "\n";
-
-            glm_vec3_sub(rays[i].origin, hit_cpp[i].location, tmp);
-            std::cout << "Dist_cpp: " << glm_vec3_norm(tmp) << "\n";
-            std::cout << "i: " << i << "\n";
-            printf("Assert!\n");
+            if (last_builder.free != NULL)
+            {
+                last_builder.free(&geoms);
+            }
+            benchmarks[i].builder.build(&geoms);
         }
-        // assert(hit_c1[i] == hit_c2[i]);
-        // assert(hit_c3[i] == hit_cpp[i]);
+        hit_point_t* bench_hits = hits.data() + i * ray_n;
+        times[i] = time_intersect_rays(benchmarks[i].intersect,
+                                       bench_hits,
+                                       &geoms,
+                                       rays.data(),
+                                       rays.size());
+        last_builder = benchmarks[i].builder;
+    }
+    if (last_builder.free != NULL)
+    {
+        last_builder.free(&geoms);
+    }
+    for (int j = 0; j < ray_n; j++)
+    {
+        hit_point_t naive = hits[j];
+        bool        already_false = false;
+        for (int i = 1; i < benchmarks.size(); i++)
+        { 
+            hit_point_t hit = hits[j + i * ray_n];
+            if (hit != naive)
+            {
+                vec3 tmp;
+                if (!already_false)
+                {
+                    std::cout << benchmarks[0].name
+                              << ":\n";
+                    print_hitp(naive);
+                    glm_vec3_sub(rays[i].origin, naive.location, tmp);
+                    std::cout << "Dist: " << glm_vec3_norm(tmp) << "\n";
+                    std::cout << "\n";
+                    already_false = true;
+                }
+
+                std::cout << benchmarks[i].name << ":\n";
+                print_hitp(hit);
+                glm_vec3_sub(rays[i].origin, hit.location, tmp);
+                std::cout << "Dist: " << glm_vec3_norm(tmp) << "\n";
+                std::cout << "\n";
+            }
+        }
     }
 
     std::cout << "Ray count: " << ray_n << "\n";
-    std::cout << "C1 : " << t_c1 << "\n";
-    std::cout << "C2 : " << t_c2 << "\n";
+    for(int i = 0;i<benchmarks.size();i++)
+    {
+        std::cout<< std::setw(20)  <<benchmarks[i].name<< ": "<<times[i]<<"\n";
+    }
 
-    std::cout << "C3 : " << t_c3 << "\n";
-    std::cout << "Cpp: " << t_cpp << "\n";
-
-    std::cout << "C naive: " << t_naive << "\n";
-
-    std::cout << "C4: " << t_c4 << "\n";
 }

@@ -355,7 +355,7 @@ inline hit_point_t finalize(const triangle_hitpoint& x,
     glm_vec3_scale(ray.direction, x.distance, hit.location);
     glm_vec3_add(hit.location, ray.origin, hit.location);
 
-    interpolate2d(uv1, uv2, uv3, x.uv[0], x.uv[1], hit.uvs);
+    interpolate2d(uv1, uv2, uv3, x.uv[0], x.uv[1], hit.uv);
     interpolate3d(norm1, norm2, norm3, x.uv[0], x.uv[1], hit.normal);
 
     uint mat_slot = tris.material_slots[id];
@@ -378,8 +378,8 @@ inline hit_point_t finalize(const double&    t,
     glm_vec3_sub(hit.location, center, hit.normal);
     glm_vec3_normalize(hit.normal);
 
-    hit.uvs[0] = 0; // hit.normal[0];
-    hit.uvs[1] = 0; // hit.normal[1];
+    hit.uv[0] = 0; // hit.normal[0];
+    hit.uv[1] = 0; // hit.normal[1];
 
     uint slot_id = sphs.material_slot_id[id];
     hit.material_id = mat_slots_bindings[slot_id];

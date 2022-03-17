@@ -45,14 +45,13 @@ void simple_spheres()
     float     pos[] = {0, 1, 2, 3, 4, 5};
     float     rad[] = {1, 1, 1, 1, 1, 1};
 
-    ray_trav_t ray = {
+    ray_t ray = {
         .direction = {-1, ERROR_THICKNESS, ERROR_THICKNESS},
         .origin = {7, ERROR_THICKNESS, ERROR_THICKNESS},
+        .clip_end = 9,
     };
-    intervall_t intervall = {0, 9};
 
-    int   out_id;
-    float out_dist;
+    hit_point_t hit;
 
     spheres_t    sphs = sphs_create(pos, rad, n);
     geometries_t geoms;
@@ -63,11 +62,14 @@ void simple_spheres()
     bvh_log(geoms.bvhtree_spheres);
     geom_log_write("bvh sphs.obj");
 
-    spheres_intersect_closest(
-        &ray, &sphs, intervall, geoms.bvhtree_spheres, 0, &out_id, &out_dist);
+    sphs_intersect_t intersect_params
+        = {.positions = sphs.positions, .radii = sphs.radii, .offset = 0};
 
-    assert_near(out_dist, 1);
-    assert(out_id == 5);
+    intersect_closest(
+        ray, geoms.bvhtree_spheres, spheres_intersect, &intersect_params, &hit);
+
+    assert_near(hit.distance, 1);
+    assert(hit.mesh_id == 5);
     bvhtree_spheres_free(&geoms);
     sphs_free(sphs);
 
@@ -79,7 +81,7 @@ void simple_instances()
     float     pos[] = {0, 1, 2, 3, 4, 5};
     float     rad[] = {1, 1, 1, 1, 1, 1};
 
-    ray_trav_t ray = {
+    ray_t ray = {
         .direction = {-1, ERROR_THICKNESS, ERROR_THICKNESS},
         .origin = {13, ERROR_THICKNESS, ERROR_THICKNESS},
     };
@@ -88,8 +90,7 @@ void simple_instances()
     // scale
     float s = 2;
 
-    int                 out_id;
-    instance_hitpoint_t out_hit;
+    hit_point_t out_hit;
 
     instance_t inst
         = {.type = JPC_SPHERE,
@@ -118,11 +119,9 @@ void simple_instances()
     bvh_log(geom.bvhtree_instances);
     geom_log_write("instance_bvh.obj");
 
-    instances_intersect_closest(&ray, &geom, intervall, &out_id, &out_hit);
-
-    assert_near(out_hit.geom_hit.distance, 1);
-    assert(out_hit.geom_id == 5);
-    assert(out_id == 0);
+    ray_intersect_c3(&geom, &ray, &out_hit);
+    assert_near(out_hit.distance, 1);
+    assert(out_hit.mesh_id == 5);
 
     hit_point_t hitp;
     ray_t       ray2;

@@ -248,17 +248,31 @@ bvh_stack_item_cl_t* bounds_intersect_closest(const bvh_node_intern_t*  node,
     return stack;
 }
 
-bool find_closest_leaf(int*                      id,
-                       bvh_intersetor_closest_t* intersector,
-                       float                     max_distance)
+bvh_node_ref_t* bounds_intersect_any(const bvh_node_intern_t*  node,
+                                              const ray_trav_boundsN_t* ray,
+                                              bvh_node_ref_t*      stack)
 {
-    bvh_intersetor_closest_t* i = intersector;
-    bvh_stack_item_cl_t       item;
-    intervall_t               intervall = {i->min_distance, max_distance};
-    ray_trav_boundsN_t        ray
-        = ray_trav_boundsN_make(&i->ray, 0.f, max_distance);
+    hits_boundsN_t hits = bounds3d_intersectN(ray, &node->bounds);
 
-    int _test_id = 5; //
+    for (int i = 0; i < BVH_WIDTH; i++)
+    {
+        if (hits.mask == 0)
+            return stack;
+
+        int j = next_mask_idx(&hits.mask);
+        *stack = node->childs[j];
+        stack++;
+    }
+    return stack;
+}
+
+bool find_closest_leaf(int*                       id,
+                       bvh_intersector_closest_t* intersector,
+                       float                      max_distance)
+{
+    bvh_intersector_closest_t* i = intersector;
+    bvh_stack_item_cl_t        item;
+    ray_trav_boundsN_t ray = ray_trav_boundsN_make(&i->ray, 0.f, max_distance);
 
     while (i->stack != i->stack_begin)
     {
@@ -294,6 +308,29 @@ bool find_closest_leaf(int*                      id,
     return false;
 }
 
+bool find_any_leaf(int* id, bvh_intersector_any_t* intersector)
+{
+
+    bvh_intersector_any_t* i = intersector;
+    bvh_node_ref_t         item;
+    ray_trav_boundsN_t     ray
+        = ray_trav_boundsN_make(&i->ray, 0.f, i->max_distance);
+
+    while (i->stack != i->stack_begin)
+    {
+        i->stack--;
+        item = *i->stack;
+
+        if (is_leaf(item))
+        {
+            *id = get_leaf_idx(item);
+            return true;
+        }
+        i->stack = bounds_intersect_any(get_inode(item), &ray, i->stack);
+    }
+
+    return false;
+}
 bvh_node_ref_t bvh_get_root(const bvh_tree_t* tree)
 {
 
@@ -304,9 +341,9 @@ bvh_node_ref_t bvh_get_root(const bvh_tree_t* tree)
     return node_ref_create(&root, tree->nodes);
 }
 
-bool bvh_intersect_init(const bvh_tree_t*         tree,
-                        const ray_t*         ray,
-                        bvh_intersetor_closest_t* result)
+bool bvh_intersect_init(const bvh_tree_t*          tree,
+                        const ray_t*               ray,
+                        bvh_intersector_closest_t* result)
 {
     result->stack = result->stack_data;
     result->stack_begin = result->stack_data;
@@ -323,6 +360,19 @@ bool bvh_intersect_init(const bvh_tree_t*         tree,
     return true;
 }
 
+bool bvh_intersect_any_init(const bvh_tree_t*      tree,
+                            const ray_t*           ray,
+                            bvh_intersector_any_t* result)
+{
+    result->stack = result->stack_data;
+    result->stack_begin = result->stack_data;
+    *result->stack = bvh_get_root(tree);
+    result->stack++;
+    result->min_distance = 0;
+    result->max_distance = ray->clip_end;
+    result->ray = ray_trav_bounds_make(ray);
+    return true;
+}
 // returnes the identifier
 int bvh_node_log_recursive(const bvh_inode_ref_t ref, int depth, int identifier)
 {

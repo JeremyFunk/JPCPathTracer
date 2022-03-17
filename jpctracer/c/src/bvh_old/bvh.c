@@ -591,7 +591,7 @@ void triange_fill_hitpoint(hit_point_t*              hit,
     glm_vec3_scale(ray.direction, ray.clip_end, hit->location);
     glm_vec3_add(hit->location, ray.origin, hit->location);
 
-    interpolate2d(uv1, uv2, uv3, p->uv[0], p->uv[1], hit->uvs);
+    interpolate2d(uv1, uv2, uv3, p->uv[0], p->uv[1], hit->uv);
     interpolate3d(norm1, norm2, norm3, p->uv[0], p->uv[1], hit->normal);
 
     uint mat_slot = p->tris->material_slots[p->id];
@@ -722,8 +722,8 @@ void sphere_fill_hitpoint(hit_point_t*              hit,
     glm_vec3_sub(hit->location, center, hit->normal);
     glm_vec3_normalize(hit->normal);
 
-    hit->uvs[0] = 0; // hit->normal[0];
-    hit->uvs[1] = 0; // hit->normal[1];
+    hit->uv[0] = 0; // hit->normal[0];
+    hit->uv[1] = 0; // hit->normal[1];
 
     uint slot_id = p->spheres->material_slot_id[p->id];
     hit->material_id = mat_slots_bindings[slot_id];

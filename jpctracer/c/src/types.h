@@ -10,6 +10,15 @@ typedef struct
     float clip_end;
 } ray_t;
 
+static inline ray_t make_ray(const vec3 origin,const vec3 direction, float clip_end)
+{
+    ray_t ray;
+    glm_vec3_copy((float*)origin,ray.origin);
+    glm_vec3_copy((float*)direction,ray.direction);
+    ray.clip_end = clip_end;
+    return ray;
+}
+
 typedef vec4 spectrum;
 
 typedef struct
