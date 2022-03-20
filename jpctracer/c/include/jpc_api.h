@@ -93,8 +93,8 @@ typedef struct
 
 typedef struct
 {
-    uint    verticies_count;
-    float3* verticies;
+    uint    vertices_count;
+    float3* vertices;
 
     uint    normal_count;
     float3* normals;
@@ -108,10 +108,7 @@ typedef struct
     uint3* uvs_ids;
     uint*  material_slots;
 
-    uint  mesh_count;
-    uint* mesh_end_idx;
-
-} triangles_t;
+} triangle_mesh_t;
 
 typedef struct
 {
