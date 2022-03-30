@@ -19,27 +19,14 @@ bool intersect_any(ray_t             ray,
                    void*             params,
                    hit_point_t*      out);
 
-typedef struct
-{
-    vec3*  positions;
-    float* radii;
-    int    offset;
-} sphs_intersect_t;
 
-typedef struct
-{
-    float3* verticies;
-    uint3*  verticies_ids;
-    int     offset;
-} tris_intersect_t;
-
-// params of type sphs_intersect_t
+// params of type spheres_mesh_t
 bool spheres_intersect(const ray_t* ray,
                        uint         id,
                        void*        params,
                        hit_point_t* out);
 
-// params of type tris_intersect_t
+// params of type triangles_mesh_t
 bool triangles_intersect(const ray_t* ray,
                          uint         id,
                          void*        params,

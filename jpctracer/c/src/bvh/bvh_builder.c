@@ -1,5 +1,3 @@
-
-
 #include "bvh_builder.h"
 #include "../maths.h"
 #include "bvh.h"
@@ -9,41 +7,6 @@
 #include "lbvh.h"
 #include "shapes.h"
 #include <stdlib.h>
-
-bvh_tree_t* bvhtree_shapes_build(const shapes_t* shapes)
-
-{
-    bvh_tree_t* trees = malloc(sizeof(bvh_tree_t) * shapes->mesh_count);
-
-    bounds3d_t* bounds = malloc(sizeof(bounds3d_t) * shapes->count);
-    vec3*       centers = malloc(sizeof(bounds3d_t) * shapes->count);
-    shapes->get_bounds(shapes->geometries, bounds);
-    shapes->get_centers(shapes->geometries, bounds, centers);
-
-    for (int i = 0; i < shapes->mesh_count; i++)
-    {
-
-        intervallu32_t range = shapes_get_range(shapes, i);
-        trees[i] = lbvh_build(
-            range.max - range.min, bounds + range.min, centers + range.max);
-    }
-    free(bounds);
-    free(centers);
-
-    return trees;
-}
-
-void bvhtree_triangles_build(geometries_t* geometries)
-{
-    shapes_t shapes = shapes_triangles_init(geometries);
-    geometries->bvhtree_triangles = bvhtree_shapes_build(&shapes);
-}
-void bvhtree_spheres_build(geometries_t* geometries)
-{
-
-    shapes_t shapes = shapes_spheres_init(geometries);
-    geometries->bvhtree_spheres = bvhtree_shapes_build(&shapes);
-}
 
 void instances_get_bounds(const geometries_t* geometries, bounds3d_t* bounds)
 {
@@ -59,9 +22,9 @@ void instances_get_bounds(const geometries_t* geometries, bounds3d_t* bounds)
         switch (inst.type)
         {
         case JPC_TRIANGLE:
-            tmp_bound = geometries->bvhtree_triangles[mesh_id].root_bound;
+            tmp_bound = geometries->triangles[mesh_id].bvh_tree->root_bound;
         case JPC_SPHERE:
-            tmp_bound = geometries->bvhtree_spheres[mesh_id].root_bound;
+            tmp_bound = geometries->spheres[mesh_id].bvh_tree->root_bound;
         }
         mat4 trans;
         mat4_ucopy(inst.transformations, trans);
@@ -85,47 +48,53 @@ void instances_get_centers(const geometries_t* geoms,
     bounds_get_centers(bounds, geoms->instances_count, centers);
 }
 
-shapes_t shapes_instances_init(const geometries_t* geometries)
-{
-    return (shapes_t){
-        .get_bounds = instances_get_bounds,
-        .get_centers = instances_get_centers,
-        .count = geometries->instances_count,
-        .mesh_count = 1,
-        .mesh_end_ids = NULL,
-        .geometries = geometries,
-    };
-}
+#define BVHTREE_BUILD(count, get_bounds, get_centers, params, tree)            \
+    do                                                                         \
+    {                                                                          \
+        tree = malloc(sizeof(bvh_tree_t));                                     \
+        bounds3d_t* bounds = malloc(sizeof(bounds3d_t) * (count));             \
+        vec3*       centers = malloc(sizeof(bounds3d_t) * (count));            \
+        get_bounds(params, bounds);                                            \
+        get_centers(params, bounds, centers);                                  \
+        free(bounds);                                                          \
+        free(centers);                                                         \
+    } while (false)
 
-void bvhtree_instances_build(geometries_t* geometries)
+bvh_tree_t* bvhtree_triangles_build(const triangle_mesh_t* tris)
+{
+    bvh_tree_t* tree;
+    BVHTREE_BUILD(tris->faces_count,
+                  triangles_get_bounds,
+                  triangles_get_centers,
+                  tris,
+                  tree);
+    return tree;
+};
+
+bvh_tree_t* bvhtree_spheres_build(const sphere_mesh_t* spheres)
+{
+    bvh_tree_t* tree;
+    BVHTREE_BUILD(spheres->count,
+                  spheres_get_bounds,
+                  spheres_get_centers,
+                  spheres,
+                  tree);
+    return tree;
+};
+bvh_tree_t* bvhtree_instances_build(const geometries_t* geoms)
 {
 
-    shapes_t shapes = shapes_instances_init(geometries);
-    geometries->bvhtree_instances = bvhtree_shapes_build(&shapes);
-}
+    bvh_tree_t* tree;
+    BVHTREE_BUILD(geoms->instances_count,
+                  instances_get_bounds,
+                  instances_get_centers,
+                  geoms,
+                  tree);
+    return tree;
+};
 
-void bvhtrees_free(bvh_tree_t* trees, uint n)
+void bvhtree_free(bvh_tree_t* tree)
 {
-    for (int i = 0; i < n; i++)
-    {
-        bvh_free(trees[i]);
-    }
-}
-
-void bvhtree_triangles_free(geometries_t* geometries)
-{
-    bvhtrees_free(geometries->bvhtree_triangles,
-                  geometries->triangles.mesh_count);
-    free(geometries->bvhtree_triangles);
-}
-void bvhtree_spheres_free(geometries_t* geometries)
-{
-
-    bvhtrees_free(geometries->bvhtree_spheres, geometries->spheres.mesh_count);
-    free(geometries->bvhtree_spheres);
-}
-void bvhtree_instances_free(geometries_t* geometries)
-{
-    bvh_free(*geometries->bvhtree_instances);
-    free(geometries->bvhtree_instances);
-}
+    bvh_free(*tree);
+    free(tree);
+};

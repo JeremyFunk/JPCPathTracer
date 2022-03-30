@@ -11,13 +11,13 @@ bool spheres_intersect(const ray_t* ray,
                        void*        params,
                        hit_point_t* out)
 {
-    sphs_intersect_t* sphs = params;
+    sphere_mesh_t* sphs = params;
     if (sphere_intersect(ray,
-                         sphs->positions[id + sphs->offset],
-                         sphs->radii[id + sphs->offset],
+                         sphs->geometries[id].position,
+                         sphs->geometries[id].radius,
                          &out->distance))
     {
-        out->mesh_id = id + sphs->offset;
+        out->mesh_id = id;
         return true;
     }
     return false;
@@ -29,16 +29,16 @@ bool triangles_intersect(const ray_t* ray,
                          void*        params,
                          hit_point_t* out)
 {
-    tris_intersect_t* tris = params;
-    uint*             v_ids = tris->verticies_ids[id + tris->offset];
+    triangle_mesh_t* tris = params;
+    uint*            v_ids = tris->verticies_ids[id];
     if (triangle_intersect(ray,
-                           tris->verticies[v_ids[0]],
-                           tris->verticies[v_ids[1]],
-                           tris->verticies[v_ids[2]],
+                           tris->vertices[v_ids[0]],
+                           tris->vertices[v_ids[1]],
+                           tris->vertices[v_ids[2]],
                            &out->distance,
                            out->uv))
     {
-        out->mesh_id = id + tris->offset;
+        out->mesh_id = id;
         return true;
     }
     return false;
@@ -63,36 +63,22 @@ bool instances_intersect_closest(const ray_t* world_ray,
 #ifdef LOG_TRAVERSAL
     printf("dist local: %f dist max: %f\n", local_intervall.max, intervall.max);
 #endif
-    intervallu32_t range = instance_get_range(geoms, inst);
     switch (inst.type)
     {
     case JPC_SPHERE: {
-        bvh_tree_t*      local_tree = geoms->bvhtree_spheres + inst.mesh_id;
-        sphs_intersect_t intersect_params = {
-            .positions = geoms->spheres.positions,
-            .radii = geoms->spheres.radii,
-            .offset = range.min,
-        };
-        did_intersect = intersect_closest(local_ray,
-                                          local_tree,
-                                          spheres_intersect,
-                                          &intersect_params,
-                                          result);
+
+        sphere_mesh_t* sphs = &geoms->spheres[inst.mesh_id];
+        bvh_tree_t*    local_tree = sphs->bvh_tree;
+        did_intersect = intersect_closest(
+            local_ray, local_tree, spheres_intersect, &sphs, result);
         break;
     }
     case JPC_TRIANGLE: {
 
-        bvh_tree_t*      local_tree = geoms->bvhtree_triangles + inst.mesh_id;
-        tris_intersect_t intersect_params = {
-            .verticies = geoms->triangles.verticies,
-            .verticies_ids = geoms->triangles.verticies_ids,
-            .offset = range.min,
-        };
-        did_intersect = intersect_closest(local_ray,
-                                          local_tree,
-                                          triangles_intersect,
-                                          &intersect_params,
-                                          result);
+        triangle_mesh_t* tris = &geoms->triangles[inst.mesh_id];
+        bvh_tree_t*      local_tree = tris->bvh_tree;
+        did_intersect = intersect_closest(
+            local_ray, local_tree, triangles_intersect, &tris, result);
         break;
     }
     };
@@ -123,36 +109,22 @@ bool instances_intersect_any(const ray_t* world_ray,
 #ifdef LOG_TRAVERSAL
     printf("dist local: %f dist max: %f\n", local_intervall.max, intervall.max);
 #endif
-    intervallu32_t range = instance_get_range(geoms, inst);
     switch (inst.type)
     {
     case JPC_SPHERE: {
-        bvh_tree_t*      local_tree = geoms->bvhtree_spheres + inst.mesh_id;
-        sphs_intersect_t intersect_params = {
-            .positions = geoms->spheres.positions,
-            .radii = geoms->spheres.radii,
-            .offset = range.min,
-        };
-        return intersect_any(local_ray,
-                             local_tree,
-                             spheres_intersect,
-                             &intersect_params,
-                             result);
+
+        sphere_mesh_t* sphs = &geoms->spheres[inst.mesh_id];
+        bvh_tree_t*    local_tree = sphs->bvh_tree;
+        return intersect_any(
+            local_ray, local_tree, spheres_intersect, &sphs, result);
         break;
     }
     case JPC_TRIANGLE: {
 
-        bvh_tree_t*      local_tree = geoms->bvhtree_triangles + inst.mesh_id;
-        tris_intersect_t intersect_params = {
-            .verticies = geoms->triangles.verticies,
-            .verticies_ids = geoms->triangles.verticies_ids,
-            .offset = range.min,
-        };
-        return intersect_any(local_ray,
-                             local_tree,
-                             triangles_intersect,
-                             &intersect_params,
-                             result);
+        triangle_mesh_t* tris = &geoms->triangles[inst.mesh_id];
+        bvh_tree_t*      local_tree = tris->bvh_tree;
+        return intersect_any(
+            local_ray, local_tree, triangles_intersect, &tris, result);
         break;
     }
     };
@@ -205,7 +177,6 @@ hit_point_t instance_finalize(hit_point_t         hit,
 {
     uint       id = hit.instance_id;
     instance_t inst = geom->instances[id];
-    uint* mat_slot_bindings = &geom->material_slots[inst.material_slot_start];
 
     ray_t local_ray;
     // transformation
@@ -223,12 +194,12 @@ hit_point_t instance_finalize(hit_point_t         hit,
     {
     case JPC_TRIANGLE:
         tmp = triangle_finalize(
-            hit, &local_ray, &geom->triangles, mat_slot_bindings);
+            hit, &local_ray, &geom->triangles[inst.mesh_id]);
         break;
     case JPC_SPHERE:
 
         tmp = sphere_finalize(
-            hit, &local_ray, &geom->spheres, mat_slot_bindings);
+            hit, &local_ray, &geom->spheres[inst.mesh_id]);
         break;
     }
     hit_point_t result = tmp;
@@ -259,19 +230,23 @@ bool ray_intersect_c3(const geometries_t* geometries,
 }
 
 uint64_t rays_shadow_test_c3(const geometries_t* geometries,
-                             const vec3*               dirs,
-                             const float*              distances,
-                             const vec3                origin,
+                             const vec3*         dirs,
+                             const float*        distances,
+                             const vec3          origin,
                              uint                n)
 {
     assert(n < 64);
     uint64_t mask = 0;
-    for(int i=0;i<n;i++)
+    for (int i = 0; i < n; i++)
     {
-        ray_t ray = make_ray(origin,dirs[i],distances[i]);
+        ray_t       ray = make_ray(origin, dirs[i], distances[i]);
         hit_point_t tmp;
-        int result = intersect_any(ray,geometries->bvhtree_instances,instances_intersect_any,(void*)geometries,&tmp);
-        mask |= (1<<i) * result;
+        int         result = intersect_any(ray,
+                                   geometries->bvhtree_instances,
+                                   instances_intersect_any,
+                                   (void*)geometries,
+                                   &tmp);
+        mask |= (1 << i) * result;
     }
     return mask;
 }

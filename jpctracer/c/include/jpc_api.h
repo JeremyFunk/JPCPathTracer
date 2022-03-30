@@ -103,29 +103,34 @@ typedef struct
     float2* uvs;
 
     uint   faces_count;
-    uint3* verticies_ids;
+    uint3* vertices_ids;
     uint3* normals_ids;
     uint3* uvs_ids;
-    uint*  material_slots;
+    uint*  material_ids;
+
+    bvh_tree_t* bvh_tree;
 
 } triangle_mesh_t;
 
 typedef struct
 {
-    uint    count;
-    float3* positions;
-    float*  radii;
-    uint*   material_slot_id;
+    float3 position;
+    float  radius;
+} sphere_geometry_t;
 
-    uint  mesh_count;
-    uint* mesh_end_idx;
-} spheres_t;
+typedef struct
+{
+    uint               count;
+    sphere_geometry_t* geometries;
+    uint*              material_ids;
+    bvh_tree_t*        bvh_tree;
+
+} sphere_mesh_t;
 
 typedef struct
 {
     geometry_type_t type;
     uint            mesh_id;
-    uint            material_slot_start;
 
     float4x4 transformations;
 } instance_t;
@@ -134,13 +139,14 @@ typedef struct
 {
     uint        instances_count;
     instance_t* instances;
-    triangles_t triangles;
-    spheres_t   spheres;
-    uint*       material_slots;
-    uint        material_slots_count;
+
+    uint             triangle_mesh_count;
+    triangle_mesh_t* triangles;
+
+    uint           sphere_mesh_count;
+    sphere_mesh_t* spheres;
+
     bvh_tree_t* bvhtree_instances;
-    bvh_tree_t* bvhtree_triangles;
-    bvh_tree_t* bvhtree_spheres;
 } geometries_t;
 
 typedef struct
@@ -226,16 +232,12 @@ void material_set_texture(material_t*     mat,
                           uint            uniform_id,
                           uint            texture);
 
-void geometries_create_bvhtree(geometries_t* geometries);
-
 void render(const scene_t*          scene,
             const render_settings_t settings,
             image_t*                outputs);
 
-void bvhtree_triangles_free(geometries_t* geometries);
-void bvhtree_spheres_free(geometries_t* geometries);
-void bvhtree_instances_free(geometries_t* geometries);
+bvh_tree_t* bvhtree_triangles_build(const triangle_mesh_t* tris);
+bvh_tree_t* bvhtree_spheres_build(const sphere_mesh_t* spheres);
+bvh_tree_t* bvhtree_instances_build(const geometries_t* geometries);
 
-void bvhtree_triangles_build(geometries_t* geometries);
-void bvhtree_spheres_build(geometries_t* geometries);
-void bvhtree_instances_build(geometries_t* geometries);
+void bvhtree_free(bvh_tree_t* tree);

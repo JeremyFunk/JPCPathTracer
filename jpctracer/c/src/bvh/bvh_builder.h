@@ -1,10 +1,10 @@
 #pragma once
 #include "jpc_api.h"
 
-void bvhtree_triangles_build(geometries_t* geometries);
-void bvhtree_spheres_build(geometries_t* geometries);
-void bvhtree_instances_build(geometries_t* geometries);
 
-void bvhtree_triangles_free(geometries_t* geometries);
-void bvhtree_spheres_free(geometries_t* geometries);
-void bvhtree_instances_free(geometries_t* geometries);
+bvh_tree_t* bvhtree_triangles_build(const triangle_mesh_t* tris);
+bvh_tree_t* bvhtree_spheres_build(const sphere_mesh_t* spheres);
+bvh_tree_t* bvhtree_instances_build(const geometries_t* geometries);
+
+void bvhtree_free(bvh_tree_t* tree);
+

@@ -100,13 +100,11 @@ struct geometry_data
           params(p)
     {
     }
-    geometry_params            params;
-    std::vector<std::uint32_t> mat_slots;
-    std::vector<float>         sphs_radii;
-    std::vector<float3>        sphs_positions;
-    std::vector<std::uint32_t> sphs_material_slot_ids;
-    std::vector<std::uint32_t> sphs_mesh_end_idx;
-    std::vector<instance_t>    instances;
+    geometry_params                params;
+    std::vector<std::uint32_t>     mat_slots;
+    std::vector<sphere_geometry_t> sphs_geom;
+    std::vector<std::uint32_t>     sphs_material_ids;
+    std::vector<instance_t>        instances;
 
     geometries_t to_geometries()
     {
@@ -173,13 +171,11 @@ geometry_data generate_geometry_data(geometry_params p)
 
     std::uniform_int_distribution<std::uint32_t> uint_dist2{
         1, static_cast<unsigned int>(p.sphs_n)}; // sphs_n-1 ?
-    std::ranges::generate(data.sphs_mesh_end_idx,
-                          [&]() {
-
-                          uint i =  uint_dist2(engine); 
-                            assert(i!=0);
-                            return i;
-                          });
+    std::ranges::generate(data.sphs_mesh_end_idx, [&]() {
+        uint i = uint_dist2(engine);
+        assert(i != 0);
+        return i;
+    });
     std::ranges::sort(data.sphs_mesh_end_idx);
     auto mesh_end_idx_end = std::unique(data.sphs_mesh_end_idx.begin(),
                                         data.sphs_mesh_end_idx.end());
@@ -293,8 +289,7 @@ int main()
     uint            ray_n = 200;
     float           clip_end = 400;
     geometry_params p;
-    geometry_data   data=
-    generate_geometry_data(p);
+    geometry_data   data = generate_geometry_data(p);
     geometries_t    geoms = data.to_geometries();
 
     std::vector<ray_t> rays = generate_rays(ray_n, clip_end);
@@ -343,15 +338,14 @@ int main()
         hit_point_t naive = hits[j];
         bool        already_false = false;
         for (int i = 1; i < benchmarks.size(); i++)
-        { 
+        {
             hit_point_t hit = hits[j + i * ray_n];
             if (hit != naive)
             {
                 vec3 tmp;
                 if (!already_false)
                 {
-                    std::cout << benchmarks[0].name
-                              << ":\n";
+                    std::cout << benchmarks[0].name << ":\n";
                     print_hitp(naive);
                     glm_vec3_sub(rays[i].origin, naive.location, tmp);
                     std::cout << "Dist: " << glm_vec3_norm(tmp) << "\n";
@@ -369,9 +363,9 @@ int main()
     }
 
     std::cout << "Ray count: " << ray_n << "\n";
-    for(int i = 0;i<benchmarks.size();i++)
+    for (int i = 0; i < benchmarks.size(); i++)
     {
-        std::cout<< std::setw(20)  <<benchmarks[i].name<< ": "<<times[i]<<"\n";
+        std::cout << std::setw(20) << benchmarks[i].name << ": " << times[i]
+                  << "\n";
     }
-
 }

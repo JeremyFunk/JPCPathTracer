@@ -1,8 +1,8 @@
 #include "scattering.h"
 #include "bsdf.h"
-#include "bvh_old/bvh.h"
 #include "cglm/call/vec3.h"
 #include "jpc_api.h"
+#include "bvh/traverse.h"
 #include "lights.h"
 #include "sampler.h"
 #include "types.h"
@@ -126,7 +126,7 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
     hit_point_t    hitpoint;
     const scene_t* scene = eval->scene;
 
-    if (ray_intersect(&scene->geometries, &incident_ray, &hitpoint))
+    if (ray_intersect_c3(&scene->geometries, &incident_ray, &hitpoint))
     {
         sampled_color_t* direct_colors = eval->colors + eval->indirect_count;
         sampled_color_t* indirect_colors = eval->colors;
@@ -150,7 +150,7 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
                                          eval->direct_clip_ends,
                                          eval->light_colors);
 
-        uint64_t shadow_mask = rays_shadow_test(&scene->geometries,
+        uint64_t shadow_mask = rays_shadow_test_c3(&scene->geometries,
                                                 direct_dirs,
                                                 eval->direct_clip_ends,
                                                 hitpoint.location,
