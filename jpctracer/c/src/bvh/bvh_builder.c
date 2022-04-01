@@ -10,11 +10,8 @@
 
 void instances_get_bounds(const geometries_t* geometries, bounds3d_t* bounds)
 {
-    assert(geometries->bvhtree_spheres != NULL);
 
-    assert(geometries->bvhtree_triangles != NULL);
-
-    for (int i = 0; i < geometries->instances_count; i++)
+    for (uint i = 0; i < geometries->instances_count; i++)
     {
         instance_t inst = geometries->instances[i];
         uint       mesh_id = geometries->instances[i].mesh_id;
@@ -23,8 +20,10 @@ void instances_get_bounds(const geometries_t* geometries, bounds3d_t* bounds)
         {
         case JPC_TRIANGLE:
             tmp_bound = geometries->triangles[mesh_id].bvh_tree->root_bound;
+            break;
         case JPC_SPHERE:
             tmp_bound = geometries->spheres[mesh_id].bvh_tree->root_bound;
+            break;
         }
         mat4 trans;
         mat4_ucopy(inst.transformations, trans);
@@ -34,7 +33,7 @@ void instances_get_bounds(const geometries_t* geometries, bounds3d_t* bounds)
 
 void bounds_get_centers(const bounds3d_t* bounds, uint n, vec3* centers)
 {
-    for (int i = 0; i < n; i++)
+    for (uint i = 0; i < n; i++)
     {
         bounds3d_t bound = bounds[i];
         glm_aabb_center(&bound.min, centers[i]);
@@ -69,18 +68,15 @@ bvh_tree_t* bvhtree_triangles_build(const triangle_mesh_t* tris)
                   tris,
                   tree);
     return tree;
-};
+}
 
 bvh_tree_t* bvhtree_spheres_build(const sphere_mesh_t* spheres)
 {
     bvh_tree_t* tree;
-    BVHTREE_BUILD(spheres->count,
-                  spheres_get_bounds,
-                  spheres_get_centers,
-                  spheres,
-                  tree);
+    BVHTREE_BUILD(
+        spheres->count, spheres_get_bounds, spheres_get_centers, spheres, tree);
     return tree;
-};
+}
 bvh_tree_t* bvhtree_instances_build(const geometries_t* geoms)
 {
 
@@ -91,10 +87,10 @@ bvh_tree_t* bvhtree_instances_build(const geometries_t* geoms)
                   geoms,
                   tree);
     return tree;
-};
+}
 
 void bvhtree_free(bvh_tree_t* tree)
 {
     bvh_free(*tree);
     free(tree);
-};
+}

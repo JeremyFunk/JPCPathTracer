@@ -5,12 +5,16 @@
 #include "types.h"
 #include <stddef.h>
 
-
-typedef void (*eval_f)(vec3 incident_dir, vec3* scattered_dir, uint n,
-                       sampled_color_t* out_color, vec4* emission,
-                       void* params);
-typedef void (*sample_f)(vec3 incident_dir, vec2 rand_p,
-                         vec3* out_scattered_dir, void* params);
+typedef void (*eval_f)(vec3             incident_dir,
+                       vec3*            scattered_dir,
+                       uint             n,
+                       sampled_color_t* out_color,
+                       vec4*            emission,
+                       void*            params);
+typedef void (*sample_f)(vec3  incident_dir,
+                         vec2  rand_p,
+                         vec3* out_scattered_dir,
+                         void* params);
 
 /*
 bsdf shaders
@@ -50,7 +54,7 @@ typedef struct
 
 } bsdf_limits_t;
 
-const static bsdf_limits_t bsdf_default_limits={
+static const bsdf_limits_t bsdf_default_limits = {
     .bsdf_shaders_max = 100,
     .bsdf_params_max = 10000,
     .bsdf_mixnodes_max = 100,
@@ -73,27 +77,39 @@ typedef struct bsdfcontext_s
 
 } bsdfcontext_t;
 
-bsdfnode_t bsdfshaders_add(bsdfshaders_t* shaders, eval_f eval, sample_f sample,
-                           void* param);
+bsdfnode_t bsdfshaders_add(bsdfshaders_t* shaders,
+                           eval_f         eval,
+                           sample_f       sample,
+                           void*          param);
 
-void bsdfshaders_weights(bsdfmixnode_t* nodes, uint nodes_n, float* weights,
-                         uint weights_n, stack_allocator_t* allocator);
+void bsdfshaders_weights(bsdfmixnode_t*     nodes,
+                         uint               nodes_n,
+                         float*             weights,
+                         uint               weights_n,
+                         stack_allocator_t* allocator);
 
 bsdfcontext_t* bsdf_alloc(bsdf_limits_t limits);
 void           bsdf_free(bsdfcontext_t* bsdf);
 
-void bsdf_init(bsdfcontext_t* bsdf, const materiallib_t* matlib,
-               vec3 incident_ray, hit_point_t hit);
+void bsdf_init(bsdfcontext_t*       bsdf,
+               const materiallib_t* matlib,
+               vec3                 incident_ray,
+               hit_point_t          hit);
 
 void bsdf_sample(bsdfcontext_t* bsdf, vec2 rand_p, vec3* out_scattered);
 
-void bsdf_eval(bsdfcontext_t* bsdf, vec3* scattered_dir, uint n,
-               sampled_color_t* out_color, vec4* out_emission);
+void bsdf_eval(bsdfcontext_t*   bsdf,
+               vec3*            scattered_dir,
+               uint             n,
+               sampled_color_t* out_color,
+               vec4*            out_emission);
 
 void bsdf_vec3_to_local(bsdfcontext_t* bsdf, vec3* directions, uint n);
 void bsdf_vec3_to_world(bsdfcontext_t* bsdf, vec3* directions, uint n);
 
 bsdfnode_t diffuse(bsdfcontext_t* ctx, float4 color);
 
-bsdfnode_t mix_bsdf(bsdfcontext_t* ctx, bsdfnode_t b1, bsdfnode_t b2,
-                    float mix_factor);
+bsdfnode_t mix_bsdf(bsdfcontext_t* ctx,
+                    bsdfnode_t     b1,
+                    bsdfnode_t     b2,
+                    float          mix_factor);

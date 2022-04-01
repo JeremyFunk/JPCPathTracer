@@ -21,15 +21,17 @@ struct diffuse_params
         float4 luminance;
         glm_vec4_scale(color, M_PI, luminance);
         luminance[3] = 1;
-        for (int i = 0; i < n; i++)
+        for (uint i = 0; i < n; i++)
         {
             float pdf = same_hemisphere_nspace(incident_dir, scattered_dirs[i])
-                            ? pdf = fabs(cos_theta(scattered_dirs[i])) / M_PI
+                            ? std::fabs(cos_theta(scattered_dirs[i])) / M_PI
                             : 0;
             glm_vec4_copy(luminance, out_colors[i].color);
 
             out_colors[i].pdf = pdf;
         }
+        vec4 tmp = {0, 0, 0, 1};
+        glm_vec4_copy(tmp, *emission);
     }
     void sample(vec3 incident_dir, vec2 rand_p, vec3* out_scattered_dir)
     {

@@ -38,10 +38,10 @@ void integrate(integrator_t* integrator, ray_t ray, vec4 result)
     // bsdf_color_0 = f_0
     // path_color_1 = E_0 + f_0 * E_1
     // bsdf_color_1 = f_0 * f_1
-    // path_color_2 = E_0 + f_0 * E_1 + f_0*f_1*E_2
+    // path_color_2 = E_0 + f_0 * E_1 + f_0 * f_1 * E_2
     //
-    // path_color_(i+1) += bsdf_color_i * E_(i+1)
-    // bsdf_color_(i+1) *= f_(i+1)
+    // path_color_(i+1) = path_color_(i) + bsdf_color_i * E_(i+1)
+    // bsdf_color_(i+1) = bsdf_color_(i) * f_(i+1)
 
     vec4            path_color;
     vec4            bsdf_color;
@@ -58,19 +58,19 @@ void integrate(integrator_t* integrator, ray_t ray, vec4 result)
     glm_vec4_zero(path_color);
     glm_vec4_one(bsdf_color);
 
-    for (int depth = 0; depth < integrator->max_depth; depth++)
+    for (uint depth = 0; depth < integrator->max_depth; depth++)
     {
         scatter(integrator->evaluator, ray, &scattering);
 
         // path_color_(i+1) += bsdf_color_i * E_(i+1)
         glm_vec4_muladd(bsdf_color, scattering.direct_color, path_color);
 
-        if(path_color[1]>0.6)
+        if (path_color[1] > 0.6)
         {
-       //     printf("Warn: lol2\n");
+            //     printf("Warn: lol2\n");
         }
 
-        if(scattering.indirect_count==0)
+        if (scattering.indirect_count == 0)
             break;
 
         // bsdf_color_(i+1) *= f_(i+1) * w
@@ -81,7 +81,6 @@ void integrate(integrator_t* integrator, ray_t ray, vec4 result)
 
     glm_vec4_copy(path_color, result);
 }
-
 
 void integrate2(integrator_t* integrator, ray_t ray, vec4 result)
 {
@@ -114,15 +113,15 @@ void integrate2(integrator_t* integrator, ray_t ray, vec4 result)
 
     scatter(integrator->evaluator, ray, &scattering);
 
-    if(scattering.indirect_count==0)
+    if (scattering.indirect_count == 0)
     {
-        vec4 color = {0,0,1,1};
-        glm_vec4_copy(color,result);
+        vec4 color = {0, 0, 1, 1};
+        glm_vec4_copy(color, result);
     }
-    else{
+    else
+    {
 
-        vec4 color = {0,1,0,1};
-        glm_vec4_copy(color,result);
+        vec4 color = {0, 1, 0, 1};
+        glm_vec4_copy(color, result);
     }
-
 }

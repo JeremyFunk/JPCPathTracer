@@ -52,7 +52,6 @@ set(AUTOSRC
 "src/camera.c"
 "src/bsdf.hpp"
 "src/allocators.hpp"
-"src/shaders/shader2.c"
 "src/shaders/shader_diffuse.c"
 "src/bvh/bvh.h"
 "src/bvh/bvh_ref.h"
@@ -66,9 +65,11 @@ set(AUTOSRC
 "src/bvh/bvh_builder.c"
 "src/bvh/bvh.c"
 "src/bvh/lbvh.c"
+"src/bvh/naive.c"
 "src/bvh/traverse.c"
 "src/simd/simd-2.h"
 "src/simd/simd.h"
+"src/simd/simd-8.h"
 "src/simd/simd-4.h"
 "src/bsdfs/diffuse.cpp"
 "include/jpc_api.h"
@@ -93,5 +94,9 @@ if(${clang_gnu})
   target_compile_options(tracer PRIVATE "-march=native")
 
 endif()
+
+set_property(TARGET tracer PROPERTY C_STANDARD 11)
+
 add_executable(ctest "test.c")
 target_link_libraries(ctest tracer)
+all_warnings(tracer)

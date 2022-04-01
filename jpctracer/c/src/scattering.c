@@ -1,8 +1,8 @@
 #include "scattering.h"
 #include "bsdf.h"
+#include "bvh/traverse.h"
 #include "cglm/call/vec3.h"
 #include "jpc_api.h"
-#include "bvh/traverse.h"
 #include "lights.h"
 #include "sampler.h"
 #include "types.h"
@@ -29,7 +29,7 @@ void combine_rays(sampled_color_t* bsdf_colors,
 {
     glm_vec4_zero(result);
 
-    for (int i = 0; i < n; i++)
+    for (uint i = 0; i < n; i++)
     {
         vec4 temp;
         glm_vec4_mul(bsdf_colors[i].color, light_colors[i].color, temp);
@@ -116,6 +116,8 @@ void eval_background(const materiallib_t* matlib,
                      ray_t                incident_ray,
                      vec4                 out_color)
 {
+    assert(matlib);
+    assert(glm_eq(glm_vec3_norm(incident_ray.direction), 1.f));
     vec4 color = {0, 0, 0, 1};
     glm_vec4_copy(color, out_color);
 }
@@ -142,21 +144,21 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
 
         assert(indirect_samples[0][0] < 1. + 1e-6);
 
-        int direct_count = sample_lights(&scene->lights,
-                                         indirect_samples,
-                                         eval->indirect_count,
-                                         hitpoint,
-                                         direct_dirs,
-                                         eval->direct_clip_ends,
-                                         eval->light_colors);
+        uint direct_count = sample_lights(&scene->lights,
+                                          indirect_samples,
+                                          eval->indirect_count,
+                                          hitpoint,
+                                          direct_dirs,
+                                          eval->direct_clip_ends,
+                                          eval->light_colors);
 
         uint64_t shadow_mask = rays_shadow_test_c3(&scene->geometries,
-                                                direct_dirs,
-                                                eval->direct_clip_ends,
-                                                hitpoint.location,
-                                                direct_count);
+                                                   (const vec3*)direct_dirs,
+                                                   eval->direct_clip_ends,
+                                                   hitpoint.location,
+                                                   direct_count);
 
-        for (int i = 0; i < direct_count; i++)
+        for (uint i = 0; i < direct_count; i++)
         {
             if (shadow_mask & (1 << i))
             {
@@ -176,7 +178,7 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
 
         bsdf_vec3_to_local(eval->bsdf, direct_dirs, direct_count);
 
-        for (int i = 0; i < eval->indirect_count; i++)
+        for (uint i = 0; i < eval->indirect_count; i++)
         {
 
             assert(indirect_samples[i][0] < 1. + 1e-6);
@@ -201,7 +203,7 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
         }
         result->indirect_count = eval->indirect_count;
 
-        for (int i = 0; i < eval->indirect_count; i++)
+        for (uint i = 0; i < eval->indirect_count; i++)
         {
             glm_vec3_copy(indirect_dirs[i], result->indirect_rays[i].direction);
             glm_vec3_copy(hitpoint.location, result->indirect_rays[i].origin);

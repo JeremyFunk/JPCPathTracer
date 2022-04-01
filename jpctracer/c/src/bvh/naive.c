@@ -9,7 +9,7 @@ bool instersect_closest_spheres_naive(ray_t                ray,
                                       hit_point_t*         out_hit)
 {
     bool did_intersect = false;
-    for (int i = 0; i < sphs->count; i++)
+    for (uint i = 0; i < sphs->count; i++)
     {
         if (sphere_intersect(&ray,
                              sphs->geometries[i].position,
@@ -33,7 +33,7 @@ bool ray_intersect_naive(const geometries_t* geometries,
 #endif
 
     bool did_intersect = false;
-    for (int i = 0; i < geometries->instances_count; i++)
+    for (uint i = 0; i < geometries->instances_count; i++)
     {
         instance_t inst = geometries->instances[i];
         ray_t      local_ray;
@@ -54,7 +54,7 @@ bool ray_intersect_naive(const geometries_t* geometries,
         }
         if (did_mesh_intersect)
         {
-            *out_hitpoint = transform_hitp(out_hitpoint, trans,1./norm);
+            *out_hitpoint = transform_hitp(out_hitpoint, trans, 1. / norm);
             did_intersect = true;
         }
     }

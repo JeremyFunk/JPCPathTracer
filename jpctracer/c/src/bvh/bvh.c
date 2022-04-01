@@ -17,6 +17,7 @@ typedef struct bvh_node_intern_s
 
 bvh_tree_t bvh_create(int max_nodes, int max_leafs)
 {
+    assert(max_nodes < max_leafs);
     return (bvh_tree_t){
         .nodes = aligned_alloc(16, sizeof(bvh_node_intern_t) * max_nodes),
         .nodes_max_count = max_nodes,
@@ -104,7 +105,7 @@ void bvh_finish(bvh_tree_t* tree)
     memcpy(
         tree->nodes, old_nodes, sizeof(bvh_node_intern_t) * tree->nodes_count);
     tree->nodes_max_count = tree->nodes_count;
-    for (int i = 0; i < tree->nodes_count; i++)
+    for (uint i = 0; i < tree->nodes_count; i++)
     {
         for (int j = 0; j < BVH_WIDTH; j++)
         {
@@ -249,8 +250,8 @@ bvh_stack_item_cl_t* bounds_intersect_closest(const bvh_node_intern_t*  node,
 }
 
 bvh_node_ref_t* bounds_intersect_any(const bvh_node_intern_t*  node,
-                                              const ray_trav_boundsN_t* ray,
-                                              bvh_node_ref_t*      stack)
+                                     const ray_trav_boundsN_t* ray,
+                                     bvh_node_ref_t*           stack)
 {
     hits_boundsN_t hits = bounds3d_intersectN(ray, &node->bounds);
 
@@ -341,9 +342,9 @@ bvh_node_ref_t bvh_get_root(const bvh_tree_t* tree)
     return node_ref_create(&root, tree->nodes);
 }
 
-bool bvh_intersect_init(const bvh_tree_t*          tree,
-                        const ray_t*               ray,
-                        bvh_intersector_closest_t* result)
+bool bvh_intersect_closest_init(const bvh_tree_t*          tree,
+                                const ray_t*               ray,
+                                bvh_intersector_closest_t* result)
 {
     result->stack = result->stack_data;
     result->stack_begin = result->stack_data;

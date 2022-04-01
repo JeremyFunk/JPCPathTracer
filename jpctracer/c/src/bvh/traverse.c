@@ -12,6 +12,7 @@ bool spheres_intersect(const ray_t* ray,
                        hit_point_t* out)
 {
     sphere_mesh_t* sphs = params;
+    assert(sphs);
     if (sphere_intersect(ray,
                          sphs->geometries[id].position,
                          sphs->geometries[id].radius,
@@ -30,7 +31,7 @@ bool triangles_intersect(const ray_t* ray,
                          hit_point_t* out)
 {
     triangle_mesh_t* tris = params;
-    uint*            v_ids = tris->verticies_ids[id];
+    uint*            v_ids = tris->vertices_ids[id];
     if (triangle_intersect(ray,
                            tris->vertices[v_ids[0]],
                            tris->vertices[v_ids[1]],
@@ -104,7 +105,7 @@ bool instances_intersect_any(const ray_t* world_ray,
     mat4 trans, inv_trans;
     mat4_ucopy(inst.transformations, trans);
     glm_mat4_inv(trans, inv_trans);
-    float norm = ray_transform(world_ray, inv_trans, &local_ray);
+    ray_transform(world_ray, inv_trans, &local_ray);
 
 #ifdef LOG_TRAVERSAL
     printf("dist local: %f dist max: %f\n", local_intervall.max, intervall.max);
@@ -198,8 +199,7 @@ hit_point_t instance_finalize(hit_point_t         hit,
         break;
     case JPC_SPHERE:
 
-        tmp = sphere_finalize(
-            hit, &local_ray, &geom->spheres[inst.mesh_id]);
+        tmp = sphere_finalize(hit, &local_ray, &geom->spheres[inst.mesh_id]);
         break;
     }
     hit_point_t result = tmp;
@@ -216,7 +216,6 @@ bool ray_intersect_c3(const geometries_t* geometries,
 #ifdef LOG_TRAVERSAL
     printf("--------------------------------------------\n");
 #endif
-    int         id;
     hit_point_t hit = {.distance = 0, .uv = {0, 0}, .mesh_id = -1};
     if (!intersect_closest(*ray,
                            geometries->bvhtree_instances,
@@ -237,7 +236,7 @@ uint64_t rays_shadow_test_c3(const geometries_t* geometries,
 {
     assert(n < 64);
     uint64_t mask = 0;
-    for (int i = 0; i < n; i++)
+    for (uint i = 0; i < n; i++)
     {
         ray_t       ray = make_ray(origin, dirs[i], distances[i]);
         hit_point_t tmp;

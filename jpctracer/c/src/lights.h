@@ -1,9 +1,12 @@
 #pragma once
-#include<jpc_api.h> 
-#include"bsdf.h"
+#include "bsdf.h"
+#include <jpc_api.h>
 
 // returns the used samples
-int sample_lights(const lights_t* lights, vec2* rand_points, int n, hit_point_t hit_p,
-                   vec3* out_directions,float* out_distances, sampled_color_t* out_colors);
-
-
+uint sample_lights(const lights_t*  lights,
+                   vec2*            rand_points,
+                   int              n,
+                   hit_point_t      hit_p,
+                   vec3*            out_directions,
+                   float*           out_distances,
+                   sampled_color_t* out_colors);

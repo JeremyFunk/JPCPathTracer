@@ -11,14 +11,14 @@ typedef struct
 // a*b-c
 static inline simdf simd_fmsub_ps(simdf a, simdf b, simdf c)
 {
-    return (simdf){a.m[0] * b.m[0] - c.m[0], a.m[1] * b.m[1] - c.m[1]};
+    return (simdf){{a.m[0] * b.m[0] - c.m[0], a.m[1] * b.m[1] - c.m[1]}};
 }
 static inline simdf simd_min(simdf a, simdf b)
 {
-    return (simdf){
+    return (simdf){{
         MIN(a.m[0], b.m[0]),
         MIN(a.m[1], b.m[1]),
-    };
+    }};
 }
 static inline simdf simd_min4(simdf a, simdf b, simdf c, simdf d)
 {
@@ -29,10 +29,10 @@ static inline simdf simd_min4(simdf a, simdf b, simdf c, simdf d)
 
 static inline simdf simd_max(simdf a, simdf b)
 {
-    return (simdf){
+    return (simdf){{
         MAX(a.m[0], b.m[0]),
         MAX(b.m[1], b.m[1]),
-    };
+    }};
 }
 
 static inline simdf simd_max4(simdf a, simdf b, simdf c, simdf d)
@@ -44,7 +44,7 @@ static inline simdf simd_max4(simdf a, simdf b, simdf c, simdf d)
 
 static inline simdf simd_set_ps1(float a)
 {
-    return (simdf){a, a};
+    return (simdf){{a, a}};
 }
 
 static inline int simd_cmple_ps(simdf a, simdf b)

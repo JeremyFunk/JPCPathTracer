@@ -28,7 +28,6 @@ intervall_t transform_intervall(intervall_t intervall, float scale)
     return (intervall_t){intervall.min * scale, intervall.max * scale};
 }
 
-
 bool sphere_intersect(const ray_t* ray,
                       vec3         center,
                       float        radius,
@@ -117,6 +116,7 @@ bool triangle_intersect(const ray_t* ray,
     if (does_intersect_triangle(
             intersection_point_distance, uv, (intervall_t){0, ray->clip_end}))
     {
+        *out_distance = intersection_point_distance;
         out_uv[0] = uv[0];
         out_uv[1] = uv[1];
         return true;
@@ -124,8 +124,8 @@ bool triangle_intersect(const ray_t* ray,
     return false;
 }
 
-hit_point_t triangle_finalize(hit_point_t        x,
-                              const ray_t*       ray,
+hit_point_t triangle_finalize(hit_point_t            x,
+                              const ray_t*           ray,
                               const triangle_mesh_t* tris)
 {
     uint        id = x.mesh_id;
@@ -151,8 +151,8 @@ hit_point_t triangle_finalize(hit_point_t        x,
     return hit;
 }
 
-hit_point_t sphere_finalize(hit_point_t      x,
-                            const ray_t*     ray,
+hit_point_t sphere_finalize(hit_point_t          x,
+                            const ray_t*         ray,
                             const sphere_mesh_t* sphs)
 {
     hit_point_t hit;
@@ -168,16 +168,16 @@ hit_point_t sphere_finalize(hit_point_t      x,
     hit.uv[0] = 0; // hit.normal[0];
     hit.uv[1] = 0; // hit.normal[1];
 
-    uint slot_id = sphs->material_ids[x.mesh_id];
+    hit.material_id = sphs->material_ids[x.mesh_id];
     return hit;
 }
 
 void triangles_get_bounds(const triangle_mesh_t* tris, bounds3d_t* bounds)
 {
     printf("Create tri bounds\n");
-    for (int i = 0; i < tris->faces_count; i++)
+    for (uint i = 0; i < tris->faces_count; i++)
     {
-        const uint* vert_ids = tris->verticies_ids[i];
+        const uint* vert_ids = tris->vertices_ids[i];
         float*      v1 = tris->vertices[vert_ids[0]];
         float*      v2 = tris->vertices[vert_ids[1]];
         float*      v3 = tris->vertices[vert_ids[2]];
@@ -191,7 +191,7 @@ void triangles_get_bounds(const triangle_mesh_t* tris, bounds3d_t* bounds)
 }
 void spheres_get_bounds(const sphere_mesh_t* sphs, bounds3d_t* bounds)
 {
-    for (int i = 0; i < sphs->count; i++)
+    for (uint i = 0; i < sphs->count; i++)
     {
         glm_vec3_adds(sphs->geometries[i].position,
                       -sphs->geometries[i].radius - ERROR_THICKNESS,
@@ -200,17 +200,17 @@ void spheres_get_bounds(const sphere_mesh_t* sphs, bounds3d_t* bounds)
                       sphs->geometries[i].radius + ERROR_THICKNESS,
                       bounds[i].max);
     }
-};
+}
 
 void triangles_get_centers(const triangle_mesh_t* tris,
                            const bounds3d_t*      bounds,
                            vec3*                  centers)
 {
-
-    for (int i = 0; i < tris->faces_count; i++)
+    assert(bounds);
+    for (uint i = 0; i < tris->faces_count; i++)
     {
 
-        const uint* vert_ids = tris->verticies_ids[i];
+        const uint* vert_ids = tris->vertices_ids[i];
         float*      v1 = tris->vertices[vert_ids[0]];
         float*      v2 = tris->vertices[vert_ids[1]];
         float*      v3 = tris->vertices[vert_ids[2]];
@@ -225,6 +225,7 @@ void spheres_get_centers(const sphere_mesh_t* sphs,
                          const bounds3d_t*    bounds,
                          vec3*                centers)
 {
-    for (int i = 0; i < sphs->count; i++)
+    assert(bounds);
+    for (uint i = 0; i < sphs->count; i++)
         glm_vec3_copy(sphs->geometries[i].position, centers[i]);
 }

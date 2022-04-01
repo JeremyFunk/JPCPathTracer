@@ -30,7 +30,7 @@ void render(const scene_t*          scene,
     log_info("Start rendering");
     log_debug("test\n");
 
-    for (int i = 0; i < outputs->channels * outputs->width * outputs->height;
+    for (uint i = 0; i < outputs->channels * outputs->width * outputs->height;
          i++)
     {
         outputs->data[i] = 0;
@@ -43,9 +43,9 @@ void render(const scene_t*          scene,
     uint tiles_count_x = ceil((float)width / (float)settings.tile_size);
     uint tiles_count_y = ceil((float)height / (float)settings.tile_size);
 
-    for (int y = 0; y < tiles_count_y; y++)
+    for (uint y = 0; y < tiles_count_y; y++)
     {
-        for (int x = 0; x < tiles_count_x; x++)
+        for (uint x = 0; x < tiles_count_x; x++)
         {
             bounds2d_t tile
                 = {.min = {x * tile_s, y * tile_s},
@@ -205,7 +205,7 @@ void add_to_image(image_t* image, vec2 pixel, float* color, uint subpixels)
     uint   c = image->channels;
     float* img_pixel = image->data + idx[1] * image->width * c + idx[0] * c;
 
-    for (int i = 0; i < image->channels; i++)
+    for (uint i = 0; i < image->channels; i++)
         img_pixel[i] += color[i] / subpixels;
 }
 

@@ -83,7 +83,7 @@ static inline hits_boundsN_t bounds3d_intersectN(const ray_trav_boundsN_t* ray,
     hits.max = simd_min4(maxs[0], maxs[1], maxs[2], ray->t_max);
     hits.mask = simd_cmple_ps(hits.min, hits.max); // hits.min<=hits.max
     return hits;
-};
+}
 
 static inline void bounds4_log(const char* name, const boundsN_t* b, int i)
 {

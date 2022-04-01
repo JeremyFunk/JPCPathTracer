@@ -16,7 +16,7 @@ static inline void printf_arrayf(uint n, const float* vec)
         return;
     }
     printf("(%f", vec[0]);
-    for (int i = 1; i < n; i++)
+    for (uint i = 1; i < n; i++)
         printf(",%f", vec[i]);
     printf(")");
 }
@@ -29,7 +29,7 @@ static inline void printf_arrayui(uint n, uint* vec)
         return;
     }
     printf("(%d", vec[0]);
-    for (int i = 1; i < n; i++)
+    for (uint i = 1; i < n; i++)
         printf(",%d", vec[i]);
     printf(")");
 }

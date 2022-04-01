@@ -65,6 +65,7 @@ typedef struct shaders_s
 // Uniforms:
 // uniform id | value/color/normal/texture_id
 
+// requirese width*height*channels < UINT32_MAX
 typedef struct
 {
     float* data;

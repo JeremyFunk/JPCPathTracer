@@ -28,7 +28,7 @@ typedef struct
 static inline bool is_leaf(bvh_node_ref_t ref)
 {
     return ref.data & 1;
-};
+}
 
 static inline const bvh_node_intern_t* get_inode(bvh_node_ref_t ref)
 {

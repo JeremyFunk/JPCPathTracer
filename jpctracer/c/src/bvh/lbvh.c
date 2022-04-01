@@ -50,7 +50,7 @@ int number_leading_zeros(uint32_t*    morton_codes,
 {
     int idx_b = idx_a + offset;
 
-    if (idx_b < 0 || idx_b > number_nodes)
+    if (idx_b < 0 || (size_t)idx_b > number_nodes)
         return -1;
 
     uint32_t morton_a = morton_codes[idx_a];
@@ -119,7 +119,7 @@ void bounds3d_t_merge(bounds3d_t* bounds, uint n, bounds3d_t* dst)
 {
     assert(n > 0);
     dst[0] = bounds[0];
-    for (int i = 1; i < n; i++)
+    for (uint i = 1; i < n; i++)
     {
         glm_aabb_merge((vec3*)(bounds + i), (vec3*)dst, (vec3*)dst);
     }
@@ -141,7 +141,7 @@ int eval_child_intervalls(int       start,
         // find max intervall
         uint max_size = 0;
         uint max_intervall_i = 0;
-        for (int i = 0; i < num_childs; i++)
+        for (uint i = 0; i < num_childs; i++)
         {
             uint size = intervalls[i + 1] - intervalls[i];
             if (max_size < size)
@@ -151,7 +151,7 @@ int eval_child_intervalls(int       start,
             }
         }
         // shift
-        for (int i = num_childs + 1; i > max_intervall_i + 1; i--)
+        for (uint i = num_childs + 1; i > max_intervall_i + 1; i--)
         {
             assert(i < BVH_WIDTH + 1);
             intervalls[i] = intervalls[i - 1];
@@ -171,7 +171,7 @@ int eval_child_intervalls(int       start,
 
 void bvh_nodes_fill_empty(bvh_node_t* nodes, uint count)
 {
-    for (int i = 0; i < count; i++)
+    for (uint i = 0; i < count; i++)
     {
         nodes[i].is_leaf = true;
         nodes[i].idx = 0;
@@ -214,7 +214,7 @@ bvh_node_t lbvh_build_recursiv(uint        start,
     int node_id = bvh_push_back(tree);
 
     bvh_node_t child_nodes[BVH_WIDTH];
-    int        i = 0;
+    uint       i = 0;
     for (; i < num_childs; i++)
     {
         child_nodes[i] = lbvh_build_recursiv(childs_intervalls[i],
@@ -230,7 +230,7 @@ bvh_node_t lbvh_build_recursiv(uint        start,
     bvh_set_node(tree, node_id, child_nodes);
 
     bounds3d_t node_bound = child_nodes[0].bound;
-    for (int i = 1; i < num_childs; i++)
+    for (uint i = 1; i < num_childs; i++)
     {
         glm_aabb_merge((vec3*)(&child_nodes[i].bound),
                        (vec3*)&node_bound,
@@ -240,7 +240,7 @@ bvh_node_t lbvh_build_recursiv(uint        start,
 
     assert(!isinff(node_bound.min[0]));
     return (bvh_node_t){.bound = node_bound, .idx = node_id, .is_leaf = false};
-};
+}
 
 bvh_tree_t lbvh_build(uint n, bounds3d_t* bounds, vec3* centers)
 {
@@ -248,13 +248,13 @@ bvh_tree_t lbvh_build(uint n, bounds3d_t* bounds, vec3* centers)
     bvh_tree_t tree = bvh_create(n, n); // overestimate?
 
     uint32_t* morton = malloc(sizeof(uint32_t) * n);
-    for (int i = 0; i < n; i++)
+    for (uint i = 0; i < n; i++)
     {
         morton[i] = encode_morton(centers[i]);
     }
 
     // make morton code unique
-    for (int i = 1; i < n; i++)
+    for (uint i = 1; i < n; i++)
     {
         int diff = MAX((long)morton[i - 1] - (long)morton[i] + 1, 0);
         // morton[i] >= morton[i] + (-morton[i] + morton[i-1]+1)=[morton[i-1]]+1

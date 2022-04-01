@@ -7,7 +7,8 @@
 
 float* texture_get_idx(const image_t tex, int x, int y)
 {
-    return &tex.data[y * tex.width * tex.channels + x * tex.height * tex.channels];
+    return &tex.data[y * tex.width * tex.channels
+                     + x * tex.height * tex.channels];
 }
 
 typedef struct
@@ -90,15 +91,16 @@ void texture_get_float(const image_t tex, float2 uv, float* dst)
                 break;
             case 4:
                 p_means[i][j] = glm_vec4_hadd(p.pixels[i][j]) / 4.;
+                break;
             default:
                 assert(false);
             }
         }
     }
 
-    float temp1,temp2;
-    temp1 = glm_lerp(p_means[0][0],p_means[0][1],p.t_x);
-    temp2 = glm_lerp(p_means[1][0],p_means[1][1],p.t_x);
+    float temp1, temp2;
+    temp1 = glm_lerp(p_means[0][0], p_means[0][1], p.t_x);
+    temp2 = glm_lerp(p_means[1][0], p_means[1][1], p.t_x);
 
-    *dst = glm_lerp(temp1,temp2,p.t_y);
+    *dst = glm_lerp(temp1, temp2, p.t_y);
 }
