@@ -39,7 +39,7 @@ bool instance_intersect_closest(const ray_t* world_ray,
                                 hit_point_t* result);
 
 bool ray_intersect_c3(const geometries_t* geometries,
-                      ray_t*              ray,
+                      const ray_t*              ray,
                       hit_point_t*        out_hitpoint);
 
 uint64_t rays_shadow_test_c3(const geometries_t* geometries,

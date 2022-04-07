@@ -6,9 +6,9 @@ target_include_directories(intervall_test PRIVATE "../c/src/")
 
 
 add_executable(bvh_comparision_test "bvh_comparision_test.cpp")
-target_link_libraries(bvh_comparision_test tracer)
+target_link_libraries(bvh_comparision_test tracercpp)
 target_include_directories(bvh_comparision_test PRIVATE "../c/src/")
 
-add_executable(bvh_test "bvh_test.c")
-target_link_libraries(bvh_test tracer)
+add_executable(bvh_test "bvh_test.cpp")
+target_link_libraries(bvh_test tracercpp)
 target_include_directories(bvh_test PRIVATE "../c/src/")

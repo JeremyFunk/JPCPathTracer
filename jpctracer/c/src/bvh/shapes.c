@@ -129,7 +129,7 @@ hit_point_t triangle_finalize(hit_point_t            x,
                               const triangle_mesh_t* tris)
 {
     uint        id = x.mesh_id;
-    hit_point_t hit;
+    hit_point_t hit = x;
     uint*       uv_ids = tris->uvs_ids[id];
 
     float* uv1 = tris->uvs[uv_ids[0]];
@@ -155,7 +155,7 @@ hit_point_t sphere_finalize(hit_point_t          x,
                             const ray_t*         ray,
                             const sphere_mesh_t* sphs)
 {
-    hit_point_t hit;
+    hit_point_t hit = x;
     float       t = x.distance;
     glm_vec3_normalize_to((float*)ray->direction, hit.location);
     glm_vec3_scale(hit.location, t, hit.location);

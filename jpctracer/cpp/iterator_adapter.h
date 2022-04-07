@@ -22,12 +22,14 @@ concept IteratorBasis =
       typename X::iterator_category;
                 { c1.ptr() } -> std::same_as<typename X::pointer>;
                 {*c1.ptr()} -> std::same_as<typename X::reference>;
-                //{ b.increment() } -> std::same_as<void>; 
+                { b.increment() } -> std::same_as<void>; 
                 // defined if iterator category is at least bidirecitional:
-                //{ b.decrement() } -> std::same_as<void>;
+                { b.decrement() } -> std::same_as<void>;
                 // defined if iterator category is random_access:
                 { b.increment(n) } -> std::same_as<void>;
                 { c1.difference(c1) } -> std::same_as<typename X::difference_type>;
+                {c1.state()};
+                {b.state()};
              };
 
 
@@ -82,6 +84,10 @@ public:
       return basis.state();
   }
 
+  auto state(){
+      return basis.state();
+  }
+
   iterator() {}
 
   iterator(const B& basis) : basis(basis) {} 
@@ -93,7 +99,7 @@ public:
   pointer operator->() const { return basis.ptr(); }
 
   iterator& operator++() { 
-    basis.increment(1);
+    basis.increment();
     return *this;
   }
 
@@ -105,7 +111,7 @@ public:
 
   // requires bidirectional iterator (at least)
   iterator& operator--() { 
-    basis.increment(-1);
+    basis.decrement();
     return *this;
   }
 
