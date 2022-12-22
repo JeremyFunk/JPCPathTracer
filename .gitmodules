@@ -7,3 +7,12 @@
 [submodule "jpctracer/c/libs/libsimdpp"]
 	path = jpctracer/c/libs/libsimdpp
 	url = https://github.com/p12tic/libsimdpp.git
+[submodule "jpctracer/c/libs/libcyaml"]
+	path = jpctracer/c/libs/libcyaml
+	url = https://github.com/tlsa/libcyaml.git
+[submodule "jpctracer/c/libs/libyaml"]
+	path = jpctracer/c/libs/libyaml
+	url = https://github.com/tlsa/libyaml.git
+[submodule "jpctracer/c/libs/yaml-cpp"]
+	path = jpctracer/c/libs/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git

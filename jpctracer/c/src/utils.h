@@ -34,4 +34,4 @@ static inline void printf_arrayui(uint n, uint* vec)
     printf(")");
 }
 
-#define assert_near(a, b) assert((a - b) * (a - b) < 1e-6);
+#define assert_near(a, b) assert((a - b) * (a - b) < 1e-6)

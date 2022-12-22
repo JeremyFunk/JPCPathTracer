@@ -6,6 +6,9 @@ add_subdirectory(stb)
 add_subdirectory(log)
 add_subdirectory(pcg_basic)
 add_subdirectory(sorting)
+add_subdirectory(libyaml)
+
+add_subdirectory(yaml-cpp)
 
 add_library(libsimdpp INTERFACE)
 target_include_directories(libsimdpp INTERFACE "libsimdpp/")

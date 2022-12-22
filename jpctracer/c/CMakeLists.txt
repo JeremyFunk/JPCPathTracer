@@ -72,6 +72,7 @@ set(AUTOSRC
 "src/simd/simd-8.h"
 "src/simd/simd-4.h"
 "src/bsdfs/diffuse.cpp"
+"src/load_yaml.c"
 "include/jpc_api.h"
 )
 
@@ -83,6 +84,7 @@ pcg_basic
 m
 sorting
 libsimdpp
+yaml-cpp
 )
 
 add_library(tracer SHARED "${AUTOSRC}")

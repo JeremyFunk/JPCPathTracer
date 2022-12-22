@@ -242,3 +242,5 @@ bvh_tree_t* bvhtree_spheres_build(const sphere_mesh_t* spheres);
 bvh_tree_t* bvhtree_instances_build(const geometries_t* geometries);
 
 void bvhtree_free(bvh_tree_t* tree);
+
+scene_t scane_load_yaml(char* path);
