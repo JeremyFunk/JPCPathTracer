@@ -71,7 +71,7 @@ bool instances_intersect_closest(const ray_t* world_ray,
         sphere_mesh_t* sphs = &geoms->spheres[inst.mesh_id];
         bvh_tree_t*    local_tree = sphs->bvh_tree;
         did_intersect = intersect_closest(
-            local_ray, local_tree, spheres_intersect, &sphs, result);
+            local_ray, local_tree, spheres_intersect, sphs, result);
         break;
     }
     case JPC_TRIANGLE: {
@@ -79,14 +79,14 @@ bool instances_intersect_closest(const ray_t* world_ray,
         triangle_mesh_t* tris = &geoms->triangles[inst.mesh_id];
         bvh_tree_t*      local_tree = tris->bvh_tree;
         did_intersect = intersect_closest(
-            local_ray, local_tree, triangles_intersect, &tris, result);
+            local_ray, local_tree, triangles_intersect, tris, result);
         break;
     }
     };
     if (did_intersect)
     {
         result->distance /= norm;
-        result->mesh_id = id;
+        result->instance_id = id;
         return true;
     }
     return false;
@@ -202,15 +202,12 @@ hit_point_t instance_finalize(hit_point_t         hit,
         tmp = sphere_finalize(hit, &local_ray, &geom->spheres[inst.mesh_id]);
         break;
     }
-    hit_point_t result = tmp;
-    glm_mat4_mulv3(trans, tmp.location, 1, result.location);
-    glm_mat4_mulv3(trans, tmp.normal, 0, result.normal);
-    glm_vec3_scale(result.normal, norm, result.normal);
+    hit_point_t result = transform_hitp(&tmp, trans, 1. / norm);
     return result;
 }
 
 bool ray_intersect_c3(const geometries_t* geometries,
-                      ray_t*              ray,
+                      const ray_t*        ray,
                       hit_point_t*        out_hitpoint)
 {
 #ifdef LOG_TRAVERSAL

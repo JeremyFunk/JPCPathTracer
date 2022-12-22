@@ -107,8 +107,11 @@ bsdfcontext_t* bsdf_alloc(bsdf_limits_t limits)
             .used = 0,
             .size = limits.bsdf_params_max,
         },
+        .hit= hit_point_t{},
+        .incident_dir = {0},
         .temp_eval_color = new sampled_color_t[limits.bsdf_eval_max],
         .eval_color_max = limits.bsdf_eval_max,
+        .world_to_local = GLM_MAT4_IDENTITY_INIT,
    };
 }
 void bsdf_free(bsdfcontext_t* bsdf)

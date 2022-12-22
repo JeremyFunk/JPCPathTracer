@@ -17,7 +17,7 @@ typedef struct bvh_node_intern_s
 
 bvh_tree_t bvh_create(int max_nodes, int max_leafs)
 {
-    assert(max_nodes < max_leafs);
+    assert(max_nodes <= max_leafs);
     return (bvh_tree_t){
         .nodes = aligned_alloc(16, sizeof(bvh_node_intern_t) * max_nodes),
         .nodes_max_count = max_nodes,
@@ -97,22 +97,37 @@ uint bvh_push_back(bvh_tree_t* tree)
     return result;
 }
 
+void bvh_nodes_copy_to(const bvh_node_intern_t* src_nodes, bvh_tree_t* dst)
+{
+    memcpy(dst->nodes, src_nodes, sizeof(bvh_node_intern_t) * dst->nodes_count);
+    for (uint i = 0; i < dst->nodes_count; i++)
+    {
+        for (int j = 0; j < BVH_WIDTH; j++)
+        {
+            bvh_node_ref_t* ref = &dst->nodes[i].childs[j];
+            *ref = node_ref_move(*ref, src_nodes, dst->nodes);
+        }
+    }
+}
+
+bvh_tree_t* bvhtree_copy(const bvh_tree_t* tree)
+{
+    bvh_tree_t* dst = malloc(sizeof(bvh_tree_t));
+    *dst = bvh_create(tree->nodes_count,tree->nodes_max_count);
+    dst->nodes_count=tree->nodes_count;
+    bvh_nodes_copy_to(tree->nodes,dst);
+    memcpy(&dst->root_bound,&tree->root_bound,sizeof(tree->root_bound));
+    return dst;
+}
+
 void bvh_finish(bvh_tree_t* tree)
 {
     bvh_node_intern_t* old_nodes = tree->nodes;
     tree->nodes
         = aligned_alloc(16, sizeof(bvh_node_intern_t) * tree->nodes_count);
-    memcpy(
-        tree->nodes, old_nodes, sizeof(bvh_node_intern_t) * tree->nodes_count);
+
     tree->nodes_max_count = tree->nodes_count;
-    for (uint i = 0; i < tree->nodes_count; i++)
-    {
-        for (int j = 0; j < BVH_WIDTH; j++)
-        {
-            bvh_node_ref_t* ref = &tree->nodes[i].childs[j];
-            *ref = node_ref_move(*ref, old_nodes, tree->nodes);
-        }
-    }
+    bvh_nodes_copy_to(old_nodes,tree);
     free(old_nodes);
 }
 
@@ -402,7 +417,7 @@ int bvh_node_log_recursive(const bvh_inode_ref_t ref, int depth, int identifier)
         }
         bounds4_log(name, &ref.ptr->bounds, i);
     }
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < BVH_WIDTH; i++)
     {
         if (!is_leaf(ref.ptr->childs[i]))
         {

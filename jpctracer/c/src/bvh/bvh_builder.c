@@ -55,6 +55,7 @@ void instances_get_centers(const geometries_t* geoms,
         vec3*       centers = malloc(sizeof(bounds3d_t) * (count));            \
         get_bounds(params, bounds);                                            \
         get_centers(params, bounds, centers);                                  \
+        *tree = lbvh_build((count),bounds,centers);                             \
         free(bounds);                                                          \
         free(centers);                                                         \
     } while (false)

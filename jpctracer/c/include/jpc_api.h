@@ -10,9 +10,9 @@ ID Type Name Offset
 
 typedef enum
 {
-    JPC_float = 0,
-    JPC_float4 = 1,
-    JPC_float3 = 2,
+    JPC_float = 1,
+    JPC_float3 = 3,
+    JPC_float4 = 4,
 } uniform_type_t;
 
 typedef enum
@@ -244,3 +244,4 @@ bvh_tree_t* bvhtree_instances_build(const geometries_t* geometries);
 void bvhtree_free(bvh_tree_t* tree);
 
 scene_t scane_load_yaml(char* path);
+bvh_tree_t* bvhtree_copy(const bvh_tree_t* tree);
