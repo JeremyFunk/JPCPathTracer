@@ -1,37 +1,33 @@
-#include<jpc_prefabs.h>
-#include<string.h>
-#include<assert.h>
-#include<cglm/cglm.h>
-#include"allocators.h"
+#include "allocators.h"
+#include <assert.h>
+#include <cglm/cglm.h>
+#include <jpc_prefabs.h>
+#include <string.h>
 
 #define MAX_INSTANCES 100
 #define MAX_SPHERE_MESHES 50
 #define MAX_TRIANGLE_MESHES 50
-#define MAX_SPHERES MAX_SPHERE_MESHES*10
-#define MAX_TRIANGELS MAX_TRIANGLE_MESHES*100
+#define MAX_SPHERES MAX_SPHERE_MESHES * 10
+#define MAX_TRIANGELS MAX_TRIANGLE_MESHES * 100
 
 #define MAX_SUN_LIGHTS 5
 #define MAX_POINT_LIGHTS 5
 #define MESH_BUFFER_SIZE 4096
 
-
-typedef struct
+typedef struct scene_manager_s
 {
-    scene_t scene;
-    instance_t instances[MAX_INSTANCES];
-    sphere_mesh_t sphere_meshes[MAX_SPHERE_MESHES];
+    scene_t         scene;
+    instance_t      instances[MAX_INSTANCES];
+    sphere_mesh_t   sphere_meshes[MAX_SPHERE_MESHES];
     triangle_mesh_t triangle_meshes[MAX_TRIANGLE_MESHES];
     point_light_t   point_lights[MAX_POINT_LIGHTS];
     sun_light_t     sun_lights[MAX_SUN_LIGHTS];
     material_t      materials[MAX_INSTANCES];
-    
-    
+
     scratch_allocator_t mesh_buffer_allocator;
-    uint8_t mesh_buffer_data[MESH_BUFFER_SIZE];
+    uint8_t             mesh_buffer_data[MESH_BUFFER_SIZE];
 
-
-
-}scene_manager_t;
+} scene_manager_t;
 
 const char* shader_names[] = {
     "Diffuse",
@@ -57,7 +53,10 @@ shader_t* shader_find(shaders_t shaders, const char* name)
     assert(1);
 }
 
-void shader_bfr_fill(shaders_t shaders, const char** names, shader_t* dest, uint n)
+void shader_bfr_fill(shaders_t    shaders,
+                     const char** names,
+                     shader_t*    dest,
+                     uint         n)
 {
     for (uint i = 0; i < n; i++)
     {
@@ -65,10 +64,12 @@ void shader_bfr_fill(shaders_t shaders, const char** names, shader_t* dest, uint
     }
 }
 
+static shader_t shader_buffer[MAT_COUNT];
+
 scene_manager_t* scene_manager_init()
 {
     scene_manager_t* manager = malloc(sizeof(scene_manager_t));
-    
+
     scene_t scene = {
         .camera.clip_end = 400,
         .camera.near_plane = 1,
@@ -90,17 +91,14 @@ scene_manager_t* scene_manager_init()
 
     };
 
-    const shader_t shader_buffer[MAT_COUNT];
-
     shaders_t shader_system = shaders_init();
 
     shaders_load_defaults(shader_system);
 
     shader_bfr_fill(shader_system, shader_names, shader_buffer, MAT_COUNT);
-    
 
-
-    scene.materiallib.buffer = materials_init(scene.materiallib.materials, shader_buffer, MAT_COUNT);
+    scene.materiallib.buffer
+        = materials_init(scene.materiallib.materials, shader_buffer, MAT_COUNT);
 
     manager->scene = scene;
     manager->mesh_buffer_allocator.memory = manager->mesh_buffer_data;
@@ -112,19 +110,20 @@ scene_manager_t* scene_manager_init()
 // when instances are changed the scene is invalid
 scene_t* scene_manager_get_scene(scene_manager_t* manager)
 {
-    geometries_t geoms = manager->scene.geometries;
+    geometries_t* geoms = &manager->scene.geometries;
 
-    for (uint i = 0; i < geoms.sphere_mesh_count; i++)
+    for (uint i = 0; i < geoms->sphere_mesh_count; i++)
     {
-        geoms.spheres[i].bvh_tree = bvhtree_spheres_build(geoms.spheres+i);
+        geoms->spheres[i].bvh_tree = bvhtree_spheres_build(geoms->spheres + i);
     }
-    for (uint i = 0; i < geoms.triangle_mesh_count; i++)
+    for (uint i = 0; i < geoms->triangle_mesh_count; i++)
     {
-        geoms.triangles[i].bvh_tree
-            = bvhtree_triangles_build(geoms.triangles + i);
+        geoms->triangles[i].bvh_tree
+            = bvhtree_triangles_build(geoms->triangles + i);
     }
-    geoms.bvhtree_instances = bvhtree_instances_build(&geoms);
+    geoms->bvhtree_instances = bvhtree_instances_build(geoms);
 
+    return &manager->scene;
 }
 
 void geoms_free_all_bvhtrees(geometries_t geoms)
@@ -144,7 +143,7 @@ void geoms_free_all_bvhtrees(geometries_t geoms)
     {
         if (geoms.triangles[i].bvh_tree)
         {
-        bvhtree_free(geoms.triangles[i].bvh_tree);
+            bvhtree_free(geoms.triangles[i].bvh_tree);
         }
     }
 }
@@ -161,7 +160,7 @@ void scene_manager_free(scene_manager_t* manager)
 
 typedef struct
 {
-    uint material_ids[6];
+    uint   material_ids[6];
     float3 normals[2];
     uint   normals_ids[6];
     float2 uvs[4];
@@ -169,27 +168,34 @@ typedef struct
     float3 verticies[4];
     uint   verticies_ids[6];
 
+} quad_buffer_t;
 
-}quad_buffer_t;
-
-
+void clac_normal(vec3 a, vec3 b, vec3 c, vec3 dest)
+{
+    vec3 b_m_a, c_m_a;
+    glm_vec3_sub(b, a, b_m_a);
+    glm_vec3_sub(c, a, c_m_a);
+    glm_vec3_cross(b_m_a, c_m_a, dest);
+    glm_vec3_normalize(dest);
+}
 
 instance_handle_t scene_manager_create_quad(scene_manager_t* manager,
-    float            points[4][3],
+                                            float            points[4][3],
                                             material_id_e    material)
 {
-    assert(manager->scene.geometries.instances_count<MAX_INSTANCES);
-    assert(manager->scene.geometries.triangle_mesh_count< MAX_TRIANGLE_MESHES);
+    assert(manager->scene.geometries.instances_count + 1 < MAX_INSTANCES);
+    assert(manager->scene.geometries.triangle_mesh_count + 1
+           < MAX_TRIANGLE_MESHES);
 
     quad_buffer_t* bfr = scratch_alloc(
-        &manager->mesh_buffer_allocator, sizeof(quad_buffer_t), 0);
+        &manager->mesh_buffer_allocator, sizeof(quad_buffer_t), _Alignof(float4));
     triangle_mesh_t mesh = {
-        
-        .faces_count = 6,
+
+        .faces_count = 2,
         .material_ids = bfr->material_ids,
         .normals = &bfr->normals,
         .normals_ids = bfr->normals_ids,
-        .normal_count = 1,
+        .normal_count = 2,
         .uvs = bfr->uvs,
         .uvs_count = 4,
         .uvs_ids = bfr->uvs_ids,
@@ -200,6 +206,78 @@ instance_handle_t scene_manager_create_quad(scene_manager_t* manager,
     for (uint i = 0; i < 6; i++)
         mesh.material_ids[i] = material;
 
-    
+    clac_normal(points[0], points[1], points[2], mesh.normals[0]);
+    clac_normal(points[0], points[3], points[2], mesh.normals[1]);
+    for (uint i = 0; i < 3; i++)
+        mesh.normals_ids[0][i] = 0;
+
+    for (uint i = 0; i < 3; i++)
+        mesh.normals_ids[1][i] = 1;
+
+    float uvs[] = {0., 0., 0., 1., 1., 0., 1., 1.};
+
+    memcpy(mesh.uvs, uvs, sizeof(uvs));
+
+    uint3 uvs_ids[] = {
+        {0, 1, 2},
+        {0, 3, 2},
+    };
+    memcpy(mesh.uvs_ids, uvs_ids, sizeof(uvs_ids));
+
+    memcpy(mesh.vertices, points, sizeof(float)*4*3);
+
+    uint3 vertices_ids[] = {
+        {0, 1, 2},
+        {0, 3, 2},
+    };
+    memcpy(mesh.vertices_ids, vertices_ids, sizeof(vertices_ids));
+
+    geometries_t* geoms = &manager->scene.geometries;
+
+    geoms->triangles[geoms->triangle_mesh_count] = mesh;
+
+    geoms->instances[geoms->instances_count] = (instance_t){
+        .mesh_id = geoms->triangle_mesh_count,
+        .transformations
+        = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}},
+        .type = JPC_TRIANGLE};
+
+    geoms->triangle_mesh_count++;
+
+    instance_handle_t handle = {.id = geoms->instances_count};
+
+    geoms->instances_count++;
+    return handle;
 }
 
+void scene_manager_material_set_uniform(scene_manager_t* manager,
+                                        material_id_e    material_id,
+                                        const char*      shader_prop,
+                                        const float*     value)
+{
+
+    if ((int)material_id < 4)
+    {
+        if (strcmp(shader_prop, "color") == 0)
+        {
+            material_set_uniform(manager->scene.materiallib.materials
+                                     + material_id,
+                                 shader_buffer + material_id,
+                                 1,
+                                 value);
+            return;
+        }
+    }
+    assert(1);
+}
+
+void scene_manager_create_point_light(scene_manager_t* manager,
+                                      point_light_t    light)
+{
+    lights_t* lights = &manager->scene.lights;
+    assert(lights->point_lights_count + 1 < MAX_POINT_LIGHTS);
+    lights->point_lights[lights->point_lights_count]
+        = light;
+    lights->point_lights_count++;
+    
+}

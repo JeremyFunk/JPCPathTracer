@@ -4,7 +4,7 @@
 #include "log/log.h"
 
 
-bsdfnode_t shader(bsdfcontext_t* ctx)
+static bsdfnode_t shader(bsdfcontext_t* ctx)
 {
     return mirror(ctx);
 }

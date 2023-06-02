@@ -10,50 +10,58 @@ extern "C"
 #include "../bsdf.hpp"
 #include<cmath>
 
-struct diffuse_params
+void calc_reflected_dir(vec3 dir, vec3 dest)
 {
-    vec4 color;
+    dest[0] = -dir[0];
+    dest[1] = -dir[1];
+    dest[2] = dir[2];
+}
 
+struct mirror_params
+{
+    
     void eval(vec3             incident_dir,
               vec3*            scattered_dirs,
               uint             n,
               sampled_color_t* out_colors,
               vec4*            emission)
     {
-        float4 luminance;
-        glm_vec4_scale(color, M_PI, luminance);
-        luminance[3] = 1;
+        vec4 zeros = {0, 0, 0, 1};
+        vec4 ones = {1, 1, 1, 1};
+
+        vec3 reflected_dir;
+        calc_reflected_dir(incident_dir, reflected_dir);
+
         for (uint i = 0; i < n; i++)
         {
-            float pdf = same_hemisphere_nspace(incident_dir, scattered_dirs[i])
-                            ? std::fabs(cos_theta(scattered_dirs[i])) / M_PI
-                            : 0;
-            glm_vec4_copy(luminance, out_colors[i].color);
-
-            out_colors[i].pdf = pdf;
+            if (glm_vec4_eqv_eps(scattered_dirs[i], reflected_dir))
+            {
+                glm_vec4_copy(ones, out_colors[i].color);
+                out_colors[i].pdf = 1;
+            }
+            else
+            {
+                glm_vec4_copy(zeros, out_colors[i].color);
+                out_colors[i].pdf = 0;
+            }
         }
-        vec4 tmp = {0, 0, 0, 1};
-        glm_vec4_copy(tmp, *emission);
+        glm_vec4_copy(zeros, *emission);
     }
     void sample(vec3 incident_dir, vec2 rand_p, vec3* out_scattered_dir)
     {
-        out_scattered_dir[0][0] = -incident_dir[0];
-        out_scattered_dir[0][1] = -incident_dir[1];
-        out_scattered_dir[0][2] = incident_dir[2];
+        calc_reflected_dir(incident_dir, *out_scattered_dir);
         return;
-        cosinus_sample_hemisphere(rand_p, *out_scattered_dir);
-        if (!same_hemisphere_nspace(*out_scattered_dir, incident_dir))
-            glm_vec3_negate(*out_scattered_dir);
+        
     }
 
-    diffuse_params(float* _color)
+    mirror_params()
     {
-        for (int i = 0; i < 4; i++)
-            color[i] = _color[i];
+
     }
 };
 
-bsdfnode_t diffuse(bsdfcontext_t* ctx)
+bsdfnode_t mirror(bsdfcontext_t* ctx)
 {
-    return bsdfshader_create<diffuse_params>(ctx);
+    return bsdfshader_create<mirror_params>(ctx);
 }
+

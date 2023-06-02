@@ -17,3 +17,11 @@ add_executable(load_scene_test "load_scene.c")
 target_link_libraries(load_scene_test tracer)
 
 target_compile_options(load_scene_test PUBLIC "/fsanitize=address /Zi")
+
+
+add_executable(integrator_test "integrator.c")
+target_link_libraries(integrator_test tracer)
+
+target_compile_options(integrator_test PUBLIC "/fsanitize=address /Zi")
+
+target_include_directories(integrator_test PRIVATE "../c/src/")
