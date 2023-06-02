@@ -72,22 +72,27 @@ set(AUTOSRC
 "src/simd/simd-8.h"
 "src/simd/simd-4.h"
 "src/bsdfs/diffuse.cpp"
-"src/load_yaml.c"
+"src/load_yaml.cpp"
 "include/jpc_api.h"
-)
+"include/jpc_prefabs.h"
+ "src/prefabs.c" "src/bsdfs/mirror.cpp" "src/shaders/shader_mirror.c")
 
 set(LIBS
 cglm_lib
 stb
 log
 pcg_basic
-m
 sorting
 libsimdpp
 yaml-cpp
 )
 
-add_library(tracer SHARED "${AUTOSRC}")
+if(${clang_gnu})
+    set(LIBS ${LIBS} m)
+endif()
+
+
+add_library(tracer STATIC "${AUTOSRC}" )
 target_include_directories(tracer PUBLIC "include")
 target_link_libraries(tracer ${LIBS} )
 if(${clang_gnu})
@@ -99,6 +104,6 @@ endif()
 
 set_property(TARGET tracer PROPERTY C_STANDARD 11)
 
-add_executable(ctest "test.c")
+add_executable(ctest "test.c" "include/jpc_prefabs.h")
 target_link_libraries(ctest tracer)
 all_warnings(tracer)

@@ -3,7 +3,7 @@
 #include "bvh.h"
 #include "jpc_api.h"
 #include "shapes.h"
-#include <bits/types/locale_t.h>
+//#include <bits/types/locale_t.h>
 
 // params of type sphs_intersect_t
 bool spheres_intersect(const ray_t* ray,
@@ -117,7 +117,7 @@ bool instances_intersect_any(const ray_t* world_ray,
         sphere_mesh_t* sphs = &geoms->spheres[inst.mesh_id];
         bvh_tree_t*    local_tree = sphs->bvh_tree;
         return intersect_any(
-            local_ray, local_tree, spheres_intersect, &sphs, result);
+            local_ray, local_tree, spheres_intersect, sphs, result);
         break;
     }
     case JPC_TRIANGLE: {
@@ -125,7 +125,7 @@ bool instances_intersect_any(const ray_t* world_ray,
         triangle_mesh_t* tris = &geoms->triangles[inst.mesh_id];
         bvh_tree_t*      local_tree = tris->bvh_tree;
         return intersect_any(
-            local_ray, local_tree, triangles_intersect, &tris, result);
+            local_ray, local_tree, triangles_intersect, tris, result);
         break;
     }
     };
@@ -206,6 +206,13 @@ hit_point_t instance_finalize(hit_point_t         hit,
     return result;
 }
 
+void ray_shift_origin(ray_t* ray)
+{
+    vec3 scaled_dir;
+    glm_vec3_scale(ray->direction, 0.1, scaled_dir);
+    glm_vec3_add(ray->origin, scaled_dir, ray->origin);
+}
+
 bool ray_intersect_c3(const geometries_t* geometries,
                       const ray_t*        ray,
                       hit_point_t*        out_hitpoint)
@@ -214,7 +221,9 @@ bool ray_intersect_c3(const geometries_t* geometries,
     printf("--------------------------------------------\n");
 #endif
     hit_point_t hit = {.distance = 0, .uv = {0, 0}, .mesh_id = -1};
-    if (!intersect_closest(*ray,
+    ray_t       shiffted_ray = *ray;
+    ray_shift_origin(&shiffted_ray);
+    if (!intersect_closest(shiffted_ray,
                            geometries->bvhtree_instances,
                            instances_intersect_closest,
                            (void*)geometries,
@@ -236,6 +245,7 @@ uint64_t rays_shadow_test_c3(const geometries_t* geometries,
     for (uint i = 0; i < n; i++)
     {
         ray_t       ray = make_ray(origin, dirs[i], distances[i]);
+        ray_shift_origin(&ray);
         hit_point_t tmp;
         int         result = intersect_any(ray,
                                    geometries->bvhtree_instances,

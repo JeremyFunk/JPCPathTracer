@@ -29,6 +29,7 @@ typedef struct bsdfcontext_s bsdfcontext_t;
 // Shaders
 // ID Name Parameter Size Uniform Range
 
+typedef unsigned int uint;
 typedef unsigned int uint2[2];
 typedef unsigned int uint3[3];
 typedef float        float4[4];
@@ -154,7 +155,6 @@ typedef struct
 {
     float  near_plane;
     float3 position;
-    float3 direction;
     float  clip_end;
 } camera_t;
 
@@ -211,6 +211,26 @@ typedef struct
     uint max_depth;
 } render_settings_t;
 
+
+
+typedef struct
+{
+    char* location;
+    char* message;
+} parsing_error_t;
+
+typedef struct
+{
+    parsing_error_t* missing;
+    uint missing_count;
+
+    parsing_error_t* bad_conversion;
+    uint             bad_conversion_count;
+    
+    parsing_error_t  critical;
+
+} parsing_errors_t;
+
 shaders_t shaders_init();
 void      shaders_load_defaults(shaders_t shaders);
 void      shaders_free(shaders_t shaders);
@@ -243,5 +263,11 @@ bvh_tree_t* bvhtree_instances_build(const geometries_t* geometries);
 
 void bvhtree_free(bvh_tree_t* tree);
 
-scene_t scane_load_yaml(char* path);
+parsing_errors_t scene_load_yaml(const char* path, scene_t* dest);
+
+void parsing_errors_free(parsing_errors_t errors);
+int             parsing_errors_is_critical(const parsing_errors_t* errors);
+void parsing_errors_print(const parsing_errors_t* errors, int bad_conversion, int missing);
+
+
 bvh_tree_t* bvhtree_copy(const bvh_tree_t* tree);

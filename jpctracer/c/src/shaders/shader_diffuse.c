@@ -1,6 +1,7 @@
 #include "../bsdf.h"
 #include "../shaders.h"
 #include "../utils.h"
+#include "log/log.h"
 
 // reflection fehlt
 static uniform_desc_t layout[] = {
@@ -22,6 +23,11 @@ static params_t defaults = {
 bsdfnode_t shader(bsdfcontext_t* ctx, void* _params)
 {
     params_t* p = _params;
+    p->color[0] = ctx->hit.instance_id;
+    if (ctx->hit.instance_id == 0)
+    {
+//        log_info("test");
+    }
 
     return diffuse(ctx,p->color);
 }

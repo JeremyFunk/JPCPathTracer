@@ -13,11 +13,11 @@
 void* material_load_params(const material_t*  material,
                            const image_t*     textures,
                            vec2               uv,
-                           stack_allocator_t* allocator)
+                           scratch_allocator_t* allocator)
 {
 
     void* params
-        = stack_alloc(allocator, material->param_size, _Alignof(float4));
+        = scratch_alloc(allocator, material->param_size, _Alignof(float4));
 
     uintptr_t params_int = (uintptr_t)params;
 
@@ -48,7 +48,7 @@ void* material_load_params(const material_t*  material,
     return params;
 }
 
-#define SHADER_COUNT 1
+#define SHADER_COUNT 2
 
 shaders_t shaders_init()
 {
@@ -63,6 +63,7 @@ shaders_t shaders_init()
 void shaders_load_defaults(shaders_t shaders)
 {
     shaders.shaders[0] = init_shader_diffuse();
+    shaders.shaders[1] = init_shader_mirror();
 }
 void shaders_free(shaders_t shaders)
 {

@@ -26,6 +26,17 @@ uint32_t encode_morton(vec3 centroid)
     return x * 4 + y * 2 + z;
 }
 
+#ifdef _MSC_VER
+int isinff(float x)
+{
+    return isinf(x);
+}
+int isnanf(float x)
+{
+    return isnan(x);
+}
+#endif
+
 int count_leading_zeros_combined(uint32_t a, uint32_t b)
 {
     const uint32_t combined = a ^ b;

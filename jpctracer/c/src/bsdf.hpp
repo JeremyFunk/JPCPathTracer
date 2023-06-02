@@ -25,7 +25,7 @@ template <class T, class... Args> // T models bsdfshader
 bsdfnode_t bsdfshader_create(bsdfcontext_t* ctx, Args&&... args)
 {
     T* params
-        = stack_alloc<T>(&ctx->params_allocator, std::forward<Args>(args)...);
+        = scratch_alloc<T>(&ctx->params_allocator, std::forward<Args>(args)...);
     return bsdfshaders_add(
         &ctx->shaders,
         [](vec3             incident_dir,

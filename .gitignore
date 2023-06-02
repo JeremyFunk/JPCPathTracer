@@ -126,4 +126,6 @@ scripts/cmake_utilities/
 
 *neovim.json
 
-
+# Visual Studio
+out/
+CMakeSettings.json

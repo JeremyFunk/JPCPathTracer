@@ -5,6 +5,8 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
+typedef unsigned int uint;
+
 void sort_permutation_uint(uint32_t* data, uint32_t* permutation,uint n);
 void apply_permutation(uint32_t* permutation, void* dst, uint n, size_t size);
 

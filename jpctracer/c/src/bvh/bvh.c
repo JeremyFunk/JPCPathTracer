@@ -15,6 +15,24 @@ typedef struct bvh_node_intern_s
     bvh_node_ref_t childs[BVH_WIDTH];
 } bvh_node_intern_t;
 
+#ifdef _MSC_VER
+void* aligned_alloc(size_t aligment, size_t size)
+{
+    return _aligned_malloc(size, aligment);
+}
+
+void aligned_free(void* ptr)
+{
+    _aligned_free(ptr);
+}
+
+#else
+void aligned_free(void* ptr)
+{
+    free(ptr);
+}
+#endif
+
 bvh_tree_t bvh_create(int max_nodes, int max_leafs)
 {
     assert(max_nodes <= max_leafs);
@@ -76,7 +94,9 @@ void bvh_set_node(bvh_tree_t* tree, uint id, const bvh_node_t* childs)
         // min
         for (int j = 0; j < BVH_WIDTH; j++)
         {
-            tree->nodes[id].bounds.borders[2 * i].m[j] = childs[j].bound.min[i];
+            float tmp = childs[j]
+                            .bound.min[i];
+            tree->nodes[id].bounds.borders[2 * i].m[j] = tmp;
         }
         // max
         for (int j = 0; j < BVH_WIDTH; j++)
@@ -128,12 +148,12 @@ void bvh_finish(bvh_tree_t* tree)
 
     tree->nodes_max_count = tree->nodes_count;
     bvh_nodes_copy_to(old_nodes,tree);
-    free(old_nodes);
+    aligned_free(old_nodes);
 }
 
 void bvh_free(bvh_tree_t tree)
 {
-    free(tree.nodes);
+    aligned_free(tree.nodes);
 }
 void sort2(bvh_stack_item_cl_t* first, bvh_stack_item_cl_t* second)
 {
@@ -187,7 +207,12 @@ void insertion_sort(bvh_stack_item_cl_t* first, bvh_stack_item_cl_t* last)
 
 int next_mask_idx(int* mask)
 {
-    int r = __builtin_ctz(*mask);
+    #ifdef _MSC_VER
+    int r = _tzcnt_u32(*mask);
+    #else
+        int r = __builtin_ctz(*mask);
+    #endif
+
     *mask &= *mask - 1;
     return r;
 }

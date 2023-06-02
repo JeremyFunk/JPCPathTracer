@@ -35,7 +35,7 @@ void bsdfshaders_weights(bsdfmixnode_t*     nodes,
                          uint               nodes_n,
                          float*             weights,
                          uint               weights_n,
-                         stack_allocator_t* allocator)
+                         scratch_allocator_t* allocator)
 {
     if (weights_n == 1 || nodes_n == 0)
     {
@@ -44,7 +44,7 @@ void bsdfshaders_weights(bsdfmixnode_t*     nodes,
     }
 
     size_t used_mem = allocator->used;
-    float* nodes_weights = stack_alloc_n<float>(allocator, nodes_n);
+    float* nodes_weights = scratch_alloc_n<float>(allocator, nodes_n);
 
     std::fill_n(weights, weights_n, 0);
     std::fill_n(nodes_weights, nodes_n, 0);
@@ -101,7 +101,7 @@ bsdfcontext_t* bsdf_alloc(bsdf_limits_t limits)
         .mix_nodes_count = 0,
         .mix_nodes_count_max = limits.bsdf_mixnodes_max,
         .mix_nodes = new bsdfmixnode_t[limits.bsdf_mixnodes_max],
-        .params_allocator = stack_allocator_t
+        .params_allocator = scratch_allocator_t
         {
             .memory = malloc(limits.bsdf_params_max),
             .used = 0,

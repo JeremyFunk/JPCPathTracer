@@ -41,7 +41,7 @@ void sample2d(sampler_state* state, uint2 count, vec2* out)
         out++;
     }
 
-    assert((*out)[0] <= 1. + 1.e-6);
+    assert((*(out-1))[0] <= 1. + 1.e-6);
 }
 
 bool sample2d_next(iterator2d* iter, sampler_state* state, vec2 rand)

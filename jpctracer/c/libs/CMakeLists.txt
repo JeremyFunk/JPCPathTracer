@@ -1,7 +1,11 @@
+set(CGLM_SHARED OFF)
 add_subdirectory(cglm)
 add_library(cglm_lib INTERFACE)
 target_link_libraries(cglm_lib INTERFACE cglm)
-target_link_libraries(cglm_lib INTERFACE m)
+if(${clang_gnu})
+	target_link_libraries(cglm_lib INTERFACE m)
+endif()
+
 add_subdirectory(stb)
 add_subdirectory(log)
 add_subdirectory(pcg_basic)

@@ -26,8 +26,8 @@ static inline bool iterator_next(iterator2d* iter)
 
 static inline iterator2d line_space2d(uint2 count, bounds2d_t range)
 {
-    assert(count[1] < INT_MAX);
-    assert(count[2] < INT_MAX);
+    assert(count[0] != UINT_MAX);
+    assert(count[1] != UINT_MAX);
     return (iterator2d){
         .count = {count[0], count[1]},
         .range = {.min = {range.min[0], range.min[1]},

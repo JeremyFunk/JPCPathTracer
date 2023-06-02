@@ -17,6 +17,7 @@ ray_t generate_camera_ray(const camera_t* camera,
     float dir_x = pixel[0] / width * near_plane_width * 2 - near_plane_width;
     float dir_y = pixel[1] / height * near_plane_height * 2 - near_plane_height;
 
+    
     ray_t result = {
         .direction = {dir_x, -dir_y, -camera->near_plane},
         .origin = {0, 0, 0},

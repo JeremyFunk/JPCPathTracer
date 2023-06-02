@@ -67,7 +67,7 @@ typedef struct bsdfcontext_s
     uint              mix_nodes_count;
     uint              mix_nodes_count_max;
     bsdfmixnode_t*    mix_nodes;
-    stack_allocator_t params_allocator;
+    scratch_allocator_t params_allocator;
 
     hit_point_t      hit;
     vec3             incident_dir;
@@ -86,7 +86,7 @@ void bsdfshaders_weights(bsdfmixnode_t*     nodes,
                          uint               nodes_n,
                          float*             weights,
                          uint               weights_n,
-                         stack_allocator_t* allocator);
+                         scratch_allocator_t* allocator);
 
 bsdfcontext_t* bsdf_alloc(bsdf_limits_t limits);
 void           bsdf_free(bsdfcontext_t* bsdf);
@@ -108,6 +108,7 @@ void bsdf_vec3_to_local(bsdfcontext_t* bsdf, vec3* directions, uint n);
 void bsdf_vec3_to_world(bsdfcontext_t* bsdf, vec3* directions, uint n);
 
 bsdfnode_t diffuse(bsdfcontext_t* ctx, float4 color);
+bsdfnode_t mirror(bsdfcontext_t* ctx);
 
 bsdfnode_t mix_bsdf(bsdfcontext_t* ctx,
                     bsdfnode_t     b1,

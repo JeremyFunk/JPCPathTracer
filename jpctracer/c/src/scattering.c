@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <log/log.h>
 
 float cos_weight(vec3 a, vec3 b)
 {
@@ -29,11 +30,15 @@ void combine_rays(sampled_color_t* bsdf_colors,
 {
     glm_vec4_zero(result);
 
+    vec3 flipped_incident_dir;
+    glm_vec3_negate_to(incident_dir, flipped_incident_dir);
+
     for (uint i = 0; i < n; i++)
     {
         vec4 temp;
         glm_vec4_mul(bsdf_colors[i].color, light_colors[i].color, temp);
-        float w = cos_weight(scatterd_dirs[i], incident_dir);
+        
+        float w = cos_weight(scatterd_dirs[i], flipped_incident_dir);
         glm_vec4_scale(temp, w / light_colors->pdf, temp);
 
         glm_vec4_add(temp, result, result);
@@ -130,6 +135,7 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
 
     if (ray_intersect_c3(&scene->geometries, &incident_ray, &hitpoint))
     {
+
         sampled_color_t* direct_colors = eval->colors + eval->indirect_count;
         sampled_color_t* indirect_colors = eval->colors;
         vec3*            direct_dirs = eval->directions + eval->indirect_count;
@@ -151,6 +157,7 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
                                           direct_dirs,
                                           eval->direct_clip_ends,
                                           eval->light_colors);
+
 
         uint64_t shadow_mask = rays_shadow_test_c3(&scene->geometries,
                                                    (const vec3*)direct_dirs,

@@ -22,7 +22,9 @@ extern "C"
                                             float phi)
     {
 
-        return {.raw = {sin_theta * cos(phi), sin_theta * sin(phi), cos_theta}};
+        return {.raw = {sin_theta * (float) cos(phi),
+            sin_theta * (float) sin(phi), 
+            cos_theta}};
     }
 
     static inline float spherical_theta(const vec3 normal)

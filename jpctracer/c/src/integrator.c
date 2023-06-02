@@ -4,6 +4,7 @@
 #include "sampler.h"
 #include "scattering.h"
 #include "types.h"
+#include "log/log.h"
 
 #include <stdlib.h>
 
@@ -64,6 +65,20 @@ void integrate(integrator_t* integrator, ray_t ray, vec4 result)
 
         // path_color_(i+1) += bsdf_color_i * E_(i+1)
         glm_vec4_muladd(bsdf_color, scattering.direct_color, path_color);
+        if (depth > 0)
+        {
+            //log_info("depth > 0");
+            glm_vec4_copy(scattering.direct_color, result);
+            return;
+        }
+        if (depth > 0)
+        {
+            if (glm_vec3_norm(scattering.direct_color) > 0)
+            {
+                //glm_vec3_copy(scattering.direct_color, path_color);
+                //log_info("integrator");
+            }
+        }
 
         if (path_color[1] > 0.6)
         {
@@ -77,6 +92,7 @@ void integrate(integrator_t* integrator, ray_t ray, vec4 result)
         glm_vec4_mul(bsdf_color, indirect_color.color, bsdf_color);
         float w = cos_weight(ray.direction, indirect_ray.direction);
         glm_vec4_scale(bsdf_color, w, bsdf_color);
+        ray = indirect_ray;
     }
 
     glm_vec4_copy(path_color, result);

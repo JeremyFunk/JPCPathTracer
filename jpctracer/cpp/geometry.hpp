@@ -32,7 +32,7 @@ using float3 = std::array<float, 3>;
 using float4 = std::array<float, 4>;
 using float2 = std::array<float, 2>;
 
-enum class geometry_type_t
+enum geometry_type_t
 {
     JPC_SPHERE = 0,
     JPC_TRIANGLE = 1,
