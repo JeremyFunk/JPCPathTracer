@@ -163,7 +163,7 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
 
         assert(indirect_samples[0][0] < 1. + 1e-6);
 
-        uint direct_count = sample_lights(&scene->lights,
+        uint light_rays_count = sample_lights(&scene->lights,
                                           indirect_samples,
                                           eval->indirect_count,
                                           hitpoint,
@@ -172,22 +172,12 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
                                           eval->light_colors);
 
 
-        uint64_t shadow_mask = rays_shadow_test_c3(&scene->geometries,
+        uint direct_count = filter_shadow_rays(&scene->geometries,
                                                    (const vec3*)direct_dirs,
                                                    eval->direct_clip_ends,
                                                    hitpoint.location,
-                                                   direct_count);
+                                                   light_rays_count);
 
-        for (uint i = 0; i < direct_count; i++)
-        {
-            if (shadow_mask & (1 << i))
-            {
-                eval->light_colors[i] = (sampled_color_t){
-                    .color = {0.f, 0.f, 0.f, 1.f},
-                    .pdf = 1,
-                };
-            }
-        }
 
         result->indirect_count = eval->indirect_count;
 

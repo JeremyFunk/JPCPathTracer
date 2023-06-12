@@ -42,8 +42,12 @@ bool ray_intersect_c3(const geometries_t* geometries,
                       const ray_t*              ray,
                       hit_point_t*        out_hitpoint);
 
-uint64_t rays_shadow_test_c3(const geometries_t* geometries,
-                             const vec3*         dirs,
+
+//returns the number s of shadow rays that hit nothing
+//in dirs[0:s] are the shadow rays that hit nothing
+//works inplace on dirs
+int filter_shadow_rays(const geometries_t* geometries,
+                             vec3*         dirs,
                              const float*        distances,
                              const vec3          origin,
                              uint                n);

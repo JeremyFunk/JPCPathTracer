@@ -234,16 +234,18 @@ bool ray_intersect_c3(const geometries_t* geometries,
     return true;
 }
 
-uint64_t rays_shadow_test_c3(const geometries_t* geometries,
-                             const vec3*         dirs,
+int filter_shadow_rays(const geometries_t* geometries,
+                             vec3*         dirs,
                              const float*        distances,
                              const vec3          origin,
                              uint                n)
 {
     assert(n < 64);
-    uint64_t mask = 0;
+
+    uint free_dir_index = 0;
     for (uint i = 0; i < n; i++)
     {
+        assert(free_dir_index<=i);
         ray_t       ray = make_ray(origin, dirs[i], distances[i]);
         ray_shift_origin(&ray);
         hit_point_t tmp;
@@ -252,7 +254,12 @@ uint64_t rays_shadow_test_c3(const geometries_t* geometries,
                                    instances_intersect_any,
                                    (void*)geometries,
                                    &tmp);
-        mask |= (1 << i) * result;
+        
+        if(!result)
+        {
+            glm_vec3_copy(dirs[i],dirs[free_dir_index]);
+            free_dir_index++;
+        }
     }
-    return mask;
+    return free_dir_index;
 }

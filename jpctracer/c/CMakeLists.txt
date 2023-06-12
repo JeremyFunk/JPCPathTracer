@@ -20,7 +20,6 @@ set(AUTOSRC
 "test.c"
 "src/bsdf.cpp"
 "src/geom_log.cpp"
-"src/renderer.h"
 "src/config.h"
 "src/lights.h"
 "src/camera.h"

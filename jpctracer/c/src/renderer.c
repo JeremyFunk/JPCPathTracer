@@ -1,5 +1,4 @@
 
-#include "renderer.h"
 #include "allocators.h"
 #include "bsdf.h"
 #include "camera.h"
@@ -29,6 +28,52 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
+uint clipf(uint x_min, float x, uint x_max)
+{
+    x = max(x, x_min);
+    x = min(x, x_max);
+    return x;
+}
+
+void add_to_image(const image_t* image, uint2 idx, float* color, uint subpixels)
+{
+    uint   c = image->channels;
+    float* img_pixel = image->data + (idx[1] * image->width * c + idx[0] * c);
+
+    for (uint i = 0; i < image->channels; i++)
+        img_pixel[i] += color[i] / subpixels;
+}
+
+
+void render_tile(const scene_t*           scene,
+                 const render_settings_t* settings,
+                 const bounds2d_t        tile,
+                 const image_t*                 output,
+                 sampler_state* sampler,
+                 integrator_t* integrator)
+{
+    vec2 pixel;
+    // max depth of path
+    float color[4 + 3 + 1];
+    float subpixel2 = settings->subpixels * settings->subpixels;
+    for (uint y = tile.min[1]; y < tile.max[1];y++)
+    {
+        for (uint x = tile.min[0];x<tile.max[0];x++)
+        {
+            for (uint i = 0; i < subpixel2; i++)
+            {
+                // TODO rand
+                vec2  pixel = {(float)x + next_rand(sampler),
+                               (float)y + next_rand(sampler)};
+                ray_t ray = generate_camera_ray(
+                    &scene->camera, output->width, output->height, pixel);
+                integrate(integrator, ray, color);
+                add_to_image(output, (uint2){x, y}, color, subpixel2);
+            }
+        }
+    }
+
+}
 
 void render(const scene_t*          scene,
             const render_settings_t settings,
@@ -49,12 +94,25 @@ void render(const scene_t*          scene,
 
     uint tiles_count_x = ceil(((float)width) / ((float)settings.tile_size));
     uint tiles_count_y = ceil(((float)height) / ((float)settings.tile_size));
-    
+#ifdef PARALLEL_RENDER 
 #pragma omp parallel
+#endif
     {
 
+    sampler_state* sampler = sampler_init();
+    integrator_t*  integrator = integrator_init(settings.max_depth,
+                                               scene,
+                                               sampler,
+                                               settings.light_samples,
+                                               settings.passes);
+#ifdef PARALLEL_RENDER
         for (int y = omp_get_thread_num(); y < tiles_count_y; y+=omp_get_num_threads())
         {
+#else
+        for(int y = 0; y<tiles_count_y;y++)
+        {
+#endif
+    
             for (int x = 0; x < tiles_count_x; x++)
             {
                 //printf("x y %d, %d\n", x, y);
@@ -65,9 +123,11 @@ void render(const scene_t*          scene,
                        MIN((y + 1) * tile_s, height),},
                 };
                 // log_info("next tile");
-                render_tile(scene, &settings, tile, outputs);
+                render_tile(scene, &settings, tile, outputs,sampler,integrator);
             }
         }
+    integrator_free(integrator);
+    sampler_free(sampler);
     }
     log_info("End rendering");
 }
@@ -211,59 +271,7 @@ void render_tile2(const scene_t*           scene,
     bsdf_free(bsdf);
 }*/
 
-uint clipf(uint x_min, float x, uint x_max)
-{
-    x = max(x, x_min);
-    x = min(x, x_max);
-    return x;
-}
 
-void add_to_image(const image_t* image, uint2 idx, float* color, uint subpixels)
-{
-    uint   c = image->channels;
-    float* img_pixel = image->data + (idx[1] * image->width * c + idx[0] * c);
-
-    for (uint i = 0; i < image->channels; i++)
-        img_pixel[i] += color[i] / subpixels;
-}
-
-void render_tile(const scene_t*           scene,
-                 const render_settings_t* settings,
-                 const bounds2d_t        tile,
-                 const image_t*                 output)
-{
-    sampler_state* sampler = sampler_init();
-    integrator_t*  integrator = integrator_init(settings->max_depth,
-                                               scene,
-                                               sampler,
-                                               settings->light_samples,
-                                               settings->passes);
-    iterator2d     pixel_iter = grid2d(tile, settings->subpixels);
-
-    vec2 pixel;
-    // max depth of path
-    float color[4 + 3 + 1];
-    float subpixel2 = settings->subpixels * settings->subpixels;
-    for (uint y = tile.min[1]; y < tile.max[1];y++)
-    {
-        for (uint x = tile.min[0];x<tile.max[0];x++)
-        {
-            for (uint i = 0; i < subpixel2; i++)
-            {
-                // TODO rand
-                vec2  pixel = {(float)x + next_rand(sampler),
-                               (float)y + next_rand(sampler)};
-                ray_t ray = generate_camera_ray(
-                    &scene->camera, output->width, output->height, pixel);
-                integrate(integrator, ray, color);
-                add_to_image(output, (uint2){x, y}, color, subpixel2);
-            }
-        }
-    }
-
-    integrator_free(integrator);
-    sampler_free(sampler);
-}
 
 const uint pass_offsets[] = {
     4,

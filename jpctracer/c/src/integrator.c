@@ -118,6 +118,14 @@ void integrate(integrator_t* integrator, ray_t ray, float* result)
             break;
         }
 
+        if( glm_vec3_eq_eps( scattering.indirect_colors,0) )
+        {
+            #ifdef INTEGRATOR_LOG
+            printf("Indirect color is zero\n")
+            #endif
+            break;
+        }
+
         // bsdf_color_(i+1) *= f_(i+1) 
         glm_vec4_mul(bsdf_color, indirect_color, bsdf_color);
         ray = indirect_ray;
