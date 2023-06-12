@@ -209,7 +209,7 @@ hit_point_t instance_finalize(hit_point_t         hit,
 void ray_shift_origin(ray_t* ray)
 {
     vec3 scaled_dir;
-    glm_vec3_scale(ray->direction, 0.1, scaled_dir);
+    glm_vec3_scale(ray->direction, 1e-6, scaled_dir);
     glm_vec3_add(ray->origin, scaled_dir, ray->origin);
 }
 

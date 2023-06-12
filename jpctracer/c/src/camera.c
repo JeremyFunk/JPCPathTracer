@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "bvh/shapes.h" 
 
 ray_t generate_camera_ray(const camera_t* camera,
                           int             width,
@@ -18,12 +19,16 @@ ray_t generate_camera_ray(const camera_t* camera,
     float dir_y = pixel[1] / height * near_plane_height * 2 - near_plane_height;
 
     
-    ray_t result = {
+    ray_t local_ray = {
         .direction = {dir_x, -dir_y, -camera->near_plane},
         .origin = {0, 0, 0},
         .clip_end = camera->clip_end,
     };
-    glm_vec3_normalize(result.direction);
+    ray_t world_ray;
+    mat4 transform;
+    glm_mat4_ucopy(camera->transformation,transform);
+    ray_transform(&local_ray,transform,&world_ray);
+    //glm_vec3_normalize(result.direction); This does already ray_transform
 
-    return result;
+    return world_ray;
 }

@@ -26,10 +26,14 @@ uint sample_point_lights(point_light_t*   lights,
         float dist2 = glm_vec3_norm2(out_directions[i]);
         float dist = sqrt(dist2);
         glm_vec3_scale(out_directions[i], 1. / dist, out_directions[i]);
-
+        vec4 out_tmp_color;
+        vec4 light_color;
+        glm_vec4_ucopy(lights[i].color, light_color);
+        
         glm_vec4_scale(
-            lights[i].color, lights[i].strength / dist2, out_colors[i].color);
-        out_colors[i].pdf = 1. / samples_n;
+            light_color, lights[i].strength / dist2, out_tmp_color);
+        glm_vec4_ucopy(out_tmp_color, out_colors[i].color);
+        out_colors[i].pdf = 0;
         out_distances[i] = dist;
         out_colors[i].color[3] = 1;
     }

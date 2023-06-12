@@ -8,8 +8,9 @@ typedef struct
 {
     vec4             direct_color;
     uint             indirect_count;
-    sampled_color_t* indirect_color;
+    vec4*             indirect_colors;
     ray_t*           indirect_rays;
+    vec3 normal;
 } scattering_t;
 
 typedef struct ray_evaluator_s ray_evaluator_t;

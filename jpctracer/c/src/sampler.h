@@ -13,3 +13,6 @@ void sampler_free(sampler_state* state);
 bool sample2d_next(iterator2d* iter, sampler_state* state, vec2 rand);
 
 void sample2d(sampler_state* state, uint2 count, vec2* out);
+
+
+float next_rand(sampler_state* state);

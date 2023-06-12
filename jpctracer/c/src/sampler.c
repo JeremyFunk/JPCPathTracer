@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 struct sampler_state_t
 {
@@ -52,6 +53,7 @@ bool sample2d_next(iterator2d* iter, sampler_state* state, vec2 rand)
         {
             float r = next_rand(state);
             float idx = iter->current_idx[i];
+            
             float r_mapped = (r + idx) / iter->count[i];
             float r_range = r_mapped * (iter->range.max[i] - iter->range.min[i])
                             + iter->range.min[i];

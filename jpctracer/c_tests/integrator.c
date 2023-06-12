@@ -26,7 +26,7 @@ int main()
     instance_handle_t quad2
         = scene_manager_create_quad(manager, quad2_verts, MAT_DIFFUSE1);
 
-    float4 color = {1, 1, 1, 1};
+    float4 color = {1, 2, 1, 1};
 
     scene_manager_material_set_uniform(manager, MAT_DIFFUSE1, "color", color);
 
@@ -43,10 +43,13 @@ int main()
 
     sampler_state* sampler = sampler_init();
 
-    integrator_t* integrator = integrator_init(2, scene, sampler, 4);
+
+    int render_passes = JPC_PASS_DEPTH | JPC_PASS_NORMAL;
+
+    integrator_t* integrator = integrator_init(4, scene, sampler, 4,render_passes);
 
 
-    vec4 dest;
+    float dest[4+3+1];
 
     vec3 impact_point = {0.5,0.5,0};
 
@@ -63,13 +66,44 @@ int main()
 
     integrate(integrator,ray,dest);
 
-    printf("Result:");
+    vec4 expected_color_result;
+    vec3 quad2_hit_point = {0.5, 0.0, 0.5};
+    vec3 diff;
 
+    glm_vec3_sub(light.position, quad2_hit_point,diff);
+    float dist2 = glm_vec3_norm2(diff);
+    glm_vec3_normalize(diff);
+    float w = fabs(ray.direction[2]);
+    printf("cos_theta(1) = %f\n", w);
+    float w2 = fabs(diff[1]); // normal is {0,-1,0}
+    printf("cos_theta(2) = %f\n", w2);
+    printf("light source = %f\n", light.strength / dist2);
+
+
+    glm_vec4_scale(color, light.strength / dist2 * w * w2 /M_PI, expected_color_result);
+
+    printf("expected Color: ");
+
+    for (uint i = 0; i < 4; i++)
+    {
+        printf("%f,", expected_color_result[i]);
+    }
+    printf("\n");
+
+
+
+    printf("Result:\nColor:");
     for(uint i =0;i<4;i++)
     {
         printf("%f,",dest[i]);
     }
-    printf("\n");
+    printf("\n Normal:");
+    for(int i = 0; i<3;i++)
+    {
+        printf("%f,",dest[channel_index(render_passes,JPC_PASS_NORMAL)+i]);
+    }
+    printf("\n Depth:");
+    printf("%f\n",dest[channel_index(render_passes,JPC_PASS_DEPTH)]);
 
     integrator_free(integrator);
 

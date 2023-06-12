@@ -23,7 +23,6 @@ static params_t defaults = {
 static bsdfnode_t shader(bsdfcontext_t* ctx, void* _params)
 {
     params_t* p = _params;
-    p->color[0] = ctx->hit.instance_id;
     if (ctx->hit.instance_id == 0)
     {
 //        log_info("test");

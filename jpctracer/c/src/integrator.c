@@ -12,16 +12,19 @@ typedef struct integrator_s
 {
     ray_evaluator_t* evaluator;
     uint             max_depth;
+    int passes;
 } integrator_t;
 
 integrator_t* integrator_init(int            max_depth,
                               const scene_t* scene,
                               sampler_state* sampler,
-                              uint           light_samples)
+                              uint           light_samples,
+                              int passes)
 {
     integrator_t* result = malloc(sizeof(*result));
     result->evaluator = ray_evaluator_init(scene, sampler, light_samples, 1);
     result->max_depth = max_depth;
+    result->passes = passes;
     return result;
 }
 
@@ -29,8 +32,10 @@ void integrator_free(integrator_t* integrator)
 {
     ray_evaluator_free(integrator->evaluator);
 }
+//#define INTEGRATOR_LOG
 
-void integrate(integrator_t* integrator, ray_t ray, vec4 result)
+
+void integrate(integrator_t* integrator, ray_t ray, float* result)
 {
     // update scheme
     // L_i = E_i + f_i L_{i+1}
@@ -46,56 +51,105 @@ void integrate(integrator_t* integrator, ray_t ray, vec4 result)
 
     vec4            path_color;
     vec4            bsdf_color;
-    sampled_color_t indirect_color;
+    vec4            indirect_color;
     ray_t           indirect_ray;
 
     scattering_t scattering = {
         .direct_color = {0, 0, 0, 0},
-        .indirect_color = &indirect_color,
-        .indirect_count = 1,
+        .indirect_colors = &indirect_color,
+        .indirect_count = 0,
         .indirect_rays = &indirect_ray,
+        .normal = {0,0,0},
     };
 
     glm_vec4_zero(path_color);
     glm_vec4_one(bsdf_color);
 
-    for (uint depth = 0; depth < integrator->max_depth; depth++)
+    
+    uint depth = 0;
+
+    for (; depth < integrator->max_depth; depth++)
     {
+#ifdef INTEGRATOR_LOG
+        printf("ray origin: (%f,%f,%f) direction: (%f,%f,%f)\n",
+               ray.origin[0],
+               ray.origin[1],
+               ray.origin[2],
+               ray.direction[0],
+               ray.direction[1],
+               ray.direction[2]);
+#endif
         scatter(integrator->evaluator, ray, &scattering);
 
-        // path_color_(i+1) += bsdf_color_i * E_(i+1)
-        glm_vec4_muladd(bsdf_color, scattering.direct_color, path_color);
-        if (depth > 0)
-        {
-            //log_info("depth > 0");
-            glm_vec4_copy(scattering.direct_color, result);
-            return;
-        }
-        if (depth > 0)
-        {
-            if (glm_vec3_norm(scattering.direct_color) > 0)
-            {
-                //glm_vec3_copy(scattering.direct_color, path_color);
-                //log_info("integrator");
-            }
-        }
+        #ifdef INTEGRATOR_LOG
+        vec4 old_path_color;
+        vec4 old_bsdf_color;
+        glm_vec4_copy(path_color,old_path_color);
+        glm_vec4_copy(bsdf_color,old_bsdf_color);
 
-        if (path_color[1] > 0.6)
+#endif // INTEGRATOR_LOG
+
+        // path_color_(i+1) = path_color(i) + bsdf_color_i * E_(i+1)
+        glm_vec4_muladd(bsdf_color, scattering.direct_color, path_color);
+
+#ifdef INTEGRATOR_LOG 
+        printf("path_color_(%d) = path_color(%d) + bsdf_color_(%d) * E_(%d)\n",
+                 depth + 1,
+                 depth,
+                 depth,
+                 depth + 1);
+        for(uint i = 0; i<4;i++) 
         {
-            //     printf("Warn: lol2\n");
+            printf("%f = %f + %f * %f\n ",path_color[i],old_path_color[i],bsdf_color[i],scattering.direct_color[i]);
+        }
+#endif
+
+
+        if (integrator->passes & JPC_PASS_NORMAL && depth == 0)
+        {
+            glm_vec3_copy(scattering.normal, result + 4);
         }
 
         if (scattering.indirect_count == 0)
+        {
+#ifdef INTEGRATOR_LOG
+       printf("no hit\n");
+#endif
             break;
+        }
 
-        // bsdf_color_(i+1) *= f_(i+1) * w
-        glm_vec4_mul(bsdf_color, indirect_color.color, bsdf_color);
-        float w = cos_weight(ray.direction, indirect_ray.direction);
-        glm_vec4_scale(bsdf_color, w, bsdf_color);
+        // bsdf_color_(i+1) *= f_(i+1) 
+        glm_vec4_mul(bsdf_color, indirect_color, bsdf_color);
         ray = indirect_ray;
+
+        #ifdef INTEGRATOR_LOG
+            printf("bsdf_color(%d) = bsdf_color(%d) * f_(%d)\n",depth+1,depth,depth+1);
+            for(uint i =0; i<4;i++)
+            printf("%f = %f * %f\n",
+                   bsdf_color[i],
+                   old_bsdf_color[i],
+                   indirect_color[i]);
+        #endif
+
+        
     }
 
+    //save output
+
+    uint passes_count = 4;
     glm_vec4_copy(path_color, result);
+    if(integrator->passes & JPC_PASS_NORMAL)
+    {
+        //already written
+        passes_count += 3;
+    }
+    if(integrator->passes & JPC_PASS_DEPTH)
+    {
+        result[passes_count] = depth;
+        passes_count++;
+    }
+
+
 }
 
 void integrate2(integrator_t* integrator, ray_t ray, vec4 result)
@@ -119,7 +173,7 @@ void integrate2(integrator_t* integrator, ray_t ray, vec4 result)
 
     scattering_t scattering = {
         .direct_color = {0, 0, 0, 0},
-        .indirect_color = &indirect_color,
+        .indirect_colors = &indirect_color,
         .indirect_count = 1,
         .indirect_rays = &indirect_ray,
     };

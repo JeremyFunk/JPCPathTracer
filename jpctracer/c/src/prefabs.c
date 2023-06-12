@@ -7,8 +7,6 @@
 #define MAX_INSTANCES 100
 #define MAX_SPHERE_MESHES 50
 #define MAX_TRIANGLE_MESHES 50
-#define MAX_SPHERES MAX_SPHERE_MESHES * 10
-#define MAX_TRIANGELS MAX_TRIANGLE_MESHES * 100
 
 #define MAX_SUN_LIGHTS 5
 #define MAX_POINT_LIGHTS 5
@@ -73,7 +71,7 @@ scene_manager_t* scene_manager_init()
     scene_t scene = {
         .camera.clip_end = 400,
         .camera.near_plane = 1,
-        .camera.position = {0, 0, 0},
+        .camera.transformation = GLM_MAT4_IDENTITY_INIT,
         .geometries.bvhtree_instances = NULL,
         .geometries.instances = manager->instances,
         .geometries.instances_count = 0,
@@ -202,6 +200,7 @@ instance_handle_t scene_manager_create_quad(scene_manager_t* manager,
         .vertices = bfr->verticies,
         .vertices_count = 4,
         .vertices_ids = bfr->verticies_ids,
+        .bvh_tree = NULL,
     };
     for (uint i = 0; i < 6; i++)
         mesh.material_ids[i] = material;
@@ -239,7 +238,7 @@ instance_handle_t scene_manager_create_quad(scene_manager_t* manager,
     geoms->instances[geoms->instances_count] = (instance_t){
         .mesh_id = geoms->triangle_mesh_count,
         .transformations
-        = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}},
+        = GLM_MAT4_IDENTITY_INIT,
         .type = JPC_TRIANGLE};
 
     geoms->triangle_mesh_count++;
@@ -247,6 +246,43 @@ instance_handle_t scene_manager_create_quad(scene_manager_t* manager,
     instance_handle_t handle = {.id = geoms->instances_count};
 
     geoms->instances_count++;
+    return handle;
+}
+
+
+instance_handle_t scene_manager_create_sphere(scene_manager_t* manager,
+                                              sphere_geometry_t sphere,
+                                                  material_id_e material)
+{
+
+    geometries_t* geoms = &manager->scene.geometries;
+    assert(geoms->instances_count+1<MAX_INSTANCES);
+    assert(geoms->sphere_mesh_count+1 < MAX_SPHERE_MESHES);
+
+    sphere_geometry_t* sphere_geom = scratch_alloc( &manager->mesh_buffer_allocator,sizeof(sphere_geometry_t),_Alignof(sphere_geometry_t));
+
+    *sphere_geom = sphere;
+
+    uint* material_ids = scratch_alloc(&manager->mesh_buffer_allocator,sizeof(uint),_Alignof(uint));
+    material_ids[0] = material;
+
+
+    geoms->spheres[geoms->sphere_mesh_count] = (sphere_mesh_t){
+        .bvh_tree = NULL,
+        .count = 1,
+        .geometries = sphere_geom,
+        .material_ids = material_ids,
+    };
+
+    geoms->instances[geoms->instances_count] = (instance_t){
+        .mesh_id = geoms->sphere_mesh_count,
+        .transformations = GLM_MAT4_IDENTITY_INIT,
+        .type = JPC_SPHERE,
+    };
+    instance_handle_t handle = {.id = geoms->instances_count};
+    geoms->instances_count++;
+    geoms->sphere_mesh_count++;    
+
     return handle;
 }
 

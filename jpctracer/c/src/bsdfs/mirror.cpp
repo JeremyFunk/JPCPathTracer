@@ -34,7 +34,7 @@ struct mirror_params
 
         for (uint i = 0; i < n; i++)
         {
-            if (glm_vec4_eqv_eps(scattered_dirs[i], reflected_dir))
+            if (glm_vec3_eqv_eps(scattered_dirs[i], reflected_dir))
             {
                 glm_vec4_copy(ones, out_colors[i].color);
                 out_colors[i].pdf = 1;

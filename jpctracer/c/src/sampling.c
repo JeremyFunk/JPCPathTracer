@@ -24,7 +24,7 @@ void concentric_sample_disk(vec2 random_point, vec2 out)
             theta = M_PI / 2 - M_PI / 4 * rand_1 / rand_2;
         }
         out[0] = cos(theta);
-        out[0] = sin(theta);
+        out[1] = sin(theta);
         glm_vec2_scale(out, radius, out);
     }
 }

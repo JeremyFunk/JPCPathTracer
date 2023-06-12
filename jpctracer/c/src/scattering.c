@@ -12,46 +12,61 @@
 #include <stdlib.h>
 #include <log/log.h>
 
-float cos_weight(vec3 a, vec3 b)
+float cos_weight(vec3 in_ray, vec3 out_ray)
 {
-    float w = glmc_vec3_dot(a, b);
-    // flip direction of a
-    // w*=-1;
+    float w = glmc_vec3_dot(in_ray, out_ray);
+    // flip direction of in_ray
+     w*=-1;
 
     return w > 0 ? w : 0;
 }
 
 void combine_rays(sampled_color_t* bsdf_colors,
                   sampled_color_t* light_colors,
-                  vec3*            scatterd_dirs,
+                  vec3*            local_scatterd_dirs,
                   uint             n,
-                  vec3             incident_dir,
                   vec4             result)
 {
     glm_vec4_zero(result);
 
-    vec3 flipped_incident_dir;
-    glm_vec3_negate_to(incident_dir, flipped_incident_dir);
+    uint non_delta_count = n;
+
+    vec4 non_delta_color = {0, 0, 0, 0};
 
     for (uint i = 0; i < n; i++)
     {
         vec4 temp;
         glm_vec4_mul(bsdf_colors[i].color, light_colors[i].color, temp);
         
-        float w = cos_weight(scatterd_dirs[i], flipped_incident_dir);
-        glm_vec4_scale(temp, w / light_colors->pdf, temp);
+        float cos_theta = fabs(local_scatterd_dirs[i][2]);
+        //the same as |<normal,local_scatterd_dirs[i]>| because normal = (0,0,1)
+        
 
-        glm_vec4_add(temp, result, result);
-        if (result[1] > 0.1)
+        float scaler = cos_theta;
+        if (light_colors->pdf < 1e-5)
         {
-            // printf("test\n");
+            //this is a delta function;
+            non_delta_count -= 1;
+            
+            glm_vec4_scale(temp, scaler, temp);
+            glm_vec4_add(temp, result, result);
+
         }
-        for (int j = 0; j < 3; j++)
+        else
         {
-            //            result[j] = w;
-            // result[j] = scatterd_dirs[i][j];
-            // result[j] = incident_dir[j];
+            scaler /= light_colors->pdf;
+
+            glm_vec4_scale(temp, scaler, temp);
+            glm_vec4_add(temp, result, result);
         }
+
+
+    }
+    assert(non_delta_count <= n);
+    if (non_delta_count > 0)
+    {
+        glm_vec4_scale(non_delta_color,1./non_delta_count,non_delta_color);
+        glm_vec4_add(non_delta_color, result, result);
     }
 }
 
@@ -127,7 +142,6 @@ void eval_background(const materiallib_t* matlib,
     glm_vec4_copy(color, out_color);
 }
 
-// Assumes that result has alloced enougth memory for the indirect rays
 void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
 {
     hit_point_t    hitpoint;
@@ -135,7 +149,6 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
 
     if (ray_intersect_c3(&scene->geometries, &incident_ray, &hitpoint))
     {
-
         sampled_color_t* direct_colors = eval->colors + eval->indirect_count;
         sampled_color_t* indirect_colors = eval->colors;
         vec3*            direct_dirs = eval->directions + eval->indirect_count;
@@ -195,13 +208,11 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
         bsdf_eval(
             eval->bsdf, eval->directions, all_count, eval->colors, &emission);
 
-        bsdf_vec3_to_world(eval->bsdf, eval->directions, all_count);
 
         combine_rays(direct_colors,
                      eval->light_colors,
                      direct_dirs,
                      direct_count,
-                     incident_ray.direction,
                      result->direct_color);
         // glm_vec4_copy(hitpoint.location,result->direct_color);
         if (result->direct_color[1] > 0.6)
@@ -212,18 +223,29 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
 
         for (uint i = 0; i < eval->indirect_count; i++)
         {
+            float w = fabs(indirect_dirs[i][2]);
+            float scaler = w;
+            if (indirect_colors->pdf >= 1e-6)
+            {
+                //this isn't a delta ray
+                scaler /= indirect_colors->pdf;
+            }
+            glm_vec4_scale(indirect_colors[i].color,
+                            scaler,
+                           result->indirect_colors[i]);
+        }
+
+        
+        bsdf_vec3_to_world(eval->bsdf, indirect_dirs, eval->indirect_count);
+
+        for (uint i = 0; i < eval->indirect_count; i++)
+        {
             glm_vec3_copy(indirect_dirs[i], result->indirect_rays[i].direction);
             glm_vec3_copy(hitpoint.location, result->indirect_rays[i].origin);
             result->indirect_rays[i].clip_end = scene->camera.clip_end;
-            result->indirect_color[i] = indirect_colors[i];
         }
-        if (glm_vec3_norm(result->direct_color) > 0.1)
-        {
-            //            printf("Warn: lol\n");
-        }
-        // printf("Hit: direct color:");
-        // printf_arrayf(4,result->direct_color);
-        // printf("\n");
+
+        glm_vec3_copy(hitpoint.normal,result->normal);
     }
     else
     {

@@ -4,7 +4,8 @@ typedef struct scene_manager_s scene_manager_t;
 
 typedef struct
 {
-    int id;
+    uint id;
+
 } instance_handle_t;
 
 typedef enum
@@ -28,6 +29,10 @@ void scene_manager_free(scene_manager_t* manager);
 instance_handle_t scene_manager_create_quad(scene_manager_t* manager,
                                             float            points[4][3],
                                             material_id_e    material);
+
+instance_handle_t scene_manager_create_sphere(scene_manager_t* manager,
+                                              sphere_geometry_t sphere,
+                                                  material_id_e material);
 
 // when instances are changed the scene is invalid
 scene_t* scene_manager_get_scene(scene_manager_t* manager);

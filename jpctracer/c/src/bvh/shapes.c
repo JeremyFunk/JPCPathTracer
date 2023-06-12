@@ -89,6 +89,7 @@ bool triangle_intersect(const ray_t* ray,
                         float*       out_distance,
                         vec2         out_uv)
 {
+    //Möller-Trumbore intersection algorithm
     float epsilion = 1e-6;
     vec3  support_vec_1, support_vec_2;
     vec3  point_dir, diff_origin_position, cross_op_s1;
@@ -98,7 +99,7 @@ bool triangle_intersect(const ray_t* ray,
 
     glm_vec3_cross((float*)ray->direction, support_vec_2, point_dir);
     float determinante = glm_vec3_dot(support_vec_1, point_dir);
-    if (determinante < epsilion)
+    if (fabs(determinante) < epsilion)
         return false;
 
     float inv_det = 1. / determinante;

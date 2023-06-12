@@ -630,8 +630,6 @@ camera_t camera_load_yaml(const YAML::Node& node,ParsingErrors& errors)
     glm_vec3_normalize(cam.direction);
     */
 
-    yaml_try_parse_array<float, 3>(
-        node,"position", {0., 0., 0.}, cam.position,errors);
 
     return cam;
 }

@@ -21,6 +21,11 @@ typedef enum
     JPC_TRIANGLE = 1,
 } geometry_type_t;
 
+typedef enum{
+    JPC_PASS_NORMAL=1 << 1,
+    JPC_PASS_DEPTH=1 << 2,
+} render_pass_t;
+
 // forward declaration
 typedef struct bvh_tree_s    bvh_tree_t;
 typedef struct bsdfnode_s    bsdfnode_t;
@@ -154,8 +159,8 @@ typedef struct
 typedef struct
 {
     float  near_plane;
-    float3 position;
     float  clip_end;
+    float4x4 transformation;
 } camera_t;
 
 typedef struct mat_bfr_s mat_bfr_t;
@@ -209,6 +214,7 @@ typedef struct
     uint subpixels;
     uint light_samples;
     uint max_depth;
+    int passes;
 } render_settings_t;
 
 
@@ -253,9 +259,16 @@ void material_set_texture(material_t*     mat,
                           uint            uniform_id,
                           uint            texture);
 
+uint channel_count(int render_passes  );
+
+uint channel_index(int render_passes , render_pass_t pass );
+
 void render(const scene_t*          scene,
             const render_settings_t settings,
             image_t*                outputs);
+
+
+void render_and_save(scene_t* scene, render_settings_t settings, const uint2 resolution, const char* out_dir);
 
 bvh_tree_t* bvhtree_triangles_build(const triangle_mesh_t* tris);
 bvh_tree_t* bvhtree_spheres_build(const sphere_mesh_t* spheres);

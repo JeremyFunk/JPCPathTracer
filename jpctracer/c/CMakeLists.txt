@@ -77,7 +77,11 @@ set(AUTOSRC
 "include/jpc_prefabs.h"
  "src/prefabs.c" "src/bsdfs/mirror.cpp" "src/shaders/shader_mirror.c")
 
+
+find_package(OpenMP REQUIRED)
+
 set(LIBS
+OpenMP::OpenMP_C
 cglm_lib
 stb
 log
