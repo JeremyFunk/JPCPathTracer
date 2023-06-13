@@ -5,7 +5,12 @@
 
 typedef struct
 {
+    union 
+    {
     float m[2];
+    float data[2];
+    };
+    
 } simdf;
 
 // a*b-c

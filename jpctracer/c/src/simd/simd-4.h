@@ -3,13 +3,17 @@
 #if (SIMD_WIDTH == 4)
 #include <emmintrin.h> //SSE2
 #include <xmmintrin.h> //SSE
+#include <smmintrin.h> //SSE4
 #ifdef __FMA__
 #include <immintrin.h>
 #endif
 
 typedef struct
 {
+    union {
     __m128 m;
+        float  data[4]; //for msvc
+    };
 } simdf;
 
 // a*b-c

@@ -5,7 +5,7 @@
 #define LOG_GEOMETRY
 
 // BVH_WIDTH_2, BVH_WIDTH_8
-#define BVH_WIDTH 2 // 2 4 8
+#define BVH_WIDTH 4 // 2 4 8
 
 
 #define PARALLEL_RENDER

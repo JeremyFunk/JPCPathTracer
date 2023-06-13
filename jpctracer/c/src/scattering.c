@@ -108,8 +108,8 @@ ray_evaluator_t* ray_evaluator_init(const scene_t* scene,
     result->bsdf = bsdf_alloc(bsdf_default_limits);
     result->direct_count = direct_count;
     result->indirect_count = indirect_count;
-    result->colors = malloc(all_count * sizeof(*result->colors));
-    result->light_colors = malloc(direct_count * sizeof(*result->light_colors));
+    result->colors = (sampled_color_t*) aligned_alloc(_Alignof(sampled_color_t),all_count * sizeof(sampled_color_t));
+    result->light_colors =(sampled_color_t*) aligned_alloc(_Alignof(sampled_color_t),direct_count * sizeof(sampled_color_t));
     result->direct_clip_ends
         = malloc(direct_count * sizeof(*result->direct_clip_ends));
     result->directions = malloc(all_count * sizeof(*result->directions));
@@ -125,8 +125,8 @@ ray_evaluator_t* ray_evaluator_init(const scene_t* scene,
 void ray_evaluator_free(ray_evaluator_t* evaluator)
 {
     bsdf_free(evaluator->bsdf);
-    free(evaluator->colors);
-    free(evaluator->light_colors);
+    aligned_free(evaluator->colors);
+    aligned_free(evaluator->light_colors);
     free(evaluator->directions);
     free(evaluator->direct_clip_ends);
     free(evaluator->samples);

@@ -255,13 +255,15 @@ void bsdf_eval(bsdfcontext_t*   ctx,
 {
     // This is a matrix vector multiplication algorithm
     assert(n <= ctx->eval_color_max);
-
+    memset(out_color,0,sizeof(sampled_color_t)*n);
+    /*
     std::fill_n(out_color,
                 n,
                 sampled_color_t{
                     .color = {0, 0, 0, 0},
                     .pdf = 0,
                 });
+    */
     vec4 temp_emission = {0, 0, 0, 0};
     // E * w = out
     // E in R^m
@@ -276,8 +278,8 @@ void bsdf_eval(bsdfcontext_t*   ctx,
 
         float weight = ctx->shaders.weights[i];
 
-        glm_vec3_scale(temp_emission, weight, temp_emission);
-        glm_vec3_add(temp_emission, *out_emission, *out_emission);
+        glm_vec4_scale(temp_emission, weight, temp_emission);
+        glm_vec4_add(temp_emission, *out_emission, *out_emission);
         for (uint j = 0; j < n; j++)
         {
             out_color[j] += weight * ctx->temp_eval_color[j];

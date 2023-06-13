@@ -2,7 +2,7 @@
 #define SIMD_WIDTH 8
 #if (SIMD_WIDTH == 8)
 #include <immintrin.h> //AVX
-
+/*
 #ifndef __FMA__
 #error FMA required
 #endif
@@ -10,12 +10,16 @@
 #ifndef __AVX2__
 #error AVC2 required
 #endif
+*/
 
 #include <immintrin.h>
 
 typedef struct
 {
-    __m256 m;
+    union {
+        __m256 m;
+        float  data[8];
+    };
 } simdf;
 
 // a*b-c

@@ -96,22 +96,23 @@ void render(const scene_t*          scene,
     uint tiles_count_y = ceil(((float)height) / ((float)settings.tile_size));
 #ifdef PARALLEL_RENDER 
 #pragma omp parallel
-#endif
     {
-
+        uint start = omp_get_thread_num();
+        uint stride = omp_get_num_threads();
+#else
+    {
+        uint start = 0;
+        uint stride = 1;
+#endif
+        //log_info("Thread start");
     sampler_state* sampler = sampler_init();
     integrator_t*  integrator = integrator_init(settings.max_depth,
                                                scene,
                                                sampler,
                                                settings.light_samples,
                                                settings.passes);
-#ifdef PARALLEL_RENDER
-        for (int y = omp_get_thread_num(); y < tiles_count_y; y+=omp_get_num_threads())
+        for(int y = start; y<tiles_count_y;y+=stride)
         {
-#else
-        for(int y = 0; y<tiles_count_y;y++)
-        {
-#endif
     
             for (int x = 0; x < tiles_count_x; x++)
             {

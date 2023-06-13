@@ -6,6 +6,9 @@
 #include "jpc_api.h"
 #include "shapes.h"
 
+#define SIMD_WIDTH BVH_WIDTH
+#include "boundsN.h"
+
 typedef struct
 {
     uint32_t   idx;
@@ -49,7 +52,11 @@ typedef struct
     bvh_stack_item_cl_t* stack;
     float                min_distance;
     ray_trav_bounds_t    ray;
+    ray_trav_boundsN_t ray_boundsN;
+    
 } bvh_intersector_closest_t;
+
+
 
 bool bvh_intersect_closest_init(const bvh_tree_t*          tree,
                                 const ray_t*               ray,
@@ -67,6 +74,7 @@ typedef struct
     float             min_distance;
     float max_distance;
     ray_trav_bounds_t ray;
+    ray_trav_boundsN_t ray_boundsN;
 } bvh_intersector_any_t;
 
 bool bvh_intersect_any_init(const bvh_tree_t*      tree,

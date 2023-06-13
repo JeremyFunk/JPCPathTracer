@@ -1,4 +1,4 @@
-set(CGLM_SHARED OFF)
+set(CGLM_SHARED OFF CACHE BOOL "" FORCE)
 add_subdirectory(cglm)
 add_library(cglm_lib INTERFACE)
 target_link_libraries(cglm_lib INTERFACE cglm)

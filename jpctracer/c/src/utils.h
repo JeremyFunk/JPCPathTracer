@@ -37,3 +37,23 @@ static inline void printf_arrayui(uint n, uint* vec)
 }
 
 #define assert_near(a, b) assert((a - b) * (a - b) < 1e-6)
+
+
+
+#ifdef _MSC_VER
+inline void* aligned_alloc(size_t aligment, size_t size)
+{
+    return _aligned_malloc(size, aligment);
+}
+
+inline void aligned_free(void* ptr)
+{
+    _aligned_free(ptr);
+}
+
+#else
+inline void aligned_free(void* ptr)
+{
+    free(ptr);
+}
+#endif

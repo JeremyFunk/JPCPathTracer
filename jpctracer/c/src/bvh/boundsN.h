@@ -91,8 +91,8 @@ static inline void bounds4_log(const char* name, const boundsN_t* b, int i)
     vec3 max;
     for (int j = 0; j < 3; j++)
     {
-        min[j] = b->borders[2 * j].m[i];
-        max[j] = b->borders[2 * j + 1].m[i];
+        min[j] = b->borders[2 * j].data[i];
+        max[j] = b->borders[2 * j + 1].data[i];
     }
     LOG_BOUNDS(name, min, max);
 }

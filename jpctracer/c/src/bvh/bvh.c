@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <xmmintrin.h>
+#include "../utils.h"
 
-#define SIMD_WIDTH BVH_WIDTH
-#include "boundsN.h"
+
 
 typedef struct bvh_node_intern_s
 {
@@ -15,23 +15,6 @@ typedef struct bvh_node_intern_s
     bvh_node_ref_t childs[BVH_WIDTH];
 } bvh_node_intern_t;
 
-#ifdef _MSC_VER
-void* aligned_alloc(size_t aligment, size_t size)
-{
-    return _aligned_malloc(size, aligment);
-}
-
-void aligned_free(void* ptr)
-{
-    _aligned_free(ptr);
-}
-
-#else
-void aligned_free(void* ptr)
-{
-    free(ptr);
-}
-#endif
 
 bvh_tree_t bvh_create(int max_nodes, int max_leafs)
 {
@@ -96,11 +79,11 @@ void bvh_set_node(bvh_tree_t* tree, uint id, const bvh_node_t* childs)
         {
             float tmp = childs[j]
                             .bound.min[i];
-            tree->nodes[id].bounds.borders[2 * i].m[j] = tmp;
+            tree->nodes[id].bounds.borders[2 * i].data[j] = tmp;
         }
         // max
         for (int j = 0; j < BVH_WIDTH; j++)
-            tree->nodes[id].bounds.borders[2 * i + 1].m[j]
+            tree->nodes[id].bounds.borders[2 * i + 1].data[j]
                 = childs[j].bound.max[i];
     }
     for (int i = 0; i < BVH_WIDTH; i++)
@@ -222,7 +205,7 @@ bvh_stack_item_cl_t* hit_push_to_stack(hits_boundsN_t*          hits,
                                        const bvh_node_intern_t* node)
 {
     int i = next_mask_idx(&hits->mask);
-    stack->min_distance = hits->min.m[i];
+    stack->min_distance = hits->min.data[i];
     stack->node = node->childs[i];
     stack++;
     return stack;
@@ -313,7 +296,8 @@ bool find_closest_leaf(int*                       id,
 {
     bvh_intersector_closest_t* i = intersector;
     bvh_stack_item_cl_t        item;
-    ray_trav_boundsN_t ray = ray_trav_boundsN_make(&i->ray, 0.f, max_distance);
+    
+    i->ray_boundsN.t_max = simd_set_ps1(max_distance);
 
     while (i->stack != i->stack_begin)
     {
@@ -326,7 +310,7 @@ bool find_closest_leaf(int*                       id,
             while (!is_leaf(item.node))
             {
                 i->stack = bounds_intersect_closest(
-                    get_inode(item.node), &ray, i->stack);
+                    get_inode(item.node), &i->ray_boundsN, i->stack);
 
                 if (stack_begin != i->stack)
                 {
@@ -354,8 +338,9 @@ bool find_any_leaf(int* id, bvh_intersector_any_t* intersector)
 
     bvh_intersector_any_t* i = intersector;
     bvh_node_ref_t         item;
+    /*
     ray_trav_boundsN_t     ray
-        = ray_trav_boundsN_make(&i->ray, 0.f, i->max_distance);
+        = ray_trav_boundsN_make(&i->ray, 0.f, i->max_distance);*/
 
     while (i->stack != i->stack_begin)
     {
@@ -367,7 +352,7 @@ bool find_any_leaf(int* id, bvh_intersector_any_t* intersector)
             *id = get_leaf_idx(item);
             return true;
         }
-        i->stack = bounds_intersect_any(get_inode(item), &ray, i->stack);
+        i->stack = bounds_intersect_any(get_inode(item), &i->ray_boundsN, i->stack);
     }
 
     return false;
@@ -393,6 +378,7 @@ bool bvh_intersect_closest_init(const bvh_tree_t*          tree,
     result->stack++;
     result->min_distance = 0;
     result->ray = ray_trav_bounds_make(ray);
+    result->ray_boundsN = ray_trav_boundsN_make(&result->ray, 0.f, ray->clip_end );
     /*
     bounds3d_t* bounds = tree.n == 1 ? tree.shape_bounds : tree.node_bounds;
     intervall_t hit = bounds3d_intersect(bounds, &result->ray);
@@ -412,6 +398,7 @@ bool bvh_intersect_any_init(const bvh_tree_t*      tree,
     result->min_distance = 0;
     result->max_distance = ray->clip_end;
     result->ray = ray_trav_bounds_make(ray);
+    result->ray_boundsN = ray_trav_boundsN_make(&result->ray, 0.f, ray->clip_end );
     return true;
 }
 // returnes the identifier
@@ -431,7 +418,7 @@ int bvh_node_log_recursive(const bvh_inode_ref_t ref, int depth, int identifier)
                     i,
                     depth,
                     child_ref.leaf.idx);
-            if (isinff(ref.ptr->bounds.borders[0].m[i]))
+            if (isinff(ref.ptr->bounds.borders[0].data[i]))
             {
                 sprintf(name + strlen(name), "_empty");
             }

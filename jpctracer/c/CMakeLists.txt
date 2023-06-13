@@ -81,6 +81,7 @@ find_package(OpenMP REQUIRED)
 
 set(LIBS
 OpenMP::OpenMP_C
+OpenMP::OpenMP_CXX
 cglm_lib
 stb
 log
