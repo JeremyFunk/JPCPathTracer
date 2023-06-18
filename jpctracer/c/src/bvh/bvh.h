@@ -25,7 +25,7 @@ typedef struct bvh_tree_s
 
 } bvh_tree_t;
 
-bvh_tree_t bvh_create(int max_nodes, int max_leafs);
+bvh_tree_t* bvh_create(arena_t* arena, int max_nodes, int max_leafs);
 
 void bvh_log(const bvh_tree_t* tree);
 

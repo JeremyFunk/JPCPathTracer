@@ -20,10 +20,10 @@ typedef struct scene_manager_s
     triangle_mesh_t triangle_meshes[MAX_TRIANGLE_MESHES];
     point_light_t   point_lights[MAX_POINT_LIGHTS];
     sun_light_t     sun_lights[MAX_SUN_LIGHTS];
-    material_t      materials[MAX_INSTANCES];
 
     scratch_allocator_t mesh_buffer_allocator;
     uint8_t             mesh_buffer_data[MESH_BUFFER_SIZE];
+    arena_t* arena;
 
 } scene_manager_t;
 
@@ -68,6 +68,8 @@ scene_manager_t* scene_manager_init()
 {
     scene_manager_t* manager = malloc(sizeof(scene_manager_t));
 
+    manager->arena = arena_make();
+
     scene_t scene = {
         .camera.clip_end = 400,
         .camera.near_plane = 1,
@@ -81,12 +83,10 @@ scene_manager_t* scene_manager_init()
         .geometries.triangle_mesh_count = 0,
         .lights.point_lights = manager->point_lights,
         .lights.sun_lights = manager->sun_lights,
-        .materiallib.buffer = NULL,
-        .materiallib.materials = manager->materials,
         .materiallib.materials_n = MAT_COUNT,
         .materiallib.textures = NULL,
         .materiallib.textures_count = NULL,
-
+        .materiallib.materials = NULL,
     };
 
     shaders_t shader_system = shaders_init();
@@ -95,8 +95,8 @@ scene_manager_t* scene_manager_init()
 
     shader_bfr_fill(shader_system, shader_names, shader_buffer, MAT_COUNT);
 
-    scene.materiallib.buffer
-        = materials_init(scene.materiallib.materials, shader_buffer, MAT_COUNT);
+    scene.materiallib.materials
+        = materials_init(manager->arena, shader_buffer, MAT_COUNT);
 
     manager->scene = scene;
     manager->mesh_buffer_allocator.memory = manager->mesh_buffer_data;
@@ -109,50 +109,26 @@ scene_manager_t* scene_manager_init()
 scene_t* scene_manager_get_scene(scene_manager_t* manager)
 {
     geometries_t* geoms = &manager->scene.geometries;
+    arena_t* arena = manager->arena;
 
     for (uint i = 0; i < geoms->sphere_mesh_count; i++)
     {
-        geoms->spheres[i].bvh_tree = bvhtree_spheres_build(geoms->spheres + i);
+        geoms->spheres[i].bvh_tree = bvhtree_spheres_build(arena,geoms->spheres + i);
     }
     for (uint i = 0; i < geoms->triangle_mesh_count; i++)
     {
         geoms->triangles[i].bvh_tree
-            = bvhtree_triangles_build(geoms->triangles + i);
+            = bvhtree_triangles_build(arena,geoms->triangles + i);
     }
-    geoms->bvhtree_instances = bvhtree_instances_build(geoms);
+    geoms->bvhtree_instances = bvhtree_instances_build(arena,geoms);
 
     return &manager->scene;
 }
 
-void geoms_free_all_bvhtrees(geometries_t geoms)
-{
-    if (geoms.bvhtree_instances)
-    {
-        bvhtree_free(geoms.bvhtree_instances);
-    }
-    for (uint i = 0; i < geoms.sphere_mesh_count; i++)
-    {
-        if (geoms.spheres[i].bvh_tree)
-        {
-            bvhtree_free(geoms.spheres[i].bvh_tree);
-        }
-    }
-    for (uint i = 0; i < geoms.triangle_mesh_count; i++)
-    {
-        if (geoms.triangles[i].bvh_tree)
-        {
-            bvhtree_free(geoms.triangles[i].bvh_tree);
-        }
-    }
-}
 
 void scene_manager_free(scene_manager_t* manager)
 {
-    geometries_t geoms = manager->scene.geometries;
-
-    geoms_free_all_bvhtrees(geoms);
-    mat_bfr_t_free(manager->scene.materiallib.buffer);
-
+    arena_release(manager->arena);
     free(manager);
 }
 

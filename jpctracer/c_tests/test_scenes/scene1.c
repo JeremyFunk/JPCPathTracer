@@ -31,7 +31,7 @@ int main()
     .color = {1,1,1,1},
     .falloff = 1,
     .position = {0,2,0},
-    .strength = 4,
+    .strength = 10,
    };
 
     float y = -0.5;
@@ -76,12 +76,18 @@ int main()
 
    instance_handle_t quad1 = scene_manager_create_quad(manager,quad1_verts,MAT_DIFFUSE1);
    instance_handle_t quad2
-       = scene_manager_create_quad(manager, quad2_verts, MAT_DIFFUSE1);
+       = scene_manager_create_quad(manager, quad2_verts, MAT_DIFFUSE2);
    
    instance_handle_t sphere1 = scene_manager_create_sphere(manager,sphere_geom,MAT_MIRROR1) ;
 
-   vec4 color = {1,1,1,1};
-   scene_manager_material_set_uniform(manager, MAT_DIFFUSE1, "color", color);
+   vec4 diffuse1_color = {1,1,1,1};
+   scene_manager_material_set_uniform(
+       manager, MAT_DIFFUSE1, "color", diffuse1_color);
+
+   vec4 diffuse2_color = {0.1, 0.9, 1, 1};
+   scene_manager_material_set_uniform(
+       manager, MAT_DIFFUSE2, "color", diffuse2_color);
+
 
     scene_t* scene = scene_manager_get_scene(manager);
     scene->camera = camera;
@@ -90,10 +96,14 @@ int main()
         .light_samples = 10,
         .max_depth = 5,
         .passes = JPC_PASS_DEPTH | JPC_PASS_NORMAL,
-        .subpixels =    100,
-        .tile_size = 32,
+        .subpixels =    20,
+        .tile_size = 1,
     };
 
-    render_and_save(scene,settings,(uint2){512,512},"C:\\Users\\thoma\\Desktop\\raytracing\\scene1");
+    const char* path ="C:\\Users\\thoma\\Desktop\\raytracing\\scene1" ;
+    path ="C:\\Users\\chris\\dev\\jpc_tracer\\Results\\scene1" ;
+    render_and_save(scene,settings,(uint2){1920,1080},path);
+
+    scene_manager_free(manager);
 
 }

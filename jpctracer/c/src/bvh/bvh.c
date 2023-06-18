@@ -1,13 +1,11 @@
 
 #include "bvh.h"
+#include "../utils.h"
 #include "bvh_ref.h"
 #include "jpc_api.h"
 #include <stdlib.h>
 #include <string.h>
 #include <xmmintrin.h>
-#include "../utils.h"
-
-
 
 typedef struct bvh_node_intern_s
 {
@@ -15,15 +13,19 @@ typedef struct bvh_node_intern_s
     bvh_node_ref_t childs[BVH_WIDTH];
 } bvh_node_intern_t;
 
-
-bvh_tree_t bvh_create(int max_nodes, int max_leafs)
+bvh_tree_t* bvh_create(arena_t* arena, int max_nodes, int max_leafs)
 {
     assert(max_nodes <= max_leafs);
-    return (bvh_tree_t){
-        .nodes = aligned_alloc(16, sizeof(bvh_node_intern_t) * max_nodes),
-        .nodes_max_count = max_nodes,
-        .nodes_count = 0,
-    };
+    arena_reserve(
+        arena, sizeof(bvh_tree_t) + 16 + sizeof(bvh_node_intern_t) * max_nodes);
+
+    bvh_tree_t* dst = arena_alloc(arena, sizeof(bvh_tree_t));
+
+    dst->nodes
+        = arena_alloc_aligned(arena, sizeof(bvh_node_intern_t) * max_nodes, 16);
+    dst->nodes_max_count = max_nodes;
+    dst->nodes_count = 0;
+    return dst;
 }
 
 bvh_node_ref_t node_ref_create(const bvh_node_t* node, bvh_node_intern_t* nodes)
@@ -77,8 +79,7 @@ void bvh_set_node(bvh_tree_t* tree, uint id, const bvh_node_t* childs)
         // min
         for (int j = 0; j < BVH_WIDTH; j++)
         {
-            float tmp = childs[j]
-                            .bound.min[i];
+            float tmp = childs[j].bound.min[i];
             tree->nodes[id].bounds.borders[2 * i].data[j] = tmp;
         }
         // max
@@ -113,31 +114,16 @@ void bvh_nodes_copy_to(const bvh_node_intern_t* src_nodes, bvh_tree_t* dst)
     }
 }
 
-bvh_tree_t* bvhtree_copy(const bvh_tree_t* tree)
+bvh_tree_t* bvhtree_copy(arena_t* arena, const bvh_tree_t* tree)
 {
-    bvh_tree_t* dst = malloc(sizeof(bvh_tree_t));
-    *dst = bvh_create(tree->nodes_count,tree->nodes_max_count);
-    dst->nodes_count=tree->nodes_count;
-    bvh_nodes_copy_to(tree->nodes,dst);
-    memcpy(&dst->root_bound,&tree->root_bound,sizeof(tree->root_bound));
+    bvh_tree_t* dst
+        = bvh_create(arena, tree->nodes_count, tree->nodes_max_count);
+    dst->nodes_count = tree->nodes_count;
+    bvh_nodes_copy_to(tree->nodes, dst);
+    memcpy(&dst->root_bound, &tree->root_bound, sizeof(tree->root_bound));
     return dst;
 }
 
-void bvh_finish(bvh_tree_t* tree)
-{
-    bvh_node_intern_t* old_nodes = tree->nodes;
-    tree->nodes
-        = aligned_alloc(16, sizeof(bvh_node_intern_t) * tree->nodes_count);
-
-    tree->nodes_max_count = tree->nodes_count;
-    bvh_nodes_copy_to(old_nodes,tree);
-    aligned_free(old_nodes);
-}
-
-void bvh_free(bvh_tree_t tree)
-{
-    aligned_free(tree.nodes);
-}
 void sort2(bvh_stack_item_cl_t* first, bvh_stack_item_cl_t* second)
 {
     if (second->min_distance > first->min_distance) // last < first
@@ -190,11 +176,11 @@ void insertion_sort(bvh_stack_item_cl_t* first, bvh_stack_item_cl_t* last)
 
 int next_mask_idx(int* mask)
 {
-    #ifdef _MSC_VER
+#ifdef _MSC_VER
     int r = _tzcnt_u32(*mask);
-    #else
-        int r = __builtin_ctz(*mask);
-    #endif
+#else
+    int r = __builtin_ctz(*mask);
+#endif
 
     *mask &= *mask - 1;
     return r;
@@ -296,7 +282,7 @@ bool find_closest_leaf(int*                       id,
 {
     bvh_intersector_closest_t* i = intersector;
     bvh_stack_item_cl_t        item;
-    
+
     i->ray_boundsN.t_max = simd_set_ps1(max_distance);
 
     while (i->stack != i->stack_begin)
@@ -352,7 +338,8 @@ bool find_any_leaf(int* id, bvh_intersector_any_t* intersector)
             *id = get_leaf_idx(item);
             return true;
         }
-        i->stack = bounds_intersect_any(get_inode(item), &i->ray_boundsN, i->stack);
+        i->stack
+            = bounds_intersect_any(get_inode(item), &i->ray_boundsN, i->stack);
     }
 
     return false;
@@ -378,7 +365,8 @@ bool bvh_intersect_closest_init(const bvh_tree_t*          tree,
     result->stack++;
     result->min_distance = 0;
     result->ray = ray_trav_bounds_make(ray);
-    result->ray_boundsN = ray_trav_boundsN_make(&result->ray, 0.f, ray->clip_end );
+    result->ray_boundsN
+        = ray_trav_boundsN_make(&result->ray, 0.f, ray->clip_end);
     /*
     bounds3d_t* bounds = tree.n == 1 ? tree.shape_bounds : tree.node_bounds;
     intervall_t hit = bounds3d_intersect(bounds, &result->ray);
@@ -398,7 +386,8 @@ bool bvh_intersect_any_init(const bvh_tree_t*      tree,
     result->min_distance = 0;
     result->max_distance = ray->clip_end;
     result->ray = ray_trav_bounds_make(ray);
-    result->ray_boundsN = ray_trav_boundsN_make(&result->ray, 0.f, ray->clip_end );
+    result->ray_boundsN
+        = ray_trav_boundsN_make(&result->ray, 0.f, ray->clip_end);
     return true;
 }
 // returnes the identifier

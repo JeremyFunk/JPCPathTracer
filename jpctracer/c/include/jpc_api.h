@@ -169,7 +169,6 @@ typedef struct
 {
     uint        materials_n;
     material_t* materials;
-    mat_bfr_t*  buffer;
 
     image_t* textures;
     uint     textures_count;
@@ -217,6 +216,14 @@ typedef struct
     int passes;
 } render_settings_t;
 
+typedef struct arena_s arena_t;
+arena_t* arena_make();
+void arena_reserve(arena_t* arena,size_t size);
+void* arena_alloc(arena_t* arena, size_t size);
+void* arena_alloc_aligned(arena_t* arena, size_t size,size_t aligment);
+void arena_release(arena_t* arena);
+size_t arena_memory_used(const arena_t* arena);
+size_t arena_memory_allocated(const arena_t* arena);
 
 
 typedef struct
@@ -243,11 +250,10 @@ void      shaders_free(shaders_t shaders);
 void      shader_default_uniform(const shader_t* shader, uint id, float* dst);
 
 // returns buffer which contains the params and texturebinding
-mat_bfr_t* materials_init(material_t*     materials,
+material_t* materials_init(arena_t* arena,
                           const shader_t* shaders,
                           uint            n);
 
-void mat_bfr_t_free(mat_bfr_t* bfr);
 
 // value float, float3 or float4 depended on the type of the uniform
 void material_set_uniform(material_t*     mat,
@@ -270,17 +276,16 @@ void render(const scene_t*          scene,
 
 void render_and_save(scene_t* scene, render_settings_t settings, const uint2 resolution, const char* out_dir);
 
-bvh_tree_t* bvhtree_triangles_build(const triangle_mesh_t* tris);
-bvh_tree_t* bvhtree_spheres_build(const sphere_mesh_t* spheres);
-bvh_tree_t* bvhtree_instances_build(const geometries_t* geometries);
+bvh_tree_t* bvhtree_triangles_build(arena_t* areana, const triangle_mesh_t* tris);
+bvh_tree_t* bvhtree_spheres_build(arena_t* arena, const sphere_mesh_t* spheres);
+bvh_tree_t* bvhtree_instances_build(arena_t* arena,const geometries_t* geometries);
 
 void bvhtree_free(bvh_tree_t* tree);
 
-parsing_errors_t scene_load_yaml(const char* path, scene_t* dest);
+parsing_errors_t scene_load_yaml(arena_t* scene_arena, arena_t* error_arena, const char* path, scene_t* dest);
 
-void parsing_errors_free(parsing_errors_t errors);
 int             parsing_errors_is_critical(const parsing_errors_t* errors);
 void parsing_errors_print(const parsing_errors_t* errors, int bad_conversion, int missing);
 
 
-bvh_tree_t* bvhtree_copy(const bvh_tree_t* tree);
+bvh_tree_t* bvhtree_copy(arena_t* arena,const bvh_tree_t* tree);

@@ -27,4 +27,8 @@ target_link_libraries(integrator_test tracer)
 target_include_directories(integrator_test PRIVATE "../c/src/")
 
 
+add_executable(dataformat_test "dataformat.c")
+target_link_libraries(dataformat_test tracer cglm_lib)
+
+
 add_subdirectory(test_scenes)

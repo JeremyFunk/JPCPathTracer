@@ -8,4 +8,6 @@
 #define BVH_WIDTH 4 // 2 4 8
 
 
-#define PARALLEL_RENDER
+//#define PARALLEL_RENDER
+
+//#define DEBUG_ARENA

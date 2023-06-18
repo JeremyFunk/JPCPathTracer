@@ -112,7 +112,7 @@ void mat_bfr_t_free(mat_bfr_t* bfr)
     free(bfr);
 }
 
-mat_bfr_t* materials_init(material_t*     materials,
+material_t* materials_init(arena_t* arena,
                           const shader_t* shaders,
                           uint            n)
 {
@@ -124,20 +124,15 @@ mat_bfr_t* materials_init(material_t*     materials,
         bindings_count += shaders[i].uniforms_count;
     }
 
-    mat_bfr_t* bfr = malloc(sizeof(mat_bfr_t));
+    size_t bindings_size = bindings_count*sizeof(texture_uniform_binding_t);
+    size_t materials_size = sizeof(material_t)*n;
 
-    if (n == 0)
-    {
-        bfr->bindings = NULL;
-        bfr->params = NULL;
-        return bfr;
-    }
+    arena_reserve(arena,params_size+bindings_size+materials_size);
 
-    bfr->params = malloc(sizeof(char) * params_size);
-    bfr->bindings = malloc(sizeof(texture_uniform_binding_t) * bindings_count);
+    material_t* materials = arena_alloc(arena,materials_size);
 
-    texture_uniform_binding_t* tex_uni_buffer = bfr->bindings;
-    char*                      params_buffer = bfr->params;
+    texture_uniform_binding_t* tex_uni_buffer = arena_alloc(arena,bindings_size);
+    char*                      params_buffer = arena_alloc(arena,params_size);
 
     for (uint i = 0; i < n; i++)
     {
@@ -156,7 +151,7 @@ mat_bfr_t* materials_init(material_t*     materials,
         materials[i].bsdf_creator = shaders[i].create_bsdf;
     }
 
-    return bfr;
+    return materials;
 }
 
 void material_set_uniform(material_t*     mat,

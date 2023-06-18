@@ -32,7 +32,7 @@ void integrator_free(integrator_t* integrator)
 {
     ray_evaluator_free(integrator->evaluator);
 }
-//#define INTEGRATOR_LOG
+#define INTEGRATOR_LOG
 
 
 void integrate(integrator_t* integrator, ray_t ray, float* result)
@@ -121,7 +121,7 @@ void integrate(integrator_t* integrator, ray_t ray, float* result)
         if( glm_vec3_eq_eps( scattering.indirect_colors,0) )
         {
             #ifdef INTEGRATOR_LOG
-            printf("Indirect color is zero\n")
+            printf("Indirect color is zero\n");
             #endif
             break;
         }

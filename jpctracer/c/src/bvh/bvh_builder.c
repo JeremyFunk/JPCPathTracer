@@ -47,23 +47,23 @@ void instances_get_centers(const geometries_t* geoms,
     bounds_get_centers(bounds, geoms->instances_count, centers);
 }
 
-#define BVHTREE_BUILD(count, get_bounds, get_centers, params, tree)            \
+#define BVHTREE_BUILD(arena,count, get_bounds, get_centers, params, tree)            \
     do                                                                         \
     {                                                                          \
-        tree = malloc(sizeof(bvh_tree_t));                                     \
         bounds3d_t* bounds = malloc(sizeof(bounds3d_t) * (count));             \
         vec3*       centers = malloc(sizeof(bounds3d_t) * (count));            \
         get_bounds(params, bounds);                                            \
         get_centers(params, bounds, centers);                                  \
-        *tree = lbvh_build((count),bounds,centers);                             \
+        tree = lbvh_build(arena,(count),bounds,centers);                             \
         free(bounds);                                                          \
         free(centers);                                                         \
     } while (false)
 
-bvh_tree_t* bvhtree_triangles_build(const triangle_mesh_t* tris)
+bvh_tree_t* bvhtree_triangles_build(arena_t* arena,const triangle_mesh_t* tris)
 {
     bvh_tree_t* tree;
-    BVHTREE_BUILD(tris->faces_count,
+    BVHTREE_BUILD(arena,
+                  tris->faces_count,
                   triangles_get_bounds,
                   triangles_get_centers,
                   tris,
@@ -71,18 +71,19 @@ bvh_tree_t* bvhtree_triangles_build(const triangle_mesh_t* tris)
     return tree;
 }
 
-bvh_tree_t* bvhtree_spheres_build(const sphere_mesh_t* spheres)
+bvh_tree_t* bvhtree_spheres_build(arena_t* arena,const sphere_mesh_t* spheres)
 {
     bvh_tree_t* tree;
-    BVHTREE_BUILD(
+    BVHTREE_BUILD(arena,
         spheres->count, spheres_get_bounds, spheres_get_centers, spheres, tree);
     return tree;
 }
-bvh_tree_t* bvhtree_instances_build(const geometries_t* geoms)
+bvh_tree_t* bvhtree_instances_build(arena_t* arena,const geometries_t* geoms)
 {
 
     bvh_tree_t* tree;
-    BVHTREE_BUILD(geoms->instances_count,
+    BVHTREE_BUILD(arena,
+                  geoms->instances_count,
                   instances_get_bounds,
                   instances_get_centers,
                   geoms,
@@ -90,8 +91,3 @@ bvh_tree_t* bvhtree_instances_build(const geometries_t* geoms)
     return tree;
 }
 
-void bvhtree_free(bvh_tree_t* tree)
-{
-    bvh_free(*tree);
-    free(tree);
-}

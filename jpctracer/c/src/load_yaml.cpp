@@ -37,16 +37,16 @@ class ParsingErrors
         return result;
     }
 
-    parsing_error_t parsing_err_ctype_init(const ParsingError& err)
+    parsing_error_t parsing_err_ctype_init(arena_t* arena,const ParsingError& err)
     {
         parsing_error_t res{};
         size_t          loc_bsize = sizeof(char) * (err.location.size() + 1);
-        res.location = (char*) malloc(loc_bsize);
+        res.location = (char*) arena_alloc(arena,loc_bsize);
 
         memcpy(res.location, err.location.data(), loc_bsize);
 
         size_t msg_bsize = sizeof(char) * (err.message.size() + 1);
-        res.message = (char*)malloc(msg_bsize);
+        res.message = (char*)arena_alloc(arena,msg_bsize);
 
         memcpy(res.message, err.message.data(), msg_bsize);
         return res;
@@ -88,31 +88,31 @@ public:
     }
 
 
-    parsing_errors_t to_ctype()
+    parsing_errors_t to_ctype( arena_t* arena)
     {
         parsing_errors_t errors;
-        errors.bad_conversion = (parsing_error_t*)malloc(
+        errors.bad_conversion = (parsing_error_t*)arena_alloc(arena,
             sizeof(parsing_error_t) * m_bad_conversion.size());
 
         errors.bad_conversion_count = m_bad_conversion.size();
         for (uint i = 0; i < errors.bad_conversion_count; i++)
         {
             errors.bad_conversion[i]
-                = parsing_err_ctype_init(m_bad_conversion[i]);
+                = parsing_err_ctype_init(arena,m_bad_conversion[i]);
         }
 
-        errors.missing = (parsing_error_t*)malloc(sizeof(parsing_error_t)
+        errors.missing = (parsing_error_t*)arena_alloc(arena,sizeof(parsing_error_t)
                                                   * m_missing.size());
         errors.missing_count = m_missing.size();
 
         for (uint i = 0; i < errors.missing_count; i++)
         {
-            errors.missing[i] = parsing_err_ctype_init(m_missing[i]);
+            errors.missing[i] = parsing_err_ctype_init(arena,m_missing[i]);
         }
 
         if (m_critical.has_value())
         {
-            errors.critical = parsing_err_ctype_init(*m_critical);
+            errors.critical = parsing_err_ctype_init(arena,*m_critical);
         }
         else
         {
@@ -282,9 +282,9 @@ point_light_t yaml_parse_pointlight(const YAML::Node& node, ParsingErrors& error
 }
 
 template<typename T>
-void init_c_vector(const std::vector<T>&  vec, T** dest, uint* length )
+void init_c_vector(arena_t* arena, const std::vector<T>&  vec, T** dest, uint* length )
 {
-    *dest = (T*) malloc(vec.size()*sizeof(T));
+    *dest = (T*) arena_alloc(arena,vec.size()*sizeof(T));
     *length = vec.size();
     std::copy_n(vec.data(), *length, *dest);
 }
@@ -312,7 +312,7 @@ std::string yaml_parse_critical_string(const YAML::Node& node, ParsingErrors& er
     }
 }
 
-lights_t lights_load_yaml(const YAML::Node& yaml_lights, ParsingErrors& errors)
+lights_t lights_load_yaml(arena_t* arena, const YAML::Node& yaml_lights, ParsingErrors& errors)
 {
     if (!yaml_lights)
     {
@@ -354,8 +354,8 @@ lights_t lights_load_yaml(const YAML::Node& yaml_lights, ParsingErrors& errors)
     }
 
     lights_t lights;
-    init_c_vector(sun_lights, &lights.sun_lights, &lights.sun_lights_count);
-    init_c_vector(point_lights,&lights.point_lights,&lights.point_lights_count);
+    init_c_vector(arena,sun_lights, &lights.sun_lights, &lights.sun_lights_count);
+    init_c_vector(arena,point_lights,&lights.point_lights,&lights.point_lights_count);
     return lights;
 
 }
@@ -446,7 +446,8 @@ void material_set_uniforms_yaml(const YAML::Node& material_node, const shader_t*
 
 using MaterialIndexMap = std::unordered_map<std::string,uint>;
 
-materiallib_t materiallib_load_yaml(const YAML::Node& node, 
+materiallib_t materiallib_load_yaml(arena_t* arena,
+const YAML::Node& node, 
     MaterialIndexMap& material_names, ParsingErrors& errors)
 {
     shaders_t all_shaders = shaders_init();
@@ -478,11 +479,8 @@ materiallib_t materiallib_load_yaml(const YAML::Node& node,
 
     matlib.materials_n = shader_per_materials.size();
 
-    matlib.materials
-        = (material_t*)malloc(matlib.materials_n * sizeof(material_t));
-
-    matlib.buffer = materials_init(
-        matlib.materials, shader_per_materials.data(), matlib.materials_n);
+    matlib.materials = materials_init(
+        arena, shader_per_materials.data(), matlib.materials_n);
 
 
     uint i = 0;
@@ -509,16 +507,16 @@ materiallib_t materiallib_load_yaml(const YAML::Node& node,
 
 
 
-sphere_mesh_t sphere_mesh_load_ymal(const YAML::Node& node,const MaterialIndexMap& material_map ,ParsingErrors& errors)
+sphere_mesh_t sphere_mesh_load_ymal(arena_t* arena,const YAML::Node& node,const MaterialIndexMap& material_map ,ParsingErrors& errors)
 {
     sphere_mesh_t mesh{};
     mesh.count = 1;
 
-    mesh.geometries = (sphere_geometry_t*)malloc(sizeof(sphere_geometry_t));
+    mesh.geometries = (sphere_geometry_t*)arena_alloc(arena,sizeof(sphere_geometry_t));
 
     mesh.geometries[0].radius = yaml_try_parse<float>(node,"radius", 0.,errors);
     
-    mesh.material_ids = (uint*)malloc(sizeof(uint));
+    mesh.material_ids = (uint*)arena_alloc(arena,sizeof(uint));
 
     errors.go_down("material");
     std::string material_name = yaml_parse_critical_string( node["material"],errors);
@@ -532,7 +530,7 @@ sphere_mesh_t sphere_mesh_load_ymal(const YAML::Node& node,const MaterialIndexMa
 
     printf("debug %p count: %d\n",&mesh, mesh.count);
 
-    mesh.bvh_tree = bvhtree_spheres_build(&mesh);
+    mesh.bvh_tree = bvhtree_spheres_build(arena,&mesh);
     return mesh;
 }
 
@@ -554,7 +552,7 @@ void idenity_transform(float4x4 transform)
     }
 }
 
-geometries_t geometries_load_yaml(const YAML::Node& node,const MaterialIndexMap& material_map,ParsingErrors& errors)
+geometries_t geometries_load_yaml(arena_t* arena, const YAML::Node& node,const MaterialIndexMap& material_map,ParsingErrors& errors)
 {
     std::vector<instance_t> instances;
     std::vector<sphere_mesh_t>   spheres;
@@ -578,7 +576,7 @@ geometries_t geometries_load_yaml(const YAML::Node& node,const MaterialIndexMap&
         if (type_name == "sphere")
         {
             instance.type = JPC_SPHERE;
-            sphere_mesh_t sphere_mesh = sphere_mesh_load_ymal(instance_node.second,material_map,errors);
+            sphere_mesh_t sphere_mesh = sphere_mesh_load_ymal(arena,instance_node.second,material_map,errors);
 
             instance.mesh_id = spheres.size();
             
@@ -601,16 +599,16 @@ geometries_t geometries_load_yaml(const YAML::Node& node,const MaterialIndexMap&
 
     geoms.instances_count = instances.size();
     geoms.instances
-        = (instance_t*)malloc(geoms.instances_count * sizeof(instance_t));
+        = (instance_t*)arena_alloc(arena,geoms.instances_count * sizeof(instance_t));
 
-    init_c_vector(instances, &geoms.instances, &geoms.instances_count);
+    init_c_vector(arena,instances, &geoms.instances, &geoms.instances_count);
 
-    init_c_vector(spheres, &geoms.spheres, &geoms.sphere_mesh_count);
+    init_c_vector(arena,spheres, &geoms.spheres, &geoms.sphere_mesh_count);
 
     geoms.triangles = NULL;
     geoms.triangle_mesh_count = 0;
 
-    geoms.bvhtree_instances = bvhtree_instances_build(&geoms);
+    geoms.bvhtree_instances = bvhtree_instances_build(arena,&geoms);
 
     return geoms;
     
@@ -622,6 +620,9 @@ camera_t camera_load_yaml(const YAML::Node& node,ParsingErrors& errors)
     cam.clip_end = yaml_try_parse<float>(node,"clip_end", 400.,errors);
     //TODO
     cam.near_plane = yaml_try_parse<float>(node,"near_plane", 0.1,errors);
+
+    idenity_transform(cam.transformation);
+    
     
     /*
     yaml_try_parse_array<float, 3>(
@@ -643,44 +644,43 @@ scene_t scene_init()
     res.geometries.triangles = NULL;
     res.lights.point_lights = NULL;
     res.lights.sun_lights = NULL;
-    res.materiallib.buffer = NULL;
     res.materiallib.materials = NULL;
     res.materiallib.textures = NULL;
     return res;
 }
 
-parsing_errors_t scene_load_yaml(const char* path, scene_t* scene)
+parsing_errors_t scene_load_yaml(arena_t* scene_arena, arena_t* error_arena, const char* path, scene_t* dest_scene)
 {
 
     YAML::Node node = YAML::LoadFile(path);
 
     ParsingErrors errors;
 
-    *scene = scene_init();
+    *dest_scene = scene_init();
 
 
     try
     {
 
         errors.go_down("CAMERA");
-        scene->camera = camera_load_yaml(node["CAMERA"],errors);
+        dest_scene->camera = camera_load_yaml(node["CAMERA"],errors);
         errors.go_up();
 
         MaterialIndexMap material_names;
         errors.go_down("MATERIALS");
-        scene->materiallib
-            = materiallib_load_yaml(node["MATERIALS"], material_names,errors);
+        dest_scene->materiallib
+            = materiallib_load_yaml(scene_arena,node["MATERIALS"], material_names,errors);
         errors.go_up();
 
         errors.go_down("GEOMETRIES");
-        scene->geometries
-            = geometries_load_yaml(node["GEOMETRIES"], material_names,errors);
+        dest_scene->geometries
+            = geometries_load_yaml(scene_arena,node["GEOMETRIES"], material_names,errors);
         errors.go_up();
         
         errors.go_down("LIGHTS");
-        scene->lights = lights_load_yaml(node["LIGHTS"],errors);
+        dest_scene->lights = lights_load_yaml(scene_arena,node["LIGHTS"],errors);
         errors.go_up();
-        return errors.to_ctype();
+        return errors.to_ctype(error_arena);
     }
     catch (const ParserException& e)
     {
@@ -695,7 +695,7 @@ parsing_errors_t scene_load_yaml(const char* path, scene_t* scene)
     }
 
 
-    return errors.to_ctype();
+    return errors.to_ctype(error_arena);
 }
 
 

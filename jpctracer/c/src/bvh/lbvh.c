@@ -253,12 +253,13 @@ bvh_node_t lbvh_build_recursiv(uint        start,
     return (bvh_node_t){.bound = node_bound, .idx = node_id, .is_leaf = false};
 }
 
-bvh_tree_t lbvh_build(uint n, bounds3d_t* bounds, vec3* centers)
+bvh_tree_t* lbvh_build(arena_t* arena,uint n, bounds3d_t* bounds, vec3* centers)
 {
     uint*      permutation = malloc(sizeof(uint) * n);
-    bvh_tree_t tree = bvh_create(n, n); // overestimate?
-
     uint32_t* morton = malloc(sizeof(uint32_t) * n);
+
+    bvh_tree_t* tree = bvh_create(arena,n, n); // overestimate?
+
     for (uint i = 0; i < n; i++)
     {
         morton[i] = encode_morton(centers[i]);
@@ -275,17 +276,16 @@ bvh_tree_t lbvh_build(uint n, bounds3d_t* bounds, vec3* centers)
 
     sort_permutation_uint(morton, permutation, n);
     bvh_node_t root = lbvh_build_recursiv(
-        0, n, &tree, morton, bounds, permutation, n - BVH_WIDTH);
-    tree.root_bound = root.bound;
+        0, n, tree, morton, bounds, permutation, n - BVH_WIDTH);
+    tree->root_bound = root.bound;
     if (root.is_leaf)
     {
-        uint       id = bvh_push_back(&tree);
+        uint       id = bvh_push_back(tree);
         bvh_node_t nodes[BVH_WIDTH];
         nodes[0] = root;
         bvh_nodes_fill_empty(nodes + 1, BVH_WIDTH - 1);
-        bvh_set_node(&tree, id, nodes);
+        bvh_set_node(tree, id, nodes);
     }
-    bvh_finish(&tree);
 
     free(morton);
     free(permutation);
