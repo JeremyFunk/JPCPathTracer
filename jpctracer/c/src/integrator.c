@@ -32,7 +32,6 @@ void integrator_free(integrator_t* integrator)
 {
     ray_evaluator_free(integrator->evaluator);
 }
-#define INTEGRATOR_LOG
 
 
 void integrate(integrator_t* integrator, ray_t ray, float* result)

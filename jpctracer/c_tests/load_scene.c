@@ -27,11 +27,11 @@ int main()
 
     render_settings_t settings;
     settings.light_samples = 2;
-    settings.max_depth = 1;
-    settings.subpixels = 1;
+    settings.max_depth = 5;
+    settings.subpixels = 20;
     settings.tile_size = 1;
 
-    render_and_save(&scene,settings,(uint2){1,1},"C:\\Users\\chris\\dev\\jpc_tracer\\Results\\YAML1");
+    render_and_save(&scene,settings,(uint2){1920,1080},"C:\\Users\\chris\\dev\\jpc_tracer\\Results\\YAML1");
 
     printf("Mem used %d\n",arena_memory_used(scene_arena));
     printf("Mem allocted %d\n",arena_memory_allocated(scene_arena));

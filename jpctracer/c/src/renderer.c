@@ -326,8 +326,11 @@ void image_float_to_char(image_t image,
                     = image.data[y * image.width * image.channels
                                  + x * image.channels + pass_start + c];
 
+                image_val = image_val*factor + offset;
+                uint8_t char_val = clipf(0,image_val*255.,255);
+
                 dest[y * image.width * pass_channels + x * pass_channels + c]
-                    = (uint8_t)((image_val * factor + offset )*255.);
+                    =  char_val;
                 
             }
         }
