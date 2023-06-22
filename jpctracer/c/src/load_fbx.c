@@ -313,7 +313,7 @@ materiallib_t material_load_fbx(arena_t* arena, ufbx_material_list fbx_materials
             color[j] = fbx_materials.data[i]->pbr.base_color.value_vec4.v[j];
         }
 
-        material_set_uniform(matlib.materials+i,shaders+i,0,color);
+        material_set_uniform(matlib.materials+i,shaders+i,1,color);
     }
     return matlib;
 }

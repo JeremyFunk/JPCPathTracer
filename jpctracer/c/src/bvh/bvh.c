@@ -7,6 +7,8 @@
 #include <string.h>
 #include <xmmintrin.h>
 
+
+
 typedef struct bvh_node_intern_s
 {
     boundsN_t      bounds;
@@ -363,10 +365,10 @@ bool bvh_intersect_closest_init(const bvh_tree_t*          tree,
     result->stack->node = bvh_get_root(tree);
     result->stack->min_distance = 0 + ERROR_THICKNESS;
     result->stack++;
-    result->min_distance = 2e-5;
+    result->min_distance = BVH_MIN_DISTANCE;
     result->ray = ray_trav_bounds_make(ray);
     result->ray_boundsN
-        = ray_trav_boundsN_make(&result->ray, 2e-5, ray->clip_end);
+        = ray_trav_boundsN_make(&result->ray, BVH_MIN_DISTANCE, ray->clip_end);
     /*
     bounds3d_t* bounds = tree.n == 1 ? tree.shape_bounds : tree.node_bounds;
     intervall_t hit = bounds3d_intersect(bounds, &result->ray);
@@ -383,11 +385,11 @@ bool bvh_intersect_any_init(const bvh_tree_t*      tree,
     result->stack_begin = result->stack_data;
     *result->stack = bvh_get_root(tree);
     result->stack++;
-    result->min_distance = 2e-5;
+    result->min_distance = BVH_MIN_DISTANCE;
     result->max_distance = ray->clip_end;
     result->ray = ray_trav_bounds_make(ray);
     result->ray_boundsN
-        = ray_trav_boundsN_make(&result->ray, 2e-5, ray->clip_end);
+        = ray_trav_boundsN_make(&result->ray, BVH_MIN_DISTANCE, ray->clip_end);
     return true;
 }
 // returnes the identifier

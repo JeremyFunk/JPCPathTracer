@@ -95,9 +95,10 @@ ray_evaluator_t* ray_evaluator_init(const scene_t* scene,
 {
 
     assert(direct_count < 64);
-    uint direct_n_sqrt = sqrt(direct_count);
-    uint indirect_n_sqrt = sqrt(indirect_count);
+    uint direct_n_sqrt = ceil(sqrt(direct_count));
+    uint indirect_n_sqrt = ceil(sqrt(indirect_count));
 
+    //TODO
     direct_count = direct_n_sqrt * direct_n_sqrt;
     indirect_count = indirect_n_sqrt * indirect_n_sqrt;
     uint all_count = direct_count + indirect_count;
@@ -164,8 +165,8 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
         assert(indirect_samples[0][0] < 1. + 1e-6);
 
         uint light_rays_count = sample_lights(&scene->lights,
-                                          indirect_samples,
-                                          eval->indirect_count,
+                                          direct_samples,
+                                          eval->direct_count,
                                           hitpoint,
                                           direct_dirs,
                                           eval->direct_clip_ends,

@@ -74,7 +74,7 @@ bool sphere_intersect(const ray_t* ray,
 
     t = t0 - ERROR_THICKNESS;
 
-    if (does_intersect_point(t, (intervall_t){0, ray->clip_end}))
+    if (does_intersect_point(t, (intervall_t){BVH_MIN_DISTANCE, ray->clip_end}))
     {
         *out_distance = t;
         return true;
@@ -89,7 +89,7 @@ bool triangle_intersect(const ray_t* ray,
                         float*       out_distance,
                         vec2         out_uv)
 {
-    //Möller-Trumbore intersection algorithm
+    //Mï¿½ller-Trumbore intersection algorithm
     float epsilion = 1e-6;
     vec3  support_vec_1, support_vec_2;
     vec3  point_dir, diff_origin_position, cross_op_s1;
@@ -115,7 +115,7 @@ bool triangle_intersect(const ray_t* ray,
         = glm_vec3_dot(support_vec_2, cross_op_s1) * inv_det;
 
     if (does_intersect_triangle(
-            intersection_point_distance, uv, (intervall_t){0, ray->clip_end}))
+            intersection_point_distance, uv, (intervall_t){BVH_MIN_DISTANCE, ray->clip_end}))
     {
         *out_distance = intersection_point_distance;
         out_uv[0] = uv[0];

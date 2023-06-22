@@ -17,7 +17,7 @@ uint sample_point_lights(point_light_t*   lights,
     assert(lights_n > 0);
     for (uint i = 0; i < samples_n; i++)
     {
-        uint light_i = rand_points[i][0] * lights_n;
+        uint light_i = rand_points[i][0] * (float) lights_n;
         light_i = MIN(light_i, (lights_n - 1));
         light_i = MAX(light_i, 0);
         point_light_t light = lights[light_i];
@@ -28,10 +28,10 @@ uint sample_point_lights(point_light_t*   lights,
         glm_vec3_scale(out_directions[i], 1. / dist, out_directions[i]);
         vec4 out_tmp_color;
         vec4 light_color;
-        glm_vec4_ucopy(lights[i].color, light_color);
+        glm_vec4_ucopy(lights[light_i].color, light_color);
         
         glm_vec4_scale(
-            light_color, lights[i].strength / dist2, out_tmp_color);
+            light_color, lights[light_i].strength / dist2, out_tmp_color);
         glm_vec4_ucopy(out_tmp_color, out_colors[i].color);
         out_colors[i].pdf = 0;
         out_distances[i] = dist;

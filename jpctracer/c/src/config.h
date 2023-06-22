@@ -13,3 +13,6 @@
 //#define DEBUG_ARENA
 
 //#define INTEGRATOR_LOG
+
+
+#define BVH_MIN_DISTANCE 2e-4

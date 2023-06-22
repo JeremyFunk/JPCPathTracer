@@ -68,6 +68,7 @@ void integrate(integrator_t* integrator, ray_t ray, float* result)
     
     uint depth = 0;
 
+
     for (; depth < integrator->max_depth; depth++)
     {
 #ifdef INTEGRATOR_LOG
@@ -139,7 +140,6 @@ void integrate(integrator_t* integrator, ray_t ray, float* result)
                    indirect_color[i]);
         #endif
 
-        
     }
 
     //save output

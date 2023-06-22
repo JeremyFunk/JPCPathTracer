@@ -5,6 +5,7 @@
 #include "shapes.h"
 //#include <bits/types/locale_t.h>
 
+
 // params of type sphs_intersect_t
 bool spheres_intersect(const ray_t* ray,
                        uint         id,
