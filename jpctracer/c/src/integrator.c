@@ -5,6 +5,7 @@
 #include "scattering.h"
 #include "types.h"
 #include "log/log.h"
+#include "config.h"
 
 #include <stdlib.h>
 

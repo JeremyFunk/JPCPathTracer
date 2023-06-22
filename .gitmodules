@@ -16,3 +16,6 @@
 [submodule "jpctracer/c/libs/yaml-cpp"]
 	path = jpctracer/c/libs/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "jpctracer/c/libs/ufbx"]
+	path = jpctracer/c/libs/ufbx
+	url = https://github.com/ufbx/ufbx.git

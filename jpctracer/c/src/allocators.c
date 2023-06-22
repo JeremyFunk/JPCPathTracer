@@ -1,4 +1,5 @@
 #include "allocators.h"
+#include <stdio.h>
 #include <assert.h>
 #include <malloc.h>
 
@@ -191,3 +192,11 @@ size_t arena_memory_used(const arena_t* arena)
 }
 
 #endif
+
+void arena_print_stats(arena_t* arena)
+{
+    printf("Arena memory used: %d\n", arena_memory_used(arena));
+    printf("Arena memory allocated: %d\n", arena_memory_allocated(arena));
+
+
+}

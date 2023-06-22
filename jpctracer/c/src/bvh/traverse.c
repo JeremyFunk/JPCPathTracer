@@ -221,9 +221,7 @@ bool ray_intersect_c3(const geometries_t* geometries,
     printf("--------------------------------------------\n");
 #endif
     hit_point_t hit = {.distance = 0, .uv = {0, 0}, .mesh_id = -1};
-    ray_t       shiffted_ray = *ray;
-    ray_shift_origin(&shiffted_ray);
-    if (!intersect_closest(shiffted_ray,
+    if (!intersect_closest(*ray,
                            geometries->bvhtree_instances,
                            instances_intersect_closest,
                            (void*)geometries,
@@ -247,14 +245,13 @@ int filter_shadow_rays(const geometries_t* geometries,
     {
         assert(free_dir_index<=i);
         ray_t       ray = make_ray(origin, dirs[i], distances[i]);
-        ray_shift_origin(&ray);
         hit_point_t tmp;
         int         result = intersect_any(ray,
                                    geometries->bvhtree_instances,
                                    instances_intersect_any,
                                    (void*)geometries,
                                    &tmp);
-        
+
         if(!result)
         {
             glm_vec3_copy(dirs[i],dirs[free_dir_index]);

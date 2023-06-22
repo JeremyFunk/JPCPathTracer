@@ -253,12 +253,17 @@ bvh_node_t lbvh_build_recursiv(uint        start,
     return (bvh_node_t){.bound = node_bound, .idx = node_id, .is_leaf = false};
 }
 
-bvh_tree_t* lbvh_build(arena_t* arena,uint n, bounds3d_t* bounds, vec3* centers)
+bvh_tree_t* lbvh_build(arena_t*    arena,
+                       uint        n,
+                       bounds3d_t* bounds,
+                       vec3*       centers)
 {
-    uint*      permutation = malloc(sizeof(uint) * n);
+    if (n == 0)
+        return NULL;
+    uint*     permutation = malloc(sizeof(uint) * n);
     uint32_t* morton = malloc(sizeof(uint32_t) * n);
 
-    bvh_tree_t* tree = bvh_create(arena,n, n); // overestimate?
+    bvh_tree_t* tree = bvh_create(arena, n, n); // overestimate?
 
     for (uint i = 0; i < n; i++)
     {

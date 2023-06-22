@@ -111,21 +111,18 @@ void render(const scene_t*          scene,
                                                sampler,
                                                settings.light_samples,
                                                settings.passes);
-        for(int y = start; y<tiles_count_y;y+=stride)
+        for(int tiles_i = start; tiles_i<tiles_count_x*tiles_count_y;tiles_i+=stride)
         {
-    
-            for (int x = 0; x < tiles_count_x; x++)
-            {
-                //printf("x y %d, %d\n", x, y);
-                bounds2d_t tile
-                = {.min = {x * tile_s, y * tile_s},
-                   .max = {
-                       MIN((x + 1) * tile_s, width),
-                       MIN((y + 1) * tile_s, height),},
-                };
-                // log_info("next tile");
-                render_tile(scene, &settings, tile, outputs,sampler,integrator);
-            }
+            int y = tiles_i/tiles_count_x;
+            int x = tiles_i%tiles_count_x;
+            bounds2d_t tile
+            = {.min = {x * tile_s, y * tile_s},
+                .max = {
+                    MIN((x + 1) * tile_s, width),
+                    MIN((y + 1) * tile_s, height),},
+            };
+            // log_info("next tile");
+            render_tile(scene, &settings, tile, outputs,sampler,integrator);
         }
     integrator_free(integrator);
     sampler_free(sampler);

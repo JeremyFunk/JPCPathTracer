@@ -2,13 +2,11 @@
 MATERIALS:
   SPHERE1:
     shader: Diffuse
-    roughness: 1.
     color: [1,1,1,1.]
 
   SPHERE2:
     shader: Diffuse
-    roughness: 1
-    color: [0.1,2.,0.1,1.]
+    color: [0.1,1.,0.1,1.]
 
 
 CAMERA:
@@ -19,21 +17,23 @@ GEOMETRIES:
   SPHERE1:
     type: sphere
     material: SPHERE1
-    position: [0,0,-4]
-    radius: 1.
-  SPHERE2:
-    type: sphere
-    material: SPHERE2
-    position: [0,1,-4]
+    position: [0,-1,-2]
     radius: 1.
 
+  SPHERE1:
+    type: sphere
+    material: SPHERE1
+    position: [0,1,-2]
+    radius: 1.
+  
 
 
 LIGHTS:
   LIGHT1:
     type: point
-    position: [0,0,2]
-    strength: 1
+    position: [0,5,1]
+    color: [1,1,1,1]
+    strength: 400
 
 
 ...

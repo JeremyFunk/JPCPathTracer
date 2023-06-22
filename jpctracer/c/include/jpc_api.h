@@ -224,6 +224,7 @@ void* arena_alloc_aligned(arena_t* arena, size_t size,size_t aligment);
 void arena_release(arena_t* arena);
 size_t arena_memory_used(const arena_t* arena);
 size_t arena_memory_allocated(const arena_t* arena);
+void arena_print_stats(arena_t* arena);
 
 
 typedef struct
@@ -283,6 +284,7 @@ bvh_tree_t* bvhtree_instances_build(arena_t* arena,const geometries_t* geometrie
 void bvhtree_free(bvh_tree_t* tree);
 
 parsing_errors_t scene_load_yaml(arena_t* scene_arena, arena_t* error_arena, const char* path, scene_t* dest);
+scene_t* scene_load_fbx(arena_t* arena, const char* path, char** error_msg);
 
 int             parsing_errors_is_critical(const parsing_errors_t* errors);
 void parsing_errors_print(const parsing_errors_t* errors, int bad_conversion, int missing);

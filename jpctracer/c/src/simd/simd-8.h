@@ -1,5 +1,4 @@
 #pragma once
-#define SIMD_WIDTH 8
 #if (SIMD_WIDTH == 8)
 #include <immintrin.h> //AVX
 /*

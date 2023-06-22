@@ -32,3 +32,7 @@ target_link_libraries(dataformat_test tracer cglm_lib)
 
 
 add_subdirectory(test_scenes)
+
+
+add_executable(load_fbx "load_fbx.c")
+target_link_libraries(load_fbx tracer)
