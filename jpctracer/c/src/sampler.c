@@ -31,15 +31,17 @@ float next_rand(sampler_state* state)
     return (float)r / (float)UINT32_MAX;
 }
 
-void sample2d(sampler_state* state, uint2 count, vec2* out)
+void sample2d(sampler_state* state, uint count, vec2* out)
 {
     //TODO Maby gird based sampling?
-    for(uint i = 0; i<count[0]*count[1];i++)
+    for(uint i = 0; i<count;i++)
     {
         out[i][0] = next_rand(state);
         out[i][1] = next_rand(state);
     }
 }
+
+
 
 bool sample2d_next(iterator2d* iter, sampler_state* state, vec2 rand)
 {

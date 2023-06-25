@@ -3,8 +3,7 @@
 #include "bvh.h"
 #include "jpc_api.h"
 #include "shapes.h"
-//#include <bits/types/locale_t.h>
-
+// #include <bits/types/locale_t.h>
 
 // params of type sphs_intersect_t
 bool spheres_intersect(const ray_t* ray,
@@ -61,7 +60,7 @@ bool instances_intersect_closest(const ray_t* world_ray,
     glm_mat4_inv(trans, inv_trans);
     float norm = ray_transform(world_ray, inv_trans, &local_ray);
 
-    bool did_intersect;
+    bool did_intersect = false;
 #ifdef LOG_TRAVERSAL
     printf("dist local: %f dist max: %f\n", local_intervall.max, intervall.max);
 #endif
@@ -203,14 +202,14 @@ hit_point_t instance_finalize(hit_point_t         hit,
         tmp = sphere_finalize(hit, &local_ray, &geom->spheres[inst.mesh_id]);
         break;
     }
-    hit_point_t result = transform_hitp(&tmp, trans, 1. / norm);
+    hit_point_t result = transform_hitp(&tmp, trans, 1.f / norm);
     return result;
 }
 
 void ray_shift_origin(ray_t* ray)
 {
     vec3 scaled_dir;
-    glm_vec3_scale(ray->direction, 1e-6, scaled_dir);
+    glm_vec3_scale(ray->direction, 1e-6f, scaled_dir);
     glm_vec3_add(ray->origin, scaled_dir, ray->origin);
 }
 
@@ -221,7 +220,7 @@ bool ray_intersect_c3(const geometries_t* geometries,
 #ifdef LOG_TRAVERSAL
     printf("--------------------------------------------\n");
 #endif
-    hit_point_t hit = {.distance = 0, .uv = {0, 0}, .mesh_id = -1};
+    hit_point_t hit = {.distance = 0.f, .uv = {0.f, 0.f}, .mesh_id = -1};
     if (!intersect_closest(*ray,
                            geometries->bvhtree_instances,
                            instances_intersect_closest,
@@ -233,18 +232,29 @@ bool ray_intersect_c3(const geometries_t* geometries,
     return true;
 }
 
+bool ray_intersect_any(const geometries_t* geoms, const ray_t* ray)
+{
+
+    hit_point_t tmp;
+    return intersect_any(*ray,
+                         geoms->bvhtree_instances,
+                         instances_intersect_any,
+                         (void*)geoms,
+                         &tmp);
+}
+
 int filter_shadow_rays(const geometries_t* geometries,
-                             vec3*         dirs,
-                             const float*        distances,
-                             const vec3          origin,
-                             uint                n)
+                       vec3*               dirs,
+                       const float*        distances,
+                       const vec3          origin,
+                       uint                n)
 {
     assert(n < 64);
 
     uint free_dir_index = 0;
     for (uint i = 0; i < n; i++)
     {
-        assert(free_dir_index<=i);
+        assert(free_dir_index <= i);
         ray_t       ray = make_ray(origin, dirs[i], distances[i]);
         hit_point_t tmp;
         int         result = intersect_any(ray,
@@ -253,9 +263,9 @@ int filter_shadow_rays(const geometries_t* geometries,
                                    (void*)geometries,
                                    &tmp);
 
-        if(!result)
+        if (!result)
         {
-            glm_vec3_copy(dirs[i],dirs[free_dir_index]);
+            glm_vec3_copy(dirs[i], dirs[free_dir_index]);
             free_dir_index++;
         }
     }

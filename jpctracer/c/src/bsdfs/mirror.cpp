@@ -36,13 +36,12 @@ struct mirror_params
         {
             if (glm_vec3_eqv_eps(scattered_dirs[i], reflected_dir))
             {
-                glm_vec4_copy(ones, out_colors[i].color);
-                out_colors[i].pdf = 1;
+                glm_vec4_copy(ones, out_colors[i].data);
+                
             }
             else
             {
-                glm_vec4_copy(zeros, out_colors[i].color);
-                out_colors[i].pdf = 0;
+                glm_vec4_copy(zeros, out_colors[i].data);
             }
         }
         glm_vec4_copy(zeros, *emission);

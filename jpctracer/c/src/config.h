@@ -2,6 +2,8 @@
 
 #define ERROR_THICKNESS 1e-6
 
+#define BVH_MIN_DISTANCE 2e-4
+
 #define LOG_GEOMETRY
 
 // BVH_WIDTH_2, BVH_WIDTH_8
@@ -14,5 +16,3 @@
 
 //#define INTEGRATOR_LOG
 
-
-#define BVH_MIN_DISTANCE 2e-4

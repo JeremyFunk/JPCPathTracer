@@ -72,7 +72,7 @@ set(AUTOSRC
 "src/simd/simd-4.h"
 "src/bsdfs/diffuse.cpp"
 "src/load_yaml.cpp"
-"src/load_fbx.c"
+#"src/load_fbx.c"
 "include/jpc_api.h"
 "include/jpc_prefabs.h"
  "src/prefabs.c" "src/bsdfs/mirror.cpp" "src/shaders/shader_mirror.c")
@@ -90,7 +90,7 @@ pcg_basic
 sorting
 libsimdpp
 yaml-cpp
-ufbx_lib
+#ufbx_lib
 )
 
 if(${clang_gnu})

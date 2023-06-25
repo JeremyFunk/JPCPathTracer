@@ -8,15 +8,15 @@
 #include "types.h"
 #include "utils.h"
 #include <assert.h>
+#include <log/log.h>
 #include <math.h>
 #include <stdlib.h>
-#include <log/log.h>
 
 float cos_weight(vec3 in_ray, vec3 out_ray)
 {
     float w = glmc_vec3_dot(in_ray, out_ray);
     // flip direction of in_ray
-     w*=-1;
+    w *= -1;
 
     return w > 0 ? w : 0;
 }
@@ -37,20 +37,19 @@ void combine_rays(sampled_color_t* bsdf_colors,
     {
         vec4 temp;
         glm_vec4_mul(bsdf_colors[i].color, light_colors[i].color, temp);
-        
+
         float cos_theta = fabs(local_scatterd_dirs[i][2]);
-        //the same as |<normal,local_scatterd_dirs[i]>| because normal = (0,0,1)
-        
+        // the same as |<normal,local_scatterd_dirs[i]>| because normal =
+        // (0,0,1)
 
         float scaler = cos_theta;
         if (light_colors->pdf < 1e-5)
         {
-            //this is a delta function;
+            // this is a delta function;
             non_delta_count -= 1;
-            
+
             glm_vec4_scale(temp, scaler, temp);
             glm_vec4_add(temp, result, result);
-
         }
         else
         {
@@ -59,78 +58,100 @@ void combine_rays(sampled_color_t* bsdf_colors,
             glm_vec4_scale(temp, scaler, temp);
             glm_vec4_add(temp, result, result);
         }
-
-
     }
     assert(non_delta_count <= n);
     if (non_delta_count > 0)
     {
-        glm_vec4_scale(non_delta_color,1./non_delta_count,non_delta_color);
+        glm_vec4_scale(non_delta_color, 1. / non_delta_count, non_delta_color);
         glm_vec4_add(non_delta_color, result, result);
     }
 }
 
-typedef struct ray_evaluator_s
+void compute_direct_color(const scattering_rays_t* rays, vec4 result)
 {
-    const scene_t*   scene;
-    sampler_state*   sampler;
-    bsdfcontext_t*   bsdf;
-    uint             direct_count;
-    uint             indirect_count;
-    sampled_color_t* colors;
-    sampled_color_t* light_colors;
-    float*           direct_clip_ends;
-    vec3*            directions;
+    assert(rays->light_system == JPC_COORD_LOCAL);
+    glm_vec4_zero(result);
+    //Delta lights
+    for(uint i =0;i<rays->light_delta_count;i++)
+    {
+        vec4 temp;
+        float cos_theta = fabs(rays->ray_directions[rays->indirect_rays_count+i][2]);
+        glm_vec4_scale(rays->light_colors[i].data,cos_theta,temp);
+        glm_vec4_muladd(temp,rays->bsdf_colors[i+rays->indirect_rays_count].data,result);
+    }
 
-    vec2* samples;
-    uint2 direct_sample_count;
-    uint2 indirect_sample_count;
-
-} ray_evaluator_t;
-
-ray_evaluator_t* ray_evaluator_init(const scene_t* scene,
-                                    sampler_state* sampler,
-                                    uint           direct_count,
-                                    uint           indirect_count)
-{
-
-    assert(direct_count < 64);
-    uint direct_n_sqrt = ceil(sqrt(direct_count));
-    uint indirect_n_sqrt = ceil(sqrt(indirect_count));
-
-    //TODO
-    direct_count = direct_n_sqrt * direct_n_sqrt;
-    indirect_count = indirect_n_sqrt * indirect_n_sqrt;
-    uint all_count = direct_count + indirect_count;
-
-    ray_evaluator_t* result = malloc(sizeof *result);
-    result->scene = scene;
-    result->sampler = sampler;
-    result->bsdf = bsdf_alloc(bsdf_default_limits);
-    result->direct_count = direct_count;
-    result->indirect_count = indirect_count;
-    result->colors = (sampled_color_t*) aligned_alloc(_Alignof(sampled_color_t),all_count * sizeof(sampled_color_t));
-    result->light_colors =(sampled_color_t*) aligned_alloc(_Alignof(sampled_color_t),direct_count * sizeof(sampled_color_t));
-    result->direct_clip_ends
-        = malloc(direct_count * sizeof(*result->direct_clip_ends));
-    result->directions = malloc(all_count * sizeof(*result->directions));
-    result->samples = malloc(all_count * sizeof(*result->samples));
-    result->direct_sample_count[0] = direct_n_sqrt;
-    result->direct_sample_count[1] = direct_n_sqrt;
-    result->indirect_sample_count[0] = indirect_n_sqrt;
-    result->indirect_sample_count[1] = indirect_n_sqrt;
-
-    return result;
+    //ToDo support Sampled Lights
 }
 
-void ray_evaluator_free(ray_evaluator_t* evaluator)
+void compute_indirect_color(const scattering_rays_t* rays, vec4* results)
 {
-    bsdf_free(evaluator->bsdf);
-    aligned_free(evaluator->colors);
-    aligned_free(evaluator->light_colors);
-    free(evaluator->directions);
-    free(evaluator->direct_clip_ends);
-    free(evaluator->samples);
+    for(uint i = 0; i<rays->indirect_rays_count;i++)
+    {
+
+        float cos_theta = fabs(rays->ray_directions[i][2]);
+        float scaler = cos_theta/ rays->bsdf_colors[i].pdf;
+        glm_vec3_scale(rays->bsdf_colors[i].color,scaler,results[i]);
+    }
+}
+
+ray_evaluator_t ray_evaluator_init(arena_t*       arena,
+                                   const scene_t* scene,
+                                   sampler_state* sampler,
+                                   uint           max_direct_samples,
+                                   uint           indirect_count)
+{
+    return (ray_evaluator_t){
+        .scene = scene,
+        .sampler = sampler,
+        .bsdf = bsdf_alloc(arena, bsdf_default_limits),
+        .rays = scattering_rays_alloc(
+            arena, &scene->lights, indirect_count, max_direct_samples),
+        .max_direct_samples_count = max_direct_samples,
+        .direct_samples
+        = ARENA_ARRAY_ALLOC(arena, vec2, max_direct_samples),
+        .indirect_samples_count = indirect_count,
+        .indirect_samples = ARENA_ARRAY_ALLOC(arena, vec2, indirect_count),
+    };
+}
+
+void remove_blocked_direct_rays(const geometries_t* geoms,
+                                vec3                origin,
+                                scattering_rays_t*  rays)
+{
+    assert(rays->light_system == JPC_COORD_WORLD);
+    assert(rays->indirect_system == JPC_COORD_NOTSET);
+
+    uint free_dir_index = 0;
+    uint all_rays = rays->light_delta_count + rays->lights_sampled_count;
+    uint light_delta_count = rays->light_delta_count;
+    for (uint i = 0; i < all_rays; i++)
+    {
+        assert(free_dir_index <= i);
+        ray_t ray
+            = make_ray(origin,
+                       rays->ray_directions[rays->indirect_rays_count + i],
+                       rays->distances[i]);
+
+        if (!ray_intersect_any(geoms, &ray))
+        {
+            glm_vec4_copy(rays->light_colors[i].data,
+                          rays->light_colors[free_dir_index].data);
+            glm_vec3_copy(rays->ray_directions[i],
+                          rays->ray_directions[free_dir_index]);
+            rays->distances[free_dir_index] = rays->distances[i];
+            free_dir_index++;
+        }
+        else if (i < light_delta_count )
+        {
+            assert(rays->light_delta_count > 0);
+            rays->light_delta_count--;
+        }
+        else 
+        {
+            assert(rays->lights_sampled_count > 0);
+            rays->lights_sampled_count--;
+        }
+    }
 }
 
 void eval_background(const materiallib_t* matlib,
@@ -147,96 +168,68 @@ void scatter(ray_evaluator_t* eval, ray_t incident_ray, scattering_t* result)
 {
     hit_point_t    hitpoint;
     const scene_t* scene = eval->scene;
+    scattering_rays_t* rays = &eval->rays;
+    scattering_rays_reset(&scene->lights,
+    eval->indirect_samples_count,eval->max_direct_samples_count,rays );
 
     if (ray_intersect_c3(&scene->geometries, &incident_ray, &hitpoint))
     {
-        sampled_color_t* direct_colors = eval->colors + eval->indirect_count;
-        sampled_color_t* indirect_colors = eval->colors;
-        vec3*            direct_dirs = eval->directions + eval->indirect_count;
-        vec3*            indirect_dirs = eval->directions;
 
-        vec2* direct_samples = eval->samples + eval->indirect_count;
-        vec2* indirect_samples = eval->samples;
+        sample2d(eval->sampler,
+                 eval->max_direct_samples_count,
+                 eval->direct_samples);
+        sample2d(eval->sampler,
+                 eval->indirect_samples_count,
+                 eval->indirect_samples);
 
-        // sample lights
-        sample2d(eval->sampler, eval->direct_sample_count, direct_samples);
-        sample2d(eval->sampler, eval->indirect_sample_count, indirect_samples);
+        assert(eval->indirect_samples[0][0] < 1. + 1e-6);
 
-        assert(indirect_samples[0][0] < 1. + 1e-6);
+        sample_lights(&scene->lights,
+                      eval->direct_samples,
+                      eval->max_direct_samples_count,
+                      hitpoint.location,
+                      rays);
 
-        uint light_rays_count = sample_lights(&scene->lights,
-                                          direct_samples,
-                                          eval->direct_count,
-                                          hitpoint,
-                                          direct_dirs,
-                                          eval->direct_clip_ends,
-                                          eval->light_colors);
-
-
-        uint direct_count = filter_shadow_rays(&scene->geometries,
-                                                   (const vec3*)direct_dirs,
-                                                   eval->direct_clip_ends,
-                                                   hitpoint.location,
-                                                   light_rays_count);
-
-
-        result->indirect_count = eval->indirect_count;
-
-        int all_count = eval->indirect_count + direct_count;
+        remove_blocked_direct_rays(&scene->geometries,hitpoint.location,rays);
 
         bsdf_init(
-            eval->bsdf, &scene->materiallib, incident_ray.direction, hitpoint);
+            &eval->bsdf, &scene->materiallib, incident_ray.direction, hitpoint);
 
-        bsdf_vec3_to_local(eval->bsdf, direct_dirs, direct_count);
+        bsdf_vec3_to_local(&eval->bsdf, rays->ray_directions+rays->indirect_rays_count, 
+        rays->light_delta_count+rays->lights_sampled_count
+        );
 
-        for (uint i = 0; i < eval->indirect_count; i++)
+        rays->light_system = JPC_COORD_LOCAL;
+
+
+        for (uint i = 0; i < rays->indirect_rays_count; i++)
         {
 
-            assert(indirect_samples[i][0] < 1. + 1e-6);
-            bsdf_sample(eval->bsdf, indirect_samples[i], indirect_dirs + i);
+            assert(eval->indirect_samples[i][0] < 1. + 1e-6);
+            bsdf_sample(&eval->bsdf,eval->indirect_samples[i],rays->ray_directions + i);
         }
-        vec4 emission;
+        rays->indirect_system = JPC_COORD_LOCAL;
+
+        uint all_count = rays->indirect_rays_count+rays->light_delta_count+rays->lights_sampled_count;
         bsdf_eval(
-            eval->bsdf, eval->directions, all_count, eval->colors, &emission);
+            &eval->bsdf, rays->ray_directions, all_count, rays->bsdf_colors, &rays->emission);
 
+        compute_direct_color(rays,result->direct_color);
+        result->indirect_count = rays->indirect_rays_count;
 
-        combine_rays(direct_colors,
-                     eval->light_colors,
-                     direct_dirs,
-                     direct_count,
-                     result->direct_color);
-        // glm_vec4_copy(hitpoint.location,result->direct_color);
-        if (result->direct_color[1] > 0.6)
+        compute_indirect_color(rays,result->indirect_colors);
+
+        bsdf_vec3_to_world(&eval->bsdf, rays->ray_directions, rays->indirect_rays_count);
+        rays->indirect_system = JPC_COORD_WORLD;
+
+        for (uint i = 0; i < rays->indirect_rays_count; i++)
         {
-            //            printf("lol\n");
-        }
-        result->indirect_count = eval->indirect_count;
-
-        for (uint i = 0; i < eval->indirect_count; i++)
-        {
-            float w = fabs(indirect_dirs[i][2]);
-            float scaler = w;
-            if (indirect_colors->pdf >= 1e-6)
-            {
-                //this isn't a delta ray
-                scaler /= indirect_colors->pdf;
-            }
-            glm_vec4_scale(indirect_colors[i].color,
-                            scaler,
-                           result->indirect_colors[i]);
-        }
-
-        
-        bsdf_vec3_to_world(eval->bsdf, indirect_dirs, eval->indirect_count);
-
-        for (uint i = 0; i < eval->indirect_count; i++)
-        {
-            glm_vec3_copy(indirect_dirs[i], result->indirect_rays[i].direction);
+            glm_vec3_copy(rays->ray_directions[i], result->indirect_rays[i].direction);
             glm_vec3_copy(hitpoint.location, result->indirect_rays[i].origin);
             result->indirect_rays[i].clip_end = scene->camera.clip_end;
         }
 
-        glm_vec3_copy(hitpoint.normal,result->normal);
+        glm_vec3_copy(hitpoint.normal, result->normal);
     }
     else
     {

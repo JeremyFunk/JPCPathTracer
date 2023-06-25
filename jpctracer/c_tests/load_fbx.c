@@ -5,6 +5,11 @@ int main()
     arena_t* arena = arena_make();
     char* error;
     const char* load_path = "C:\\Users\\chris\\dev\\jpc_tracer\\JPCPathTracer\\jpctracer\\c_tests\\assets\\icosphere.fbx";
+    load_path = "C:\\Users\\thoma\\source\\repos\\JPCPathTracer\\assets\\two_lights.fbx";
+
+    const char* out_dir = "C:\\Users\\chris\\dev\\jpc_tracer\\Results\\FBX1"
+    out_dir = "C:\\Users\\thoma\\source\\repos\\Results\\two_lights";
+
     scene_t*  scene = scene_load_fbx(arena,load_path,&error);
 
     if(scene==NULL)
@@ -20,7 +25,7 @@ int main()
         .tile_size = 1,
     };
 
-    render_and_save(scene,settings,(uint2){1920,1080},"C:\\Users\\chris\\dev\\jpc_tracer\\Results\\FBX1");
+    render_and_save(scene,settings,(uint2){1,1},out_dir);
 
     arena_print_stats(arena);
     arena_release(arena);

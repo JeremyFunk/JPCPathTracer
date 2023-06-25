@@ -44,21 +44,20 @@ void add_to_image(const image_t* image, uint2 idx, float* color, uint subpixels)
         img_pixel[i] += color[i] / subpixels;
 }
 
-
 void render_tile(const scene_t*           scene,
                  const render_settings_t* settings,
-                 const bounds2d_t        tile,
-                 const image_t*                 output,
-                 sampler_state* sampler,
-                 integrator_t* integrator)
+                 const bounds2d_t         tile,
+                 const image_t*           output,
+                 sampler_state*           sampler,
+                 integrator_t*            integrator)
 {
     vec2 pixel;
     // max depth of path
     float color[4 + 3 + 1];
     float subpixel2 = settings->subpixels * settings->subpixels;
-    for (uint y = tile.min[1]; y < tile.max[1];y++)
+    for (uint y = tile.min[1]; y < tile.max[1]; y++)
     {
-        for (uint x = tile.min[0];x<tile.max[0];x++)
+        for (uint x = tile.min[0]; x < tile.max[0]; x++)
         {
             for (uint i = 0; i < subpixel2; i++)
             {
@@ -72,7 +71,6 @@ void render_tile(const scene_t*           scene,
             }
         }
     }
-
 }
 
 void render(const scene_t*          scene,
@@ -94,7 +92,7 @@ void render(const scene_t*          scene,
 
     uint tiles_count_x = ceil(((float)width) / ((float)settings.tile_size));
     uint tiles_count_y = ceil(((float)height) / ((float)settings.tile_size));
-#ifdef PARALLEL_RENDER 
+#ifdef PARALLEL_RENDER
 #pragma omp parallel
     {
         uint start = omp_get_thread_num();
@@ -104,17 +102,20 @@ void render(const scene_t*          scene,
         uint start = 0;
         uint stride = 1;
 #endif
-        //log_info("Thread start");
-    sampler_state* sampler = sampler_init();
-    integrator_t*  integrator = integrator_init(settings.max_depth,
-                                               scene,
-                                               sampler,
-                                               settings.light_samples,
-                                               settings.passes);
-        for(int tiles_i = start; tiles_i<tiles_count_x*tiles_count_y;tiles_i+=stride)
+        // log_info("Thread start");
+        sampler_state* sampler = sampler_init();
+        arena_t*       arena = arena_make();
+        integrator_t*  integrator = integrator_init(arena,
+                                                   settings.max_depth,
+                                                   scene,
+                                                   sampler,
+                                                   settings.light_samples,
+                                                   settings.passes);
+        for (int tiles_i = start; tiles_i < tiles_count_x * tiles_count_y;
+             tiles_i += stride)
         {
-            int y = tiles_i/tiles_count_x;
-            int x = tiles_i%tiles_count_x;
+            int y = tiles_i / tiles_count_x;
+            int x = tiles_i % tiles_count_x;
             bounds2d_t tile
             = {.min = {x * tile_s, y * tile_s},
                 .max = {
@@ -122,10 +123,15 @@ void render(const scene_t*          scene,
                     MIN((y + 1) * tile_s, height),},
             };
             // log_info("next tile");
-            render_tile(scene, &settings, tile, outputs,sampler,integrator);
+            render_tile(scene, &settings, tile, outputs, sampler, integrator);
         }
-    integrator_free(integrator);
-    sampler_free(sampler);
+        if(start==0)
+        {
+            printf("Thread arena");
+            arena_print_stats(arena);
+        }
+        arena_release(arena);
+        sampler_free(sampler);
     }
     log_info("End rendering");
 }
@@ -269,8 +275,6 @@ void render_tile2(const scene_t*           scene,
     bsdf_free(bsdf);
 }*/
 
-
-
 const uint pass_offsets[] = {
     4,
     3,
@@ -311,7 +315,7 @@ void image_float_to_char(image_t image,
                          uint    pass_start,
                          uint    pass_channels,
                          float   factor,
-                         float offset)
+                         float   offset)
 {
     for (uint y = 0; y < image.height; y++)
     {
@@ -323,12 +327,11 @@ void image_float_to_char(image_t image,
                     = image.data[y * image.width * image.channels
                                  + x * image.channels + pass_start + c];
 
-                image_val = image_val*factor + offset;
-                uint8_t char_val = clipf(0,image_val*255.,255);
+                image_val = image_val * factor + offset;
+                uint8_t char_val = clipf(0, image_val * 255., 255);
 
                 dest[y * image.width * pass_channels + x * pass_channels + c]
-                    =  char_val;
-                
+                    = char_val;
             }
         }
     }
@@ -351,7 +354,7 @@ void render_and_save(scene_t*          scene,
 
     render(scene, settings, &image);
 
-    char* img_buffer = malloc(sizeof(char)*image.width*image.height*4);
+    char* img_buffer = malloc(sizeof(char) * image.width * image.height * 4);
 
     char str_buffer[256];
 
@@ -361,30 +364,44 @@ void render_and_save(scene_t*          scene,
         "_depth.png",
     };
 
-    float factors[] = {1.,0.5,1./settings.max_depth};
-    float offsets[] = {0,0.5,0  };
+    float factors[] = {1., 0.5, 1. / settings.max_depth};
+    float offsets[] = {0, 0.5, 0};
 
-    image_float_to_char(image,img_buffer,0,3,factors[0],offsets[0]);
+    image_float_to_char(image, img_buffer, 0, 3, factors[0], offsets[0]);
 
-    sprintf(str_buffer,"%s%s",out_dir,channel_file_names[0]);
+    sprintf(str_buffer, "%s%s", out_dir, channel_file_names[0]);
 
-    stbi_write_png(str_buffer,image.width,image.height,3,img_buffer,sizeof(char)*3*image.width);
+    stbi_write_png(str_buffer,
+                   image.width,
+                   image.height,
+                   3,
+                   img_buffer,
+                   sizeof(char) * 3 * image.width);
 
-    for(uint i = 1; i<3;i++)
+    for (uint i = 1; i < 3; i++)
     {
-        int pass_mask = 1<<i;
-        if(pass_mask & settings.passes)
+        int pass_mask = 1 << i;
+        if (pass_mask & settings.passes)
         {
             uint pass_channel = pass_offsets[i];
-            uint pass_start = channel_index(settings.passes,pass_mask);
-            image_float_to_char(image,img_buffer,pass_start,pass_channel,factors[i],offsets[i]);
+            uint pass_start = channel_index(settings.passes, pass_mask);
+            image_float_to_char(image,
+                                img_buffer,
+                                pass_start,
+                                pass_channel,
+                                factors[i],
+                                offsets[i]);
 
-            sprintf(str_buffer,"%s%s",out_dir,channel_file_names[i]);
+            sprintf(str_buffer, "%s%s", out_dir, channel_file_names[i]);
 
-            stbi_write_png(str_buffer,image.width,image.height,pass_channel,img_buffer,sizeof(char)*pass_channel*image.width);
+            stbi_write_png(str_buffer,
+                           image.width,
+                           image.height,
+                           pass_channel,
+                           img_buffer,
+                           sizeof(char) * pass_channel * image.width);
         }
     }
 
     free(img_buffer);
-
 }

@@ -195,8 +195,8 @@ size_t arena_memory_used(const arena_t* arena)
 
 void arena_print_stats(arena_t* arena)
 {
-    printf("Arena memory used: %d\n", arena_memory_used(arena));
-    printf("Arena memory allocated: %d\n", arena_memory_allocated(arena));
+    printf("Arena memory used: %zu\n", arena_memory_used(arena));
+    printf("Arena memory allocated: %zu\n", arena_memory_allocated(arena));
 
 
 }

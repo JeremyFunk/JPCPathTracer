@@ -155,7 +155,7 @@ void sort4(bvh_stack_item_cl_t* first)
 
 void insertion_sort(bvh_stack_item_cl_t* first, bvh_stack_item_cl_t* last)
 {
-    int size = last - first;
+    size_t size = last - first;
 
     // Insertion Sort
     for (int i = 1; i < size; i++)

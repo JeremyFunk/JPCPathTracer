@@ -43,6 +43,8 @@ bool ray_intersect_c3(const geometries_t* geometries,
                       hit_point_t*        out_hitpoint);
 
 
+bool ray_intersect_any(const geometries_t* geoms,const ray_t* ray);
+
 //returns the number s of shadow rays that hit nothing
 //in dirs[0:s] are the shadow rays that hit nothing
 //works inplace on dirs

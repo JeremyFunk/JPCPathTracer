@@ -11,28 +11,25 @@
 
 typedef struct integrator_s
 {
-    ray_evaluator_t* evaluator;
+    ray_evaluator_t evaluator;
     uint             max_depth;
     int passes;
 } integrator_t;
 
-integrator_t* integrator_init(int            max_depth,
+integrator_t* integrator_init( arena_t* arena,
+                                int            max_depth,
                               const scene_t* scene,
                               sampler_state* sampler,
                               uint           light_samples,
                               int passes)
 {
-    integrator_t* result = malloc(sizeof(*result));
-    result->evaluator = ray_evaluator_init(scene, sampler, light_samples, 1);
+    integrator_t* result = arena_alloc(arena,sizeof(*result));
+    result->evaluator = ray_evaluator_init(arena,scene, sampler, light_samples, 1);
     result->max_depth = max_depth;
     result->passes = passes;
     return result;
 }
 
-void integrator_free(integrator_t* integrator)
-{
-    ray_evaluator_free(integrator->evaluator);
-}
 
 
 void integrate(integrator_t* integrator, ray_t ray, float* result)
@@ -80,7 +77,7 @@ void integrate(integrator_t* integrator, ray_t ray, float* result)
                ray.direction[1],
                ray.direction[2]);
 #endif
-        scatter(integrator->evaluator, ray, &scattering);
+        scatter(&integrator->evaluator, ray, &scattering);
 
         #ifdef INTEGRATOR_LOG
         vec4 old_path_color;
@@ -189,7 +186,7 @@ void integrate2(integrator_t* integrator, ray_t ray, vec4 result)
     glm_vec4_zero(path_color);
     glm_vec4_one(bsdf_color);
 
-    scatter(integrator->evaluator, ray, &scattering);
+    scatter(&integrator->evaluator, ray, &scattering);
 
     if (scattering.indirect_count == 0)
     {

@@ -36,3 +36,5 @@ inline void aligned_free(void* ptr)
     free(ptr);
 }
 #endif
+
+#define ARENA_ARRAY_ALLOC(arena,T,count) (T*) arena_alloc_aligned(arena,sizeof(T)*(count),_Alignof(T))

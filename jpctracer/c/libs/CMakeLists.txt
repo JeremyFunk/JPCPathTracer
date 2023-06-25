@@ -17,5 +17,5 @@ add_subdirectory(yaml-cpp)
 add_library(libsimdpp INTERFACE)
 target_include_directories(libsimdpp INTERFACE "libsimdpp/")
 
-add_library(ufbx_lib STATIC "./ufbx/ufbx.c")
-target_include_directories(ufbx_lib PUBLIC ".")
+#add_library(ufbx_lib STATIC "./ufbx/ufbx.c")
+#target_include_directories(ufbx_lib PUBLIC ".")

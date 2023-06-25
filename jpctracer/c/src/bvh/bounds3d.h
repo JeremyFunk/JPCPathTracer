@@ -24,7 +24,7 @@ static inline ray_trav_bounds_t ray_trav_bounds_make(const ray_t* ray)
     ray_trav_bounds_t result;
     for (int i = 0; i < 3; i++)
     {
-        result.inv_dir[i] = 1. / ray->direction[i];
+        result.inv_dir[i] = (float) 1. / ray->direction[i];
     }
 
     for (int i = 0; i < 3; i++)

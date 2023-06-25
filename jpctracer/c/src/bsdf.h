@@ -24,12 +24,12 @@ weight eval_f sample_f type params
 
 typedef struct
 {
-    uint      count;
-    uint      count_max;
-    eval_f*   evals;
-    sample_f* samplers;
+    eval_f*   evals; 
+    sample_f* samplers; 
     void**    params;
     float*    weights;
+    uint      count; 
+    uint      count_max; 
 } bsdfshaders_t;
 
 typedef struct bsdfnode_s
@@ -63,17 +63,18 @@ static const bsdf_limits_t bsdf_default_limits = {
 
 typedef struct bsdfcontext_s
 {
-    bsdfshaders_t     shaders;
-    uint              mix_nodes_count;
-    uint              mix_nodes_count_max;
-    bsdfmixnode_t*    mix_nodes;
-    scratch_allocator_t params_allocator;
-
+    mat4             world_to_local;
     hit_point_t      hit;
     vec3             incident_dir;
+
+    bsdfshaders_t     shaders;
+    bsdfmixnode_t*    mix_nodes;
+    scratch_allocator_t params_allocator;
     sampled_color_t* temp_eval_color;
-    uint             eval_color_max;
-    mat4             world_to_local;
+
+    uint              eval_color_max;
+    uint              mix_nodes_count;
+    uint              mix_nodes_count_max;
 
 } bsdfcontext_t;
 
@@ -88,8 +89,7 @@ void bsdfshaders_weights(bsdfmixnode_t*     nodes,
                          uint               weights_n,
                          scratch_allocator_t* allocator);
 
-bsdfcontext_t* bsdf_alloc(bsdf_limits_t limits);
-void           bsdf_free(bsdfcontext_t* bsdf);
+bsdfcontext_t bsdf_alloc(arena_t* arena,bsdf_limits_t limits);
 
 void bsdf_init(bsdfcontext_t*       bsdf,
                const materiallib_t* matlib,

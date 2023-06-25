@@ -10,11 +10,14 @@ extern "C"
 #include "shaders.h"
 #include "types.h"
 #include <assert.h>
+#include "algorithms.h"
 }
 
-#include "algorithms.h"
+
+#define _Alignof alignof
 #include "allocators.hpp"
 #include <algorithm>
+
 
 bsdfnode_t bsdfshaders_add(bsdfshaders_t* shaders,
                            eval_f         eval,
@@ -86,43 +89,33 @@ struct bsdf_s
     bsdf_limits_t limits;
 };
 
-bsdfcontext_t* bsdf_alloc(bsdf_limits_t limits)
+bsdfcontext_t bsdf_alloc( arena_t* arena, bsdf_limits_t limits)
 {
-    return new bsdfcontext_t{
+     return {
+        .world_to_local = GLM_MAT4_IDENTITY_INIT,
+        .hit= hit_point_t{},
+        .incident_dir = {0},
         .shaders = bsdfshaders_t
         {
+            .evals = ARENA_ARRAY_ALLOC(arena, eval_f,limits.bsdf_shaders_max),
+            .samplers = ARENA_ARRAY_ALLOC(arena, sample_f,limits.bsdf_shaders_max),
+            .params = ARENA_ARRAY_ALLOC(arena,void*,limits.bsdf_shaders_max),
+            .weights =  ARENA_ARRAY_ALLOC(arena,float,limits.bsdf_shaders_max),
             .count = 0,
             .count_max = limits.bsdf_shaders_max,
-            .evals = new eval_f[limits.bsdf_shaders_max],
-            .samplers = new sample_f[limits.bsdf_shaders_max],
-            .params = new void*[limits.bsdf_shaders_max],
-            .weights = new float[limits.bsdf_shaders_max],
         },
-        .mix_nodes_count = 0,
-        .mix_nodes_count_max = limits.bsdf_mixnodes_max,
-        .mix_nodes = new bsdfmixnode_t[limits.bsdf_mixnodes_max],
+        .mix_nodes = ARENA_ARRAY_ALLOC(arena,  bsdfmixnode_t,limits.bsdf_mixnodes_max),
         .params_allocator = scratch_allocator_t
         {
-            .memory = malloc(limits.bsdf_params_max),
+            .memory = arena_alloc(arena,limits.bsdf_params_max),
             .used = 0,
             .size = limits.bsdf_params_max,
         },
-        .hit= hit_point_t{},
-        .incident_dir = {0},
-        .temp_eval_color = new sampled_color_t[limits.bsdf_eval_max],
+        .temp_eval_color = ARENA_ARRAY_ALLOC(arena, sampled_color_t,limits.bsdf_eval_max),
         .eval_color_max = limits.bsdf_eval_max,
-        .world_to_local = GLM_MAT4_IDENTITY_INIT,
+        .mix_nodes_count = 0,
+        .mix_nodes_count_max = limits.bsdf_mixnodes_max,
    };
-}
-void bsdf_free(bsdfcontext_t* bsdf)
-{
-    free(bsdf->mix_nodes);
-    free(bsdf->params_allocator.memory);
-    free(bsdf->shaders.params);
-    free(bsdf->shaders.evals);
-    free(bsdf->shaders.samplers);
-    free(bsdf->shaders.weights);
-    free(bsdf);
 }
 
 void normal_transformation(vec3 normal, mat4 dst)
@@ -221,31 +214,6 @@ void bsdf_sample(bsdfcontext_t* ctx, vec2 rand_p, vec3* out_scattered)
     ctx->shaders.samplers[i](ctx->incident_dir, rand_p, out_scattered, param);
 }
 
-sampled_color_t operator*(float s, sampled_color_t a)
-{
-    sampled_color_t result;
-    result.pdf = a.pdf * s;
-    glm_vec4_scale(a.color, s, result.color);
-    return result;
-}
-
-sampled_color_t operator*(sampled_color_t a, float s)
-{
-    return operator*(s, a);
-}
-
-sampled_color_t operator+(sampled_color_t a, sampled_color_t b)
-{
-    sampled_color_t result;
-    result.pdf = a.pdf + b.pdf;
-    glm_vec4_add(a.color, b.color, result.color);
-    return result;
-}
-
-void operator+=(sampled_color_t& a, const sampled_color_t& b)
-{
-    a = a + b;
-}
 
 void bsdf_eval(bsdfcontext_t*   ctx,
                vec3*            scattered_dir,
@@ -282,7 +250,7 @@ void bsdf_eval(bsdfcontext_t*   ctx,
         glm_vec4_add(temp_emission, *out_emission, *out_emission);
         for (uint j = 0; j < n; j++)
         {
-            out_color[j] += weight * ctx->temp_eval_color[j];
+            glm_vec4_muladds(ctx->temp_eval_color[j].data,weight,out_color[j].data);
         }
     }
 }

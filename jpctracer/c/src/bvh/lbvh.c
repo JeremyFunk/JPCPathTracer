@@ -19,9 +19,12 @@ uint32_t left_shift3(uint32_t x)
 
 uint32_t encode_morton(vec3 centroid)
 {
-    uint32_t x = left_shift3(MIN(MAX(centroid[0] * 1024.0f, 0.0f), 1023.0f));
-    uint32_t y = left_shift3(MIN(MAX(centroid[1] * 1024.0f, 0.0f), 1023.0f));
-    uint32_t z = left_shift3(MIN(MAX(centroid[2] * 1024.0f, 0.0f), 1023.0f));
+    uint32_t x
+        = left_shift3((uint32_t)MIN(MAX(centroid[0] * 1024.0f, 0.0f), 1023.0f));
+    uint32_t y
+        = left_shift3((uint32_t)MIN(MAX(centroid[1] * 1024.0f, 0.0f), 1023.0f));
+    uint32_t z
+        = left_shift3((uint32_t)MIN(MAX(centroid[2] * 1024.0f, 0.0f), 1023.0f));
 
     return x * 4 + y * 2 + z;
 }

@@ -277,7 +277,7 @@ void render(const scene_t*          scene,
 
 void render_and_save(scene_t* scene, render_settings_t settings, const uint2 resolution, const char* out_dir);
 
-bvh_tree_t* bvhtree_triangles_build(arena_t* areana, const triangle_mesh_t* tris);
+bvh_tree_t* bvhtree_triangles_build(arena_t* arena, const triangle_mesh_t* tris);
 bvh_tree_t* bvhtree_spheres_build(arena_t* arena, const sphere_mesh_t* spheres);
 bvh_tree_t* bvhtree_instances_build(arena_t* arena,const geometries_t* geometries);
 
